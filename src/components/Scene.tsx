@@ -29,6 +29,8 @@ function TerrainMesh() {
   const addMarker = useHeightmapStore((s) => s.addMarker);
   const { camera, raycaster } = useThree();
   const isDragging = useRef(false);
+  const lastCell = useRef<{ x: number; y: number } | null>(null);
+  const strokeCells = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!heightmap) return;
@@ -69,15 +71,39 @@ function TerrainMesh() {
     return null;
   }, [camera, raycaster]);
 
+  // Bresenham line between two cells
+  const lineTo = useCallback((from: { x: number; y: number }, to: { x: number; y: number }): { x: number; y: number }[] => {
+    const points: { x: number; y: number }[] = [];
+    let x0 = from.x, y0 = from.y;
+    const x1 = to.x, y1 = to.y;
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    while (true) {
+      points.push({ x: x0, y: y0 });
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dy) { err -= dy; x0 += sx; }
+      if (e2 < dx) { err += dx; y0 += sy; }
+    }
+    return points;
+  }, []);
+
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (mode !== "edit") return;
     isDragging.current = true;
+    strokeCells.current.clear();
+    lastCell.current = null;
     (e.target as HTMLElement)?.setPointerCapture?.((e as unknown as PointerEvent).pointerId);
     const uv = getUVFromEvent(e);
     if (uv) {
+      lastCell.current = uv;
       if (brush.type === "marker") {
         addMarker(uv.x, uv.y);
       } else {
+        strokeCells.current.add(`${uv.x},${uv.y}`);
         applyBrush(uv.x, uv.y);
       }
     }
@@ -90,10 +116,27 @@ function TerrainMesh() {
       setMouseInfo(Math.round(h * 3000), biomeAtHeight(h));
     }
     if (!isDragging.current || mode !== "edit") return;
-    if (uv && brush.type !== "marker") applyBrush(uv.x, uv.y);
-  }, [mode, brush.type, applyBrush, heightmap, setMouseInfo, getUVFromEvent]);
+    if (!uv) return;
+    if (brush.type === "marker") return;
 
-  const handlePointerUp = useCallback(() => { isDragging.current = false; }, []);
+    // Interpolate line between last known cell and current cell
+    if (lastCell.current) {
+      const line = lineTo(lastCell.current, uv);
+      for (const p of line) {
+        const key = `${p.x},${p.y}`;
+        if (!strokeCells.current.has(key)) {
+          strokeCells.current.add(key);
+          applyBrush(p.x, p.y);
+        }
+      }
+    }
+    lastCell.current = uv;
+  }, [mode, brush.type, applyBrush, heightmap, setMouseInfo, getUVFromEvent, lineTo]);
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+    lastCell.current = null;
+  }, []);
 
   return (
     <mesh

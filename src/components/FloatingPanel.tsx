@@ -25,19 +25,19 @@ export default function FloatingPanel() {
         </div>
       </div>
       <div className="fp-section">
-        <div className="fp-label">强度: 1-10</div>
+        <div className="fp-label">强度</div>
         <div className="fp-slider-wrap">
           <input
             type="range"
             min={1}
             max={10}
-            step={0.5}
-            value={Math.round(brush.strength * 10)}
-            onChange={(e) => setBrush({ strength: Number(e.target.value) / 10 })}
+            step={1}
+            value={Math.round(brush.strength * 40)}
+            onChange={(e) => setBrush({ strength: Number(e.target.value) / 40 })}
             className="fp-slider fp-slider-vertical"
             style={{ writingMode: "vertical-lr", direction: "rtl", height: 80 }}
           />
-          <span className="fp-value">{Math.round(brush.strength * 10)}</span>
+          <span className="fp-value">{Math.round(brush.strength * 40)}</span>
         </div>
       </div>
     </div>

@@ -132,7 +132,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mode: "edit",
   viewMode: "3d",
   heightmap: null,
-  brush: { radius: 15, strength: 0.3, type: "raise" },
+  brush: { radius: 15, strength: 0.175, type: "raise" },
   simProgress: null,
   archive: null,
   undoStack: [],
