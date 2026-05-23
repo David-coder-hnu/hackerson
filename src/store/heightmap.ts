@@ -101,13 +101,14 @@ function applyBrushOp(
         break;
       }
       case "glacier": {
-        // Fractal erosion: hash-based irregular carving
-        const hh = ((px * 374761393 + py * 668265263) ^ ((px * 1274126177) >> 13)) / 2147483648;
-        const n = hh - Math.floor(hh); // 0-1 pseudo-random
-        // Combine Gaussian weight with fractal noise for irregular shape
-        const carve = w * (0.3 + n * 0.7);
-        // Carve deeper in center, irregular at edges
-        hm[idx] = Math.max(0, hm[idx] - strength * 3 * carve);
+        // Coherent noise: smooth 2D fractal variation for glacial erosion
+        const nx = px * 3.7, ny = py * 2.9;
+        const n1 = Math.sin(nx * 1.3 + ny * 2.1) * Math.cos(nx * 2.3 - ny * 1.1);
+        const n2 = Math.sin(nx * 5.7 - ny * 3.3) * Math.cos(nx * 1.9 + ny * 4.7) * 0.5;
+        const n3 = Math.sin(nx * 11.3 + ny * 7.1) * Math.cos(nx * 8.5 - ny * 5.9) * 0.25;
+        const n = (n1 + n2 + n3) * 0.4 + 0.5; // multi-octave, range ~0-1
+        const carve = w * (0.15 + n * 0.85);
+        hm[idx] = Math.max(0, hm[idx] - strength * 2.5 * carve);
         break;
       }
     }
