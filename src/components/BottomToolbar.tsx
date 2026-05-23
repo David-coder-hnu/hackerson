@@ -13,6 +13,7 @@ const TOOLS: ToolDef[] = [
   { key: "raise", label: "隆起", icon: "raise", type: "raise" },
   { key: "lower", label: "削低", icon: "lower", type: "lower" },
   { key: "smooth", label: "平滑", icon: "smooth", type: "smooth" },
+  { key: "glacier", label: "冰川", icon: "glacier", type: "glacier" },
   { key: "marker", label: "图钉", icon: "marker", type: "marker" },
   { key: "toggle", label: "2D/3D", icon: "toggle", type: "toggle" },
   { key: "reset", label: "重置", icon: "reset", type: "reset" },
@@ -47,6 +48,12 @@ function ToolIcon({ icon, active }: { icon: string; active: boolean }) {
       return (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
           <path d="M3 12c2-6 6-6 9 0s6 6 9 0" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "glacier":
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <path d="M4 20l4-8 3 4 4-10 5 6 3-5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
     case "marker":
@@ -88,6 +95,7 @@ export default function BottomToolbar() {
       case "raise":
       case "lower":
       case "smooth":
+      case "glacier":
       case "marker":
         setBrush({ type: tool.type });
         break;
@@ -102,7 +110,7 @@ export default function BottomToolbar() {
 
   const isActive = (tool: ToolDef) => {
     if (tool.type === "toggle") return viewMode === "2d";
-    if (tool.type === "camera" || tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "marker") {
+    if (tool.type === "camera" || tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "glacier" || tool.type === "marker") {
       return brush.type === tool.type;
     }
     return false;

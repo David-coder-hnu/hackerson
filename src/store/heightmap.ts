@@ -96,8 +96,18 @@ function applyBrushOp(
         break;
       }
       case "water": {
-        const target = 0.12; // pull toward shallow water level
+        const target = 0.12;
         hm[idx] = hm[idx] + (target - hm[idx]) * strength * w;
+        break;
+      }
+      case "glacier": {
+        // Fractal erosion: hash-based irregular carving
+        const hh = ((px * 374761393 + py * 668265263) ^ ((px * 1274126177) >> 13)) / 2147483648;
+        const n = hh - Math.floor(hh); // 0-1 pseudo-random
+        // Combine Gaussian weight with fractal noise for irregular shape
+        const carve = w * (0.3 + n * 0.7);
+        // Carve deeper in center, irregular at edges
+        hm[idx] = Math.max(0, hm[idx] - strength * 3 * carve);
         break;
       }
     }
