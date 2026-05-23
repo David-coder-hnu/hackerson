@@ -130,6 +130,27 @@ function MarkerDots() {
   );
 }
 
+const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"];
+
+function SceneControls() {
+  const brushType = useHeightmapStore((s) => s.brush.type);
+  const sculpting = SCULPT_TOOLS.includes(brushType);
+
+  return (
+    <OrbitControls
+      enableDamping
+      dampingFactor={0.1}
+      maxPolarAngle={Math.PI / 2.2}
+      enabled={!sculpting}
+      mouseButtons={{
+        LEFT: sculpting ? undefined : 0,   // left-drag orbits only when not sculpting
+        MIDDLE: 2,   // middle-drag always orbits
+        RIGHT: 2,    // right-drag always orbits
+      }}
+    />
+  );
+}
+
 export default function Scene() {
   return (
     <Canvas
@@ -140,7 +161,7 @@ export default function Scene() {
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
       <MarkerDots />
-      <OrbitControls enableDamping dampingFactor={0.1} maxPolarAngle={Math.PI / 2.2} />
+      <SceneControls />
     </Canvas>
   );
 }
