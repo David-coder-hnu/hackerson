@@ -213,24 +213,21 @@ function computeClimateFields(
       // === PRECIPITATION ===
       let p = latPrecip * 0.3;
 
-      // Orographic lift: multi-step lookback along wind direction
+      // Orographic lift: lookback along wind (4 steps, reduced for performance)
       let totalLift = 0;
-      for (let step = 1; step <= 8; step++) {
+      for (let step = 2; step <= 8; step += 2) {
         const sx = Math.round(x - wx * step);
         const sy = Math.round(y - wy * step);
         if (!inBounds(sx, sy)) break;
         const prevH = hm[idx(sx, sy)];
-        const sx2 = Math.round(x - wx * (step - 1));
-        const sy2 = Math.round(y - wy * (step - 1));
-        const curH = inBounds(sx2, sy2) ? hm[idx(sx2, sy2)] : hm[i];
-        const lift = (curH - prevH) * 10; // km
-        if (lift > 0) totalLift += lift * Math.exp(-step / 4); // decay with distance
+        const lift = (elev - prevH * 10);
+        if (lift > 0) totalLift += lift * Math.exp(-step / 5);
       }
-      p += totalLift * 0.08; // windward rain
+      p += totalLift * 0.06;
 
-      // Rain shadow: extended look-ahead to detect mountain barriers
+      // Rain shadow: detect upwind barriers
       let maxUpwindH = 0;
-      for (let step = 1; step <= 12; step++) {
+      for (let step = 2; step <= 10; step += 2) {
         const sx = Math.round(x - wx * step);
         const sy = Math.round(y - wy * step);
         if (!inBounds(sx, sy)) break;
@@ -238,7 +235,7 @@ function computeClimateFields(
       }
       const barrierHeight = maxUpwindH - elev;
       if (barrierHeight > 0.5) {
-        p -= barrierHeight * 0.06 * coriolis; // rain shadow behind high terrain
+        p -= barrierHeight * 0.06 * coriolis;
       }
 
       // Mountain peak precipitation (high peaks force air up on both sides)

@@ -179,57 +179,55 @@ function TerrainMesh() {
   );
 }
 
-// Water overlay using InstancedMesh with animated shaders
-function WaterOverlay() {
+// All terrain overlays (markers + water) in one rotated group
+function TerrainOverlays() {
+  const markers = useHeightmapStore((s) => s.markers);
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const rMask = useHeightmapStore((s) => s.riverData.riverMask);
   const lMask = useHeightmapStore((s) => s.riverData.lakeMask);
   const mode = useHeightmapStore((s) => s.mode);
   const riverRef = useRef<THREE.InstancedMesh>(null!);
   const lakeRef = useRef<THREE.InstancedMesh>(null!);
-  const riverMat = useRef<THREE.ShaderMaterial>(null!);
-  const lakeMat = useRef<THREE.ShaderMaterial>(null!);
+  const riverMat = useRef<THREE.ShaderMaterial>(createRiverMaterial());
+  const lakeMat = useRef<THREE.ShaderMaterial>(createLakeMaterial());
   const scale = 10 / HEIGHTMAP_SIZE;
+  const showWater = mode === "observing" || !!rMask;
 
-  const showOverlay = mode === "observing" || !!rMask;
-
-  // Init materials once
-  useEffect(() => {
-    riverMat.current = createRiverMaterial();
-    lakeMat.current = createLakeMaterial();
-  }, []);
-
-  // Animate water time uniform
+  // Animate water
   useFrame(({ clock }) => {
-    if (riverMat.current) riverMat.current.uniforms.uTime.value = clock.elapsedTime;
-    if (lakeMat.current) lakeMat.current.uniforms.uTime.value = clock.elapsedTime;
+    const t = clock.elapsedTime;
+    if (riverMat.current) riverMat.current.uniforms.uTime.value = t;
+    if (lakeMat.current) lakeMat.current.uniforms.uTime.value = t;
   });
 
+  // Rebuild water instances only when masks change
   useEffect(() => {
-    if (!showOverlay || !rMask || !heightmap) return;
+    if (!showWater || !rMask || !heightmap) return;
     const step = 3;
-    const riverCells: { x: number; y: number; z: number; s: number }[] = [];
-    const lakeCells: { x: number; y: number; z: number }[] = [];
+    const riverCells: number[] = [];
+    const lakeCells: number[] = [];
 
     for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
       for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
         const i = y * HEIGHTMAP_SIZE + x;
-        const h = heightmap[i] * 2;
-        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-        if (rMask[i]) riverCells.push({ x: px, y: py, z: h + 0.02, s: scale * 2.5 });
-        if (lMask?.[i]) lakeCells.push({ x: px, y: py, z: h + 0.015 });
+        if (rMask[i]) riverCells.push(i);
+        if (lMask?.[i]) lakeCells.push(i);
       }
     }
 
+    const m = new THREE.Matrix4();
     if (riverRef.current) {
       riverRef.current.count = Math.min(riverCells.length, 50000);
-      const m = new THREE.Matrix4();
       for (let j = 0; j < riverRef.current.count; j++) {
-        const c = riverCells[j];
+        const i = riverCells[j];
+        const y = Math.floor(i / HEIGHTMAP_SIZE), x = i % HEIGHTMAP_SIZE;
+        const h = heightmap[i] * 2;
+        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+        const s = scale * 2.5;
         m.identity();
-        m.scale(new THREE.Vector3(c.s, c.s, 1));
-        m.setPosition(c.x, c.y, c.z);
+        m.scale(new THREE.Vector3(s, s, 1));
+        m.setPosition(px, py, h + 0.02);
         riverRef.current.setMatrixAt(j, m);
       }
       riverRef.current.instanceMatrix.needsUpdate = true;
@@ -237,39 +235,26 @@ function WaterOverlay() {
 
     if (lakeRef.current) {
       lakeRef.current.count = Math.min(lakeCells.length, 50000);
-      const m = new THREE.Matrix4();
       const ls = scale * 4;
       for (let j = 0; j < lakeRef.current.count; j++) {
-        const c = lakeCells[j];
+        const i = lakeCells[j];
+        const y = Math.floor(i / HEIGHTMAP_SIZE), x = i % HEIGHTMAP_SIZE;
+        const h = heightmap[i] * 2;
+        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
         m.identity();
         m.scale(new THREE.Vector3(ls, ls, 1));
-        m.setPosition(c.x, c.y, c.z);
+        m.setPosition(px, py, h + 0.015);
         lakeRef.current.setMatrixAt(j, m);
       }
       lakeRef.current.instanceMatrix.needsUpdate = true;
     }
-  }, [rMask, lMask, heightmap, showOverlay, scale]);
-
-  if (!showOverlay) return null;
-
-  return (
-    <group rotation={[-Math.PI / 3, 0, 0]}>
-      <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]} material={riverMat.current}>
-        <planeGeometry args={[1, 1]} />
-      </instancedMesh>
-      <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]} material={lakeMat.current}>
-        <planeGeometry args={[1, 1]} />
-      </instancedMesh>
-    </group>
-  );
-}
-
-function TerrainOverlays() {
-  const markers = useHeightmapStore((s) => s.markers);
-  const heightmap = useHeightmapStore((s) => s.heightmap);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rMask, lMask, showWater]);
 
   return (
     <group rotation={[-Math.PI / 3, 0, 0]}>
+      {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
           const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
@@ -282,6 +267,17 @@ function TerrainOverlays() {
             </mesh>
           );
         })}
+      {/* Water */}
+      {showWater && (
+        <>
+          <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]} material={riverMat.current}>
+            <planeGeometry args={[1, 1]} />
+          </instancedMesh>
+          <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]} material={lakeMat.current}>
+            <planeGeometry args={[1, 1]} />
+          </instancedMesh>
+        </>
+      )}
     </group>
   );
 }
@@ -383,7 +379,6 @@ export default function Scene() {
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
       <TerrainOverlays />
-      <WaterOverlay />
       <SceneControls />
     </Canvas>
   );
