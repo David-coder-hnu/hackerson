@@ -117,41 +117,38 @@ const fragmentShader = /* glsl */ `
     return smoothstep(60.0, 75.0, abs(lat));
   }
 
-  // ---- 6-band hypsometric tint, no grey mud ----
+  // ---- National Geographic-style hypsometric ----
   vec3 landColorNoClimate(float h, float slope, vec2 uv) {
     float elev = (h - 0.15) * 3.0;
     float lat = uv.y * 180.0 - 90.0;
 
-    // 6 distinct bands: 绿→黄→橙→棕→白
-    vec3 plainG  = vec3(0.612, 0.741, 0.486); // <200m  #9CBD7C
-    vec3 hillG   = vec3(0.753, 0.839, 0.639); // 200-500m #C0D6A3
-    vec3 plateY  = vec3(0.910, 0.847, 0.604); // 500-1500m #E8D89A
-    vec3 mountO  = vec3(0.851, 0.655, 0.478); // 1500-3000m #D9A77A
-    vec3 snowB   = vec3(0.690, 0.490, 0.384); // 3000-5000m #B07D62
-    vec3 glacierW= vec3(0.949, 0.949, 0.949); // >5000m #F2F2F2
+    // High-contrast NG-style: 深绿→亮黄绿→金黄→赤褐→红棕→纯白
+    vec3 meadow  = vec3(0.235, 0.471, 0.220); // 0m   深草绿
+    vec3 brightG = vec3(0.482, 0.682, 0.278); // 200m 亮黄绿
+    vec3 goldY   = vec3(0.890, 0.741, 0.341); // 500m 金黄色
+    vec3 rustO   = vec3(0.820, 0.420, 0.220); // 1500m 赤褐色
+    vec3 redB    = vec3(0.580, 0.259, 0.169); // 3000m 红棕色
+    vec3 white   = vec3(0.980, 0.980, 0.980); // 5000m 纯白
 
     vec3 col;
-    if (elev < 0.2) col = plainG;
-    else if (elev < 0.5) col = mix(plainG, hillG, (elev - 0.2) / 0.3);
-    else if (elev < 1.5) col = mix(hillG, plateY, (elev - 0.5) / 1.0);
-    else if (elev < 3.0) col = mix(plateY, mountO, (elev - 1.5) / 1.5);
-    else if (elev < 5.0) col = mix(mountO, snowB, (elev - 3.0) / 2.0);
-    else col = mix(snowB, glacierW, (elev - 5.0) / 3.0);
+    if (elev < 0.2) col = meadow;
+    else if (elev < 0.5) col = mix(meadow, brightG, (elev - 0.2) / 0.3);
+    else if (elev < 1.5) col = mix(brightG, goldY, (elev - 0.5) / 1.0);
+    else if (elev < 3.0) col = mix(goldY, rustO, (elev - 1.5) / 1.5);
+    else if (elev < 5.0) col = mix(rustO, redB, (elev - 3.0) / 2.0);
+    else col = mix(redB, white, (elev - 5.0) / 3.0);
 
-    // Latitude ice
-    vec3 ice = vec3(0.949, 0.949, 0.949);
+    vec3 ice = vec3(0.980, 0.980, 0.980);
     float s = snowLine(lat, h);
     col = mix(col, ice, s);
     float p = polarIce(lat);
     col = mix(col, ice, p * (1.0 - h * 0.3));
-    // Tundra
     vec3 tundra = vec3(0.737, 0.690, 0.608);
     float tm = smoothstep(50.0, 65.0, abs(lat)) * (1.0 - s);
     col = mix(col, tundra, tm * 0.5);
 
-    // Steep slopes darker
     float steep = smoothstep(0.10, 0.50, slope);
-    col = mix(col, col * 0.85, steep * 0.5);
+    col = mix(col, col * 0.85, steep * 0.3);
     return col;
   }
 
@@ -161,20 +158,20 @@ const fragmentShader = /* glsl */ `
     float lat = uv.y * 180.0 - 90.0;
     float elev = (h - 0.15) * 3.0;
 
-    vec3 plainG  = vec3(0.612, 0.741, 0.486);
-    vec3 hillG   = vec3(0.753, 0.839, 0.639);
-    vec3 plateY  = vec3(0.910, 0.847, 0.604);
-    vec3 mountO  = vec3(0.851, 0.655, 0.478);
-    vec3 snowB   = vec3(0.690, 0.490, 0.384);
-    vec3 glacierW= vec3(0.949, 0.949, 0.949);
+    vec3 meadow  = vec3(0.235, 0.471, 0.220);
+    vec3 brightG = vec3(0.482, 0.682, 0.278);
+    vec3 goldY   = vec3(0.890, 0.741, 0.341);
+    vec3 rustO   = vec3(0.820, 0.420, 0.220);
+    vec3 redB    = vec3(0.580, 0.259, 0.169);
+    vec3 white   = vec3(0.980, 0.980, 0.980);
 
     vec3 base;
-    if (elev < 0.2) base = plainG;
-    else if (elev < 0.5) base = mix(plainG, hillG, (elev - 0.2) / 0.3);
-    else if (elev < 1.5) base = mix(hillG, plateY, (elev - 0.5) / 1.0);
-    else if (elev < 3.0) base = mix(plateY, mountO, (elev - 1.5) / 1.5);
-    else if (elev < 5.0) base = mix(mountO, snowB, (elev - 3.0) / 2.0);
-    else base = mix(snowB, glacierW, (elev - 5.0) / 3.0);
+    if (elev < 0.2) base = meadow;
+    else if (elev < 0.5) base = mix(meadow, brightG, (elev - 0.2) / 0.3);
+    else if (elev < 1.5) base = mix(brightG, goldY, (elev - 0.5) / 1.0);
+    else if (elev < 3.0) base = mix(goldY, rustO, (elev - 1.5) / 1.5);
+    else if (elev < 5.0) base = mix(rustO, redB, (elev - 3.0) / 2.0);
+    else base = mix(redB, white, (elev - 5.0) / 3.0);
 
     float precip = 1.0;
     if (uHasClimate > 0.5) precip = texture2D(uPrecipMap, uv).r;
@@ -194,7 +191,7 @@ const fragmentShader = /* glsl */ `
     float rockT = smoothstep(1.5, 4.0, elev);
     vec3 col = mix(veg, base, rockT);
 
-    vec3 ice = vec3(0.949, 0.949, 0.949);
+    vec3 ice = vec3(0.980, 0.980, 0.980);
     float s = snowLine(lat, h);
     col = mix(col, ice, s);
     float p = polarIce(lat);
@@ -203,7 +200,7 @@ const fragmentShader = /* glsl */ `
     col = mix(col, tundraV, tm * 0.5);
 
     float steep = smoothstep(0.10, 0.50, slope);
-    col = mix(col, col * 0.85, steep * 0.5);
+    col = mix(col, col * 0.85, steep * 0.3);
     return col;
   }
 

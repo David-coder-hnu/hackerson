@@ -2,11 +2,11 @@ import { useHeightmapStore } from "../store/heightmap";
 
 const LEVELS = [
   { h: 5000, color: "#F2F2F2", label: "5000m" },
-  { h: 3000, color: "#B07D62", label: "3000m" },
-  { h: 1500, color: "#D9A77A", label: "1500m" },
-  { h: 500, color: "#E8D89A", label: "500m" },
-  { h: 200, color: "#C0D6A3", label: "200m" },
-  { h: 0, color: "#9CBD7C", label: "0m" },
+  { h: 3000, color: "#94382B", label: "3000m" },
+  { h: 1500, color: "#D16B38", label: "1500m" },
+  { h: 500, color: "#E3BD57", label: "500m" },
+  { h: 200, color: "#7BAE47", label: "200m" },
+  { h: 0, color: "#3C7838", label: "0m" },
   { h: -200, color: "#B0D4FF", label: "-200m" },
   { h: -1000, color: "#4A7A9C", label: "-1000m" },
   { h: -3000, color: "#1A3B4C", label: "-3000m" },
