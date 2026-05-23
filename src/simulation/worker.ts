@@ -459,21 +459,32 @@ onmessage = (e: MessageEvent) => {
   // Plant recommendations
   const plants: HabitatPlants[] = recommendPlants(koppen.code);
 
-  // Terrain classification
+  // Terrain classification — percentile-based on land cells (> sea level)
+  const landHeights: number[] = [];
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    if (hm[i] > seaLevel) landHeights.push(hm[i]);
+  }
+  landHeights.sort((a, b) => a - b);
+  const n = landHeights.length;
+  const p25 = n > 0 ? landHeights[Math.floor(n * 0.25)] : 0;
+  const p50 = n > 0 ? landHeights[Math.floor(n * 0.50)] : 0;
+  const p90 = n > 0 ? landHeights[Math.floor(n * 0.90)] : 0;
+
   let mountain = 0, basin = 0, plain = 0, plateau = 0;
   for (let i = 0; i < SIZE * SIZE; i++) {
     const h = hm[i];
-    if (h > 0.6) mountain++; else if (h < 0.1) basin++; else if (h < 0.3) plain++; else plateau++;
+    if (h <= seaLevel) continue;
+    if (h > p90) mountain++;
+    else if (h < p25) basin++;
+    else if (h < p50) plain++;
+    else plateau++;
   }
   const total = SIZE * SIZE;
+  const landTotal = n || 1;
 
-  // River & lake counts
-  let riverCount = 0, lakeCount = 0, watershed = 0;
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    if (riverMask[i]) riverCount++;
-    if (lakeMask[i]) lakeCount++;
-    if (accum[i] > 0) watershed++;
-  }
+  // Hydrology stats from traced paths and regions
+  const riverCount = Math.round(riverPaths.reduce((s, p) => s + p.length, 0));
+  const lakeCount = Math.round(lakeRegions.reduce((s, r) => s + r.length, 0));
 
   postMessage(
     { phase: "climate", precipMap: precipMap.buffer, tempMap: tempMap.buffer },
@@ -484,10 +495,10 @@ onmessage = (e: MessageEvent) => {
     phase: "complete",
     analysis: {
       terrain: {
-        mountainPct: Math.round((mountain / total) * 100),
-        basinPct: Math.round((basin / total) * 100),
-        plainPct: Math.round((plain / total) * 100),
-        plateauPct: Math.round((plateau / total) * 100),
+        mountainPct: Math.round((mountain / landTotal) * 100),
+        basinPct: Math.round((basin / landTotal) * 100),
+        plainPct: Math.round((plain / landTotal) * 100),
+        plateauPct: Math.round((plateau / landTotal) * 100),
       },
       climate: {
         koppen,
@@ -504,7 +515,7 @@ onmessage = (e: MessageEvent) => {
         annualRange: Math.round(stats.annualRange * 10) / 10,
         prevailingWind: ["Westerly", "Easterly", "Northerly", "Southerly"][Math.round(((windDir % (2 * Math.PI)) / (Math.PI / 2)) % 4)] ?? "Westerly",
       },
-      hydrology: { riverCount, lakeCount, watershedArea: Math.round((watershed / total) * 100) },
+      hydrology: { riverCount, lakeCount, watershedArea: Math.round((landTotal / total) * 100) },
       soils: soils.map(s => ({ name: s.name, wrb: s.wrb, frequency: s.frequency, note: s.note, confidence: s.confidence })),
       plants: plants.map(p => ({
         habitat: p.habitat,
