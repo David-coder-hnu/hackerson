@@ -232,11 +232,11 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
       redoStack: [],
       simProgress: null,
       archive: null,
-      markers: [],
       mouseHeight: 0,
       mouseBiome: "海洋",
       multiTouchActive: false,
       riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
+      // Preserve markers, customPins, customRegions across resets
     });
   },
 }));
