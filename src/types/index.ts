@@ -26,7 +26,11 @@ export interface PlanetArchive {
     plateauPct: number;
   };
   climate: {
-    zones: Array<{ name: string; pct: number }>;
+    koppen: { code: string; name: string; nameEn: string; mainClass: string; description: string };
+    holdridge: { biome: string; biomeZh: string; latBelt: string; humidity: string; bt: number; per: number };
+    avgTemp: number;
+    avgPrecip: number;
+    annualRange: number;
     prevailingWind: string;
   };
   hydrology: {
@@ -34,6 +38,9 @@ export interface PlanetArchive {
     lakeCount: number;
     watershedArea: number;
   };
+  soils: Array<{ name: string; wrb: string; frequency: string; note: string; confidence: string }>;
+  plants: Array<{ habitat: string; description: string; species: Array<{ name: string; uses: string; rarity: string }> }>;
+  landArea: number;
 }
 
 export interface SimRequest {
