@@ -10,7 +10,7 @@ export default function FloatingPanel() {
   return (
     <div className="floating-panel">
       <div className="fp-section">
-        <div className="fp-label">Radius: 3-100</div>
+        <div className="fp-label">半径: 3-100</div>
         <div className="fp-slider-wrap">
           <input
             type="range"
@@ -25,7 +25,7 @@ export default function FloatingPanel() {
         </div>
       </div>
       <div className="fp-section">
-        <div className="fp-label">Intensity: 1-10</div>
+        <div className="fp-label">强度: 1-10</div>
         <div className="fp-slider-wrap">
           <input
             type="range"

@@ -22,7 +22,7 @@ export default function ShareButton() {
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
       </svg>
-      {copied ? "Copied!" : "Share Planet"}
+      {copied ? "已复制!" : "分享星球"}
     </button>
   );
 }

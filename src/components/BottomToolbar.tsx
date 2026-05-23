@@ -10,16 +10,16 @@ interface ToolDef {
 }
 
 const TOOLS: ToolDef[] = [
-  { key: "raise", label: "Heap", icon: "raise", type: "raise" },
-  { key: "lower", label: "Scrape", icon: "lower", type: "lower" },
-  { key: "smooth", label: "Smooth", icon: "smooth", type: "smooth" },
-  { key: "water", label: "Draw Water", icon: "water", type: "water" },
-  { key: "marker", label: "Marker", icon: "marker", type: "marker" },
-  { key: "random", label: "Random", icon: "random", type: "random" },
-  { key: "rivers", label: "Gen Rivers", icon: "rivers", type: "rivers" },
-  { key: "diagnosis", label: "Diagnosis", icon: "diagnosis", type: "diagnosis" },
+  { key: "raise", label: "隆起", icon: "raise", type: "raise" },
+  { key: "lower", label: "削低", icon: "lower", type: "lower" },
+  { key: "smooth", label: "平滑", icon: "smooth", type: "smooth" },
+  { key: "water", label: "绘水", icon: "water", type: "water" },
+  { key: "marker", label: "标记", icon: "marker", type: "marker" },
+  { key: "random", label: "随机", icon: "random", type: "random" },
+  { key: "rivers", label: "生成河流", icon: "rivers", type: "rivers" },
+  { key: "diagnosis", label: "生态诊断", icon: "diagnosis", type: "diagnosis" },
   { key: "toggle", label: "2D/3D", icon: "toggle", type: "toggle" },
-  { key: "reset", label: "Reset", icon: "reset", type: "reset" },
+  { key: "reset", label: "重置", icon: "reset", type: "reset" },
 ];
 
 function ToolIcon({ icon, active }: { icon: string; active: boolean }) {

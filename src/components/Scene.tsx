@@ -7,13 +7,13 @@ import { createTerrainMaterial } from "../render/TerrainMaterial";
 import { HEIGHTMAP_SIZE } from "../types";
 
 function biomeAtHeight(h: number): string {
-  if (h < 0.1) return "Ocean";
-  if (h < 0.18) return "Coastal";
-  if (h < 0.3) return "Grassland";
-  if (h < 0.45) return "Temperate Forest";
-  if (h < 0.6) return "Highland";
-  if (h < 0.8) return "Alpine";
-  return "Snowcap";
+  if (h < 0.1) return "海洋";
+  if (h < 0.18) return "海岸";
+  if (h < 0.3) return "草原";
+  if (h < 0.45) return "温带森林";
+  if (h < 0.6) return "高地";
+  if (h < 0.8) return "高山";
+  return "雪顶";
 }
 
 function TerrainMesh() {

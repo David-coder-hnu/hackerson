@@ -6,7 +6,7 @@ export default function StatusBar() {
 
   return (
     <div className="status-bar">
-      <span>Height: {mouseHeight}m</span>
+      <span>高度: {mouseHeight}m</span>
       <span className="status-sep">|</span>
       <span>{mouseBiome}</span>
     </div>

@@ -21,7 +21,7 @@ export default function HeightLegend() {
 
   return (
     <div className="height-legend">
-      <div className="legend-title">Elevation</div>
+      <div className="legend-title">高程</div>
       <div className="legend-gradient">
         {LEVELS.map((lvl) => (
           <div

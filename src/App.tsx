@@ -92,7 +92,7 @@ export default function App() {
 
       {mode === "edit" && (
         <div className="empty-hint">
-          Push the land. Shape your world.
+          推这片土地，创造你的世界
         </div>
       )}
 
@@ -115,10 +115,10 @@ function PresetButtons() {
   if (mode !== "edit") return null;
 
   const presets = [
-    { key: "volcanic-island" as const, label: "Volcanic" },
-    { key: "mountain-chain" as const, label: "Mountains" },
-    { key: "crater-lake" as const, label: "Crater" },
-    { key: "archipelago" as const, label: "Islands" },
+    { key: "volcanic-island" as const, label: "火山岛" },
+    { key: "mountain-chain" as const, label: "山脉" },
+    { key: "crater-lake" as const, label: "陨石湖" },
+    { key: "archipelago" as const, label: "群岛" },
   ];
 
   const handlePreset = async (key: typeof presets[0]["key"]) => {

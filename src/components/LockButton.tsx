@@ -83,7 +83,7 @@ export default function LockButton() {
         <rect x="3" y="11" width="18" height="11" rx="2" />
         <path d="M7 11V7a5 5 0 0110 0v4" />
       </svg>
-      Lock Terrain
+      Lock 锁定地形
     </button>
   );
 }
