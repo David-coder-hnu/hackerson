@@ -10,12 +10,12 @@ export default function FloatingPanel() {
   return (
     <div className="floating-panel">
       <div className="fp-section">
-        <div className="fp-label">半径: 3-100</div>
+        <div className="fp-label">半径</div>
         <div className="fp-slider-wrap">
           <input
             type="range"
             min={3}
-            max={100}
+            max={300}
             value={brush.radius}
             onChange={(e) => setBrush({ radius: Number(e.target.value) })}
             className="fp-slider fp-slider-vertical"
