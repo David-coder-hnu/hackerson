@@ -32,12 +32,12 @@ export default function FloatingPanel() {
             min={1}
             max={10}
             step={1}
-            value={Math.round(brush.strength * 40)}
-            onChange={(e) => setBrush({ strength: Number(e.target.value) / 40 })}
+            value={Math.round(brush.strength * 60)}
+            onChange={(e) => setBrush({ strength: Number(e.target.value) / 60 })}
             className="fp-slider fp-slider-vertical"
             style={{ writingMode: "vertical-lr", direction: "rtl", height: 80 }}
           />
-          <span className="fp-value">{Math.round(brush.strength * 40)}</span>
+          <span className="fp-value">{Math.round(brush.strength * 60)}</span>
         </div>
       </div>
     </div>

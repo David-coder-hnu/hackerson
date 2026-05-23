@@ -47,7 +47,9 @@ export function generatePreset(key: PresetName): Float32Array {
         case "volcanic-island": {
           const peak = Math.exp(-dist * 3) * 0.85;
           const ridge = noise * 0.2;
-          h = 0.15 + peak + ridge;
+          // Ocean deepens away from island center
+          const oceanDepth = 0.02 + dist * 0.06;
+          h = oceanDepth + peak + ridge;
           break;
         }
         case "mountain-chain": {
@@ -67,7 +69,10 @@ export function generatePreset(key: PresetName): Float32Array {
           const island1 = Math.exp(-(((x - cx * 0.6) ** 2 + (y - cy * 0.5) ** 2) / 4000)) * 0.5;
           const island2 = Math.exp(-(((x - cx * 1.5) ** 2 + (y - cy * 1.3) ** 2) / 3000)) * 0.6;
           const island3 = Math.exp(-(((x - cx * 0.8) ** 2 + (y - cy * 1.6) ** 2) / 3500)) * 0.45;
-          h = 0.08 + island1 + island2 + island3 + noise * 0.15;
+          const landMass = island1 + island2 + island3;
+          // Ocean depth: deeper where far from any island
+          const oceanDepth = 0.04 - landMass * 0.03;
+          h = oceanDepth + landMass + noise * 0.12;
           break;
         }
       }

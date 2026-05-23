@@ -206,7 +206,9 @@ function SceneControls() {
       maxPolarAngle={Math.PI / 2.2}
       minDistance={4}
       maxDistance={40}
-      enabled={!sculpting}
+      enableZoom={true}
+      enableRotate={!sculpting}
+      enablePan={!sculpting}
       mouseButtons={{
         LEFT: sculpting ? undefined : 0,
         MIDDLE: 2,
