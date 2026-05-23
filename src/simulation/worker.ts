@@ -3,7 +3,7 @@ import { classifyHoldridge, inferSoil, recommendPlants } from "./biome";
 import type { KoppenResult } from "./koppen";
 import type { HoldridgeZone, SoilType, HabitatPlants } from "./biome";
 import {
-  cellLat, baseTempByLatitude,
+  cellLat, cellLon, baseTempByLatitude,
   prevailingWindDir, latPrecipFactor, getCellGeo,
 } from "./geo";
 
@@ -254,6 +254,8 @@ function computeCoastDist(hm: Float32Array, seaLevel: number): Float32Array {
 }
 
 // ---- Full climate model using all geo knowledge ----
+let _coastDist: Float32Array = new Float32Array(0);
+
 function computeClimateFields(
   hm: Float32Array,
   seaLevel: number
@@ -261,6 +263,7 @@ function computeClimateFields(
   const precip = new Float32Array(SIZE * SIZE);
   const temp = new Float32Array(SIZE * SIZE);
   const coastDist = computeCoastDist(hm, seaLevel);
+  _coastDist = coastDist; // save for pin analysis
   const maxCoastDist = 150; // normalize continentality at ~150 cells inland
   const tempLapseRate = 6.5;
 
@@ -424,6 +427,7 @@ onmessage = (e: MessageEvent) => {
   const hm = new Float32Array(msg.heightmap);
   const windDir = msg.windDirection as number;
   const seaLevel = msg.seaLevel as number;
+  const pins: Array<{ x: number; y: number }> = msg.pins || [];
 
   // Hydrology
   const filled = fillDepressions(hm, seaLevel);
@@ -458,6 +462,78 @@ onmessage = (e: MessageEvent) => {
 
   // Plant recommendations
   const plants: HabitatPlants[] = recommendPlants(koppen.code);
+
+  // ---- Per-pin local analysis ----
+  const pinAnalyses = pins.map((pin) => {
+    const pi = idx(pin.x, pin.y);
+    const lat = cellLat(pin.y);
+    const lon = cellLon(pin.x);
+    const elev = hm[pi] * 3000; // meters
+    const geo = getCellGeo(pin.x, pin.y, hm);
+    const cdist = _coastDist[pi];
+    const coastKm = Math.round(cdist * 10) / 10; // ~10km per cell
+
+    // Local temp and precip
+    const localT = tempMap[pi];
+    const localP = precipMap[pi] * 3000; // mm
+
+    // Aspect name
+    const aspectNames = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    const aspectIdx = Math.round(((geo.aspect % (2 * Math.PI)) / (Math.PI / 4)) + 8) % 8;
+    const aspect = aspectNames[aspectIdx];
+
+    // Slope in degrees
+    const slopeDeg = Math.round(Math.atan(geo.slope * 50) * 180 / Math.PI);
+
+    // Pressure belt
+    const absLat = Math.abs(lat);
+    let pressureBelt: string;
+    if (absLat < 5) pressureBelt = "赤道低压带(ITCZ)";
+    else if (absLat < 25) pressureBelt = "副热带高压带";
+    else if (absLat < 35) pressureBelt = "副热带高压→西风过渡";
+    else if (absLat < 60) pressureBelt = "西风带";
+    else if (absLat < 70) pressureBelt = "副极地低压带";
+    else pressureBelt = "极地高压带";
+
+    // Local monthly estimates
+    const monthlyT = generateMonthlyTemp(localT, stats.annualRange, lat >= 0 ? "N" : "S");
+    const monthlyP = generateMonthlyPrecip(localP, "summer");
+    const localKoppen = classifyKoppen(monthlyT, monthlyP);
+    const localHoldridge = classifyHoldridge(monthlyT, localP, elev);
+    const localSoils = inferSoil(localKoppen.code, localT, localP, elev, slopeDeg);
+    const localPlants = recommendPlants(localKoppen.code);
+
+    // Crop recommendations based on climate
+    const crops: string[] = [];
+    if (localT > 10 && localP > 500) crops.push("小麦");
+    if (localT > 15 && localP > 800) crops.push("玉米");
+    if (localT > 20 && localP > 1000) crops.push("水稻");
+    if (localT > 25 && localP > 1200) crops.push("甘蔗", "热带水果");
+    if (localT > 5 && localT < 20 && localP > 400) crops.push("马铃薯", "大麦");
+    if (localT < 5 && localP > 300) crops.push("黑麦", "燕麦");
+    if (localP < 400) crops.push("旱作农业或灌溉农业");
+
+    // Plant species names
+    const plantNames = localPlants.flatMap(h => h.plants.map(p => p.name)).slice(0, 5);
+
+    // Description
+    const desc = `${localKoppen.name}，${localHoldridge.biomeZh}。年均温${localT.toFixed(1)}°C，年降水${Math.round(localP)}mm。${localSoils[0]?.name || "雏形土"}。`;
+
+    return {
+      lat: Math.round(lat * 10) / 10, lon: Math.round(lon * 10) / 10,
+      elevation: Math.round(elev), slope: slopeDeg, aspect,
+      coastDist: coastKm,
+      pressureBelt,
+      koppen: `${localKoppen.code} ${localKoppen.name}`,
+      holdridge: localHoldridge.biomeZh,
+      soil: localSoils[0]?.name || "雏形土",
+      plants: plantNames,
+      crops,
+      tempAnnual: Math.round(localT * 10) / 10,
+      precipAnnual: Math.round(localP),
+      description: desc,
+    };
+  });
 
   // Terrain classification — percentile-based on land cells (> sea level)
   const landHeights: number[] = [];
@@ -523,6 +599,7 @@ onmessage = (e: MessageEvent) => {
         species: p.plants.map(pl => ({ name: pl.name, uses: pl.uses.join("、"), rarity: pl.rarity })),
       })),
       landArea: Math.round((stats.landArea / total) * 100),
+      pinAnalyses,
     },
   });
 };

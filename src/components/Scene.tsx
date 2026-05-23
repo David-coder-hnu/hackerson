@@ -180,7 +180,7 @@ function TerrainMesh() {
 }
 
 // All terrain overlays (markers + rivers + lakes) in one rotated group
-function TerrainOverlays() {
+function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => void }) {
   const markers = useHeightmapStore((s) => s.markers);
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const riverPaths = useHeightmapStore((s) => s.riverData.riverPaths);
@@ -210,12 +210,18 @@ function TerrainOverlays() {
       {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
-          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
+          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.08;
           const [px, py] = toWorld(m.x, m.y, 0);
+          const hasAnalysis = !!m.analysis;
           return (
-            <mesh key={`mk${i}`} position={[px, py, h]}>
-              <sphereGeometry args={[0.08, 8, 8]} />
-              <meshBasicMaterial color="#e8945a" />
+            <mesh
+              key={`mk${i}`}
+              position={[px, py, h]}
+              onPointerEnter={() => hasAnalysis && onPinHover(i)}
+              onPointerLeave={() => onPinHover(null)}
+            >
+              <sphereGeometry args={[hasAnalysis ? 0.12 : 0.08, 8, 8]} />
+              <meshBasicMaterial color={hasAnalysis ? "#4ae0a0" : "#e8945a"} />
             </mesh>
           );
         })}
@@ -350,7 +356,7 @@ function SceneControls() {
   );
 }
 
-export default function Scene() {
+export default function Scene({ onPinHover }: { onPinHover: (i: number | null) => void }) {
   return (
     <Canvas
       camera={{ position: [0, 8, 6], fov: 50 }}
@@ -359,7 +365,7 @@ export default function Scene() {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
-      <TerrainOverlays />
+      <TerrainOverlays onPinHover={onPinHover} />
       <SceneControls />
     </Canvas>
   );

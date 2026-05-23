@@ -7,6 +7,7 @@ type ErrorCallback = (error: string) => void;
 export function runSimulation(
   heightmap: Float32Array,
   opts: {
+    pins?: Array<{ x: number; y: number }>;
     onProgress?: ProgressCallback;
     onComplete?: CompleteCallback;
     onError?: ErrorCallback;
@@ -53,7 +54,7 @@ export function runSimulation(
 
   const hCopy = new Float32Array(heightmap);
   worker.postMessage(
-    { type: "SIMULATE", heightmap: hCopy.buffer, windDirection: Math.PI / 2, seaLevel: 0.15 },
+    { type: "SIMULATE", heightmap: hCopy.buffer, windDirection: Math.PI / 2, seaLevel: 0.15, pins: opts.pins || [] },
     [hCopy.buffer]
   );
 

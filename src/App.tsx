@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useHeightmapStore } from "./store/heightmap";
 import { createDefaultHeightmap } from "./presets/generate";
 import { decodeHeightmap, getHashFromUrl } from "./share/urlCodec";
@@ -12,12 +12,19 @@ import ProgressOverlay from "./components/ProgressOverlay";
 import PlanetArchive from "./components/PlanetArchive";
 import ShareButton from "./components/ShareButton";
 import ResetButton from "./components/ResetButton";
+import PinCard from "./components/PinCard";
 import "./App.css";
 
 export default function App() {
   const initHeightmap = useHeightmapStore((s) => s.initHeightmap);
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const mode = useHeightmapStore((s) => s.mode);
+  const markers = useHeightmapStore((s) => s.markers);
+  const [hoveredPin, setHoveredPin] = useState<number | null>(null);
+
+  const handlePinHover = useCallback((i: number | null) => {
+    setHoveredPin(i);
+  }, []);
 
   useEffect(() => {
     const hash = getHashFromUrl();
@@ -63,7 +70,7 @@ export default function App() {
         </div>
       </header>
 
-      <Scene />
+      <Scene onPinHover={handlePinHover} />
 
       {/* Top-left compass */}
       <div className="compass" title="North">
@@ -105,6 +112,9 @@ export default function App() {
           <PlanetArchive />
           <ShareButton />
         </>
+      )}
+      {hoveredPin !== null && markers[hoveredPin]?.analysis && (
+        <PinCard analysis={markers[hoveredPin].analysis!} pos={{ x: 60, y: 120 }} />
       )}
     </div>
   );

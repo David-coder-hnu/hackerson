@@ -12,9 +12,9 @@ export default function PlanetArchive() {
     <div className="archive-panel">
       <h2 className="archive-title">星球档案</h2>
 
-      {/* Climate */}
+      {/* Climate — global average, regional detail on pins */}
       <div className="archive-section">
-        <h3>气候诊断</h3>
+        <h3>全球平均气候</h3>
         <div className="stat-row">
           <span className="stat-label">Köppen 分类</span>
           <span className="stat-value accent">{climate.koppen.code} — {climate.koppen.name}</span>

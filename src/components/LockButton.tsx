@@ -4,10 +4,12 @@ import { runSimulation } from "../simulation/runner";
 export default function LockButton() {
   const mode = useHeightmapStore((s) => s.mode);
   const heightmap = useHeightmapStore((s) => s.heightmap);
+  const markers = useHeightmapStore((s) => s.markers);
   const setMode = useHeightmapStore((s) => s.setMode);
   const setSimProgress = useHeightmapStore((s) => s.setSimProgress);
   const setArchive = useHeightmapStore((s) => s.setArchive);
   const setRiverData = useHeightmapStore((s) => s.setRiverData);
+  const setPinAnalyses = useHeightmapStore((s) => s.setPinAnalyses);
 
   if (mode !== "edit") return null;
 
@@ -19,6 +21,7 @@ export default function LockButton() {
     setRiverData({ riverMask: null, lakeMask: null, riverPaths: null, lakeRegions: null });
 
     runSimulation(heightmap, {
+      pins: markers.map(m => ({ x: m.x, y: m.y })),
       onProgress: (phase, data) => {
         if (phase === "hydrology") {
           setRiverData(data as any);
@@ -35,6 +38,7 @@ export default function LockButton() {
         }
       },
       onComplete: (archive) => {
+        if (archive.pinAnalyses) setPinAnalyses(archive.pinAnalyses);
         setArchive(archive);
         setMode("observing");
       },

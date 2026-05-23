@@ -195,6 +195,15 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
     set((s) => ({ markers: [...s.markers, { x, y }] }));
   },
 
+  setPinAnalyses: (analyses) => {
+    set((s) => ({
+      markers: s.markers.map((m, i) => ({
+        ...m,
+        analysis: analyses[i] || m.analysis,
+      })),
+    }));
+  },
+
   setRiverData: (data) => {
     set((s) => ({ riverData: { ...s.riverData, ...data } }));
   },

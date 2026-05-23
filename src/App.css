@@ -228,6 +228,25 @@ body {
 .plant-tag { font-size: 0.62rem; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 1px 5px; cursor: default; }
 
 /* Share button */
+/* Pin card */
+.pin-card {
+  position: absolute; left: 60px; top: 120px; z-index: 15;
+  background: rgba(20,18,16,0.94); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius);
+  padding: 14px 16px; width: 260px; max-height: 60vh; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.pin-card-title { font-size: 0.85rem; color: var(--accent); margin-bottom: 10px; font-weight: 600; letter-spacing: 0.03em; }
+.pin-section { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.pin-row { display: flex; justify-content: space-between; font-size: 0.7rem; padding: 1px 0; }
+.pin-row span:first-child { color: var(--text-dim); }
+.pin-row .accent { color: var(--accent); }
+.pin-kop { font-size: 0.8rem; color: var(--text); font-weight: 600; }
+.pin-biome { font-size: 0.7rem; color: var(--text-dim); }
+.pin-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.4; margin-top: 3px; }
+.pin-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.pin-tags { font-size: 0.65rem; color: var(--text); line-height: 1.5; }
+
 .share-button {
   position: absolute; bottom: var(--gutter); right: var(--gutter); z-index: 10;
   background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--border);

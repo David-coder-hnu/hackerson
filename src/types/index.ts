@@ -41,6 +41,7 @@ export interface PlanetArchive {
   soils: Array<{ name: string; wrb: string; frequency: string; note: string; confidence: string }>;
   plants: Array<{ habitat: string; description: string; species: Array<{ name: string; uses: string; rarity: string }> }>;
   landArea: number;
+  pinAnalyses?: PinAnalysis[];
 }
 
 export interface SimRequest {
@@ -60,6 +61,30 @@ export interface RiverData {
   lakeRegions: number[][][] | null; // array of regions, each is array of [x,y] cells
 }
 
+export interface PinAnalysis {
+  lat: number;
+  lon: number;
+  elevation: number;       // meters
+  slope: number;           // degrees
+  aspect: string;          // "N/NE/E/SE/S/SW/W/NW"
+  coastDist: number;       // km
+  pressureBelt: string;    // "赤道低压/副热带高压/西风带/极地东风/副极地低压"
+  koppen: string;          // Köppen code + name
+  holdridge: string;       // biome name
+  soil: string;            // dominant soil type
+  plants: string[];        // representative species
+  crops: string[];         // suitable crops
+  tempAnnual: number;      // °C
+  precipAnnual: number;    // mm
+  description: string;     // natural language summary
+}
+
+export interface Marker {
+  x: number;
+  y: number;
+  analysis?: PinAnalysis; // populated after simulation
+}
+
 export interface AppState {
   mode: AppMode;
   viewMode: ViewMode;
@@ -69,7 +94,7 @@ export interface AppState {
   archive: PlanetArchive | null;
   undoStack: Float32Array[];
   redoStack: Float32Array[];
-  markers: Array<{ x: number; y: number }>;
+  markers: Marker[];
   mouseHeight: number;
   mouseBiome: string;
   mouseLat: number;
@@ -87,6 +112,7 @@ export interface AppState {
   setArchive: (archive: PlanetArchive | null) => void;
   setMouseInfo: (height: number, biome: string, lat: number, lon: number) => void;
   addMarker: (x: number, y: number) => void;
+  setPinAnalyses: (analyses: PinAnalysis[]) => void;
   setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
 }
