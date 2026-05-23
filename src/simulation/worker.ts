@@ -421,7 +421,7 @@ onmessage = (e: MessageEvent) => {
   const msg = e.data;
   if (msg.type !== "SIMULATE") return;
 
-  const hm = msg.heightmap as Float32Array;
+  const hm = new Float32Array(msg.heightmap);
   const windDir = msg.windDirection as number;
   const seaLevel = msg.seaLevel as number;
 
