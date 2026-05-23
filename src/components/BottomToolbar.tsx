@@ -87,6 +87,9 @@ export default function BottomToolbar() {
   const setBrush = useHeightmapStore((s) => s.setBrush);
   const viewMode = useHeightmapStore((s) => s.viewMode);
   const setViewMode = useHeightmapStore((s) => s.setViewMode);
+  const mode = useHeightmapStore((s) => s.mode);
+  const activeTool = useHeightmapStore((s) => s.activeTool);
+  const setActiveTool = useHeightmapStore((s) => s.setActiveTool);
   const reset = useHeightmapStore((s) => s.reset);
 
   const handleToolClick = (tool: ToolDef) => {
@@ -118,7 +121,33 @@ export default function BottomToolbar() {
 
   return (
     <div className="bottom-toolbar">
-      {TOOLS.map((tool) => (
+      {mode === "observing" && (
+        <>
+          <button
+            className={`tool-btn ${activeTool === "pin" ? "active" : ""}`}
+            onClick={() => setActiveTool(activeTool === "pin" ? "brush" : "pin")}
+            title="自定义图钉"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTool === "pin" ? "#e8945a" : "currentColor"} strokeWidth="2">
+              <path d="M12 2L8 12l4 10 4-10-4-10z" />
+              <circle cx="12" cy="10" r="2" />
+            </svg>
+            <span className="tool-label">标记</span>
+          </button>
+          <button
+            className={`tool-btn ${activeTool === "region" ? "active" : ""}`}
+            onClick={() => setActiveTool(activeTool === "region" ? "brush" : "region")}
+            title="自定义选区"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTool === "region" ? "#e8945a" : "currentColor"} strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" strokeDasharray="3 2" />
+            </svg>
+            <span className="tool-label">选区</span>
+          </button>
+          <div className="toolbar-sep" />
+        </>
+      )}
+      {mode !== "observing" && TOOLS.map((tool) => (
         <button
           key={tool.key}
           className={`tool-btn ${isActive(tool) ? "active" : ""}`}
@@ -129,6 +158,12 @@ export default function BottomToolbar() {
           <span className="tool-label">{tool.label}</span>
         </button>
       ))}
+      {mode === "observing" && (
+        <button className="tool-btn" onClick={reset} title="重置">
+          <ToolIcon icon="reset" active={false} />
+          <span className="tool-label">重置</span>
+        </button>
+      )}
     </div>
   );
 }

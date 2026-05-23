@@ -135,6 +135,9 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   undoStack: [],
   redoStack: [],
   markers: [],
+  customPins: [],
+  customRegions: [],
+  activeTool: "brush",
   mouseHeight: 0,
   mouseBiome: "海洋",
   mouseLat: 0,
@@ -199,6 +202,20 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
         ...m,
         analysis: analyses[i] || m.analysis,
       })),
+    }));
+  },
+
+  setActiveTool: (tool) => set({ activeTool: tool }),
+
+  addCustomPin: (x, y, content) => {
+    set((s) => ({
+      customPins: [...s.customPins, { id: Date.now().toString(36), x, y, content }],
+    }));
+  },
+
+  addCustomRegion: (points, name) => {
+    set((s) => ({
+      customRegions: [...s.customRegions, { id: Date.now().toString(36), name, points }],
     }));
   },
 

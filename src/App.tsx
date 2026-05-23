@@ -13,6 +13,7 @@ import PlanetArchive from "./components/PlanetArchive";
 import ShareButton from "./components/ShareButton";
 import ResetButton from "./components/ResetButton";
 import PinCard from "./components/PinCard";
+import { CustomPinInput, RegionNameInput } from "./components/WorldbuildTools";
 import "./App.css";
 
 export default function App() {
@@ -20,11 +21,32 @@ export default function App() {
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const mode = useHeightmapStore((s) => s.mode);
   const markers = useHeightmapStore((s) => s.markers);
+  const activeTool = useHeightmapStore((s) => s.activeTool);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
+  const [pendingPin, setPendingPin] = useState<{x:number;y:number} | null>(null);
+  const [pendingRegionPoints, setPendingRegionPoints] = useState<Array<{x:number;y:number}>>([]);
+  const [pendingRegionName, setPendingRegionName] = useState(false);
 
   const handlePinHover = useCallback((i: number | null) => {
     setHoveredPin(i);
   }, []);
+
+  const handleCustomClick = useCallback((x: number, y: number) => {
+    if (activeTool === "pin") {
+      setPendingPin({ x, y });
+    } else if (activeTool === "region") {
+      setPendingRegionPoints((pts) => [...pts, { x, y }]);
+    }
+  }, [activeTool]);
+
+  const handleRegionDone = useCallback((name: string | null) => {
+    if (name && pendingRegionPoints.length > 2) {
+      const store = useHeightmapStore.getState();
+      store.addCustomRegion(pendingRegionPoints, name);
+    }
+    setPendingRegionPoints([]);
+    setPendingRegionName(false);
+  }, [pendingRegionPoints]);
 
   useEffect(() => {
     const hash = getHashFromUrl();
@@ -70,7 +92,7 @@ export default function App() {
         </div>
       </header>
 
-      <Scene onPinHover={handlePinHover} />
+      <Scene onPinHover={handlePinHover} onCustomClick={handleCustomClick} />
 
       {/* Top-left compass */}
       <div className="compass" title="North">
@@ -116,6 +138,19 @@ export default function App() {
       )}
       {hoveredPin !== null && markers[hoveredPin]?.analysis && (
         <PinCard analysis={markers[hoveredPin].analysis!} pos={{ x: 60, y: 120 }} />
+      )}
+      {pendingPin && (
+        <CustomPinInput x={pendingPin.x} y={pendingPin.y} onDone={() => setPendingPin(null)} />
+      )}
+      {pendingRegionName && (
+        <RegionNameInput onDone={handleRegionDone} />
+      )}
+      {mode === "observing" && activeTool === "region" && pendingRegionPoints.length > 0 && (
+        <div className="region-controls">
+          <span>{pendingRegionPoints.length} 个顶点</span>
+          <button className="worldbuild-btn" onClick={() => setPendingRegionName(true)}>完成选区</button>
+          <button className="worldbuild-btn cancel" onClick={() => setPendingRegionPoints([])}>取消</button>
+        </div>
       )}
     </div>
   );

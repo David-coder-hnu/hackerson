@@ -18,7 +18,7 @@ function biomeAtHeight(h: number): string {
   return "雪顶";
 }
 
-function TerrainMesh() {
+function TerrainMesh({ onCustomClick }: { onCustomClick?: (x: number, y: number) => void }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const textureRef = useRef<THREE.DataTexture | null>(null);
@@ -30,6 +30,7 @@ function TerrainMesh() {
   const setMouseInfo = useHeightmapStore((s) => s.setMouseInfo);
   const addMarker = useHeightmapStore((s) => s.addMarker);
   const simProgress = useHeightmapStore((s) => s.simProgress);
+  const activeTool = useHeightmapStore((s) => s.activeTool);
   const multiTouchActive = useHeightmapStore((s) => s.multiTouchActive);
   const { camera, raycaster, gl } = useThree();
   const isDragging = useRef(false);
@@ -119,12 +120,18 @@ function TerrainMesh() {
   }, []);
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (mode !== "edit") return;
     const nativeEvent = e.nativeEvent as PointerEvent;
-    // Only left-click draws
     if (nativeEvent.pointerType === "mouse" && nativeEvent.button !== 0) return;
-    // Suppress drawing during multi-touch gestures
     if (nativeEvent.pointerType === "touch" && multiTouchActive) return;
+
+    // Custom tools in observation mode
+    if (mode === "observing" && (activeTool === "pin" || activeTool === "region")) {
+      const uv = getUVFromEvent(e);
+      if (uv && onCustomClick) onCustomClick(uv.x, uv.y);
+      return;
+    }
+
+    if (mode !== "edit") return;
 
     isDragging.current = true;
     strokeCells.current.clear();
@@ -141,7 +148,7 @@ function TerrainMesh() {
         applyBrush(uv.x, uv.y);
       }
     }
-  }, [mode, brush.type, applyBrush, addMarker, getUVFromEvent, multiTouchActive, gl]);
+  }, [mode, activeTool, brush.type, applyBrush, addMarker, getUVFromEvent, multiTouchActive, gl, onCustomClick]);
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
     const nativeEvent = e.nativeEvent as PointerEvent;
@@ -199,6 +206,8 @@ function TerrainMesh() {
 // All terrain overlays (markers + rivers + lakes) in one rotated group
 function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => void }) {
   const markers = useHeightmapStore((s) => s.markers);
+  const customPins = useHeightmapStore((s) => s.customPins);
+  const customRegions = useHeightmapStore((s) => s.customRegions);
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const riverPaths = useHeightmapStore((s) => s.riverData.riverPaths);
   const lakeRegions = useHeightmapStore((s) => s.riverData.lakeRegions);
@@ -241,6 +250,30 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
               <meshBasicMaterial color={hasAnalysis ? "#4ae0a0" : "#e8945a"} />
             </mesh>
           );
+        })}
+      {/* Custom pins (worldbuilding) */}
+      {customPins.length > 0 && heightmap &&
+        customPins.map((cp) => {
+          const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 2 + 0.1;
+          const [px, py] = toWorld(cp.x, cp.y, 0);
+          return (
+            <mesh key={`cp${cp.id}`} position={[px, py, h]}>
+              <sphereGeometry args={[0.1, 8, 8]} />
+              <meshBasicMaterial color="#f0c040" />
+            </mesh>
+          );
+        })}
+      {/* Custom regions (worldbuilding) */}
+      {customRegions.length > 0 && heightmap &&
+        customRegions.map((cr) => {
+          if (cr.points.length < 2) return null;
+          const linePts = cr.points.map((p) => {
+            const h = heightmap[p.y * HEIGHTMAP_SIZE + p.x] * 2 + 0.06;
+            const [px, py] = toWorld(p.x, p.y, 0);
+            return new THREE.Vector3(px, py, h);
+          });
+          linePts.push(linePts[0].clone());
+          return <Line key={`cr${cr.id}`} points={linePts} color="#f0c040" lineWidth={1.5} />;
         })}
       {/* River lines */}
       {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
@@ -449,7 +482,7 @@ function SceneControls() {
   );
 }
 
-export default function Scene({ onPinHover }: { onPinHover: (i: number | null) => void }) {
+export default function Scene({ onPinHover, onCustomClick }: { onPinHover: (i: number | null) => void; onCustomClick?: (x: number, y: number) => void }) {
   return (
     <Canvas
       camera={{ position: [0, 8, 6], fov: 50 }}
@@ -457,7 +490,7 @@ export default function Scene({ onPinHover }: { onPinHover: (i: number | null) =
     >
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
-      <TerrainMesh />
+      <TerrainMesh onCustomClick={onCustomClick} />
       <TerrainOverlays onPinHover={onPinHover} />
       <SceneControls />
     </Canvas>

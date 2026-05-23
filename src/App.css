@@ -176,6 +176,7 @@ body {
 .tool-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 .tool-btn.active { background: rgba(232,148,90,0.15); color: var(--accent); }
 .tool-label { font-size: 0.6rem; font-weight: 500; white-space: nowrap; letter-spacing: 0.04em; }
+.toolbar-sep { width: 1px; background: rgba(255,255,255,0.15); margin: 4px 6px; }
 
 /* Lock button */
 .lock-button {
@@ -270,6 +271,34 @@ body {
 .reset-button:hover { background: rgba(255,255,255,0.2); color: var(--text); }
 
 /* Empty state hint */
+/* Worldbuilding inputs */
+.worldbuild-input {
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 25;
+  background: rgba(20,18,16,0.94); backdrop-filter: blur(16px);
+  border: 1px solid var(--accent); border-radius: var(--radius);
+  padding: 16px; display: flex; gap: 8px; align-items: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.worldbuild-text {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font); font-size: 0.8rem;
+  padding: 6px 10px; border-radius: 4px; outline: none; min-width: 200px;
+}
+.worldbuild-text:focus { border-color: var(--accent); }
+.worldbuild-btn {
+  background: var(--accent); color: var(--bg); border: none;
+  padding: 6px 12px; border-radius: 4px; font-family: var(--font);
+  font-size: 0.7rem; cursor: pointer; white-space: nowrap;
+}
+.worldbuild-btn.cancel { background: rgba(255,255,255,0.1); color: var(--text-dim); }
+.region-controls {
+  position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 15;
+  background: rgba(20,18,16,0.9); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 14px; display: flex; gap: 8px; align-items: center;
+  font-size: 0.75rem; color: var(--text);
+}
+
 .empty-hint {
   position: absolute; bottom: 50%; left: 50%; transform: translateX(-50%);
   z-index: 5; font-size: 0.85rem; color: var(--text-dim); opacity: 0.4; pointer-events: none;
