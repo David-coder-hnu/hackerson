@@ -212,6 +212,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
   const riverPaths = useHeightmapStore((s) => s.riverData.riverPaths);
   const lakeRegions = useHeightmapStore((s) => s.riverData.lakeRegions);
   const mode = useHeightmapStore((s) => s.mode);
+  const viewMode = useHeightmapStore((s) => s.viewMode);
   const riverMat = useRef<THREE.ShaderMaterial>(createRiverMaterial());
   const lakeMat = useRef<THREE.ShaderMaterial>(createLakeMaterial());
   const showWater = mode === "observing" || !!riverPaths;
@@ -334,6 +335,27 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
             </group>
           );
         })}
+      {/* Contour elevation labels (2D mode) */}
+      {mode === "observing" && viewMode === "2d" && heightmap && (() => {
+        const labels: React.ReactNode[] = [];
+        const step = 64;
+        for (let y = step; y < HEIGHTMAP_SIZE - step; y += step) {
+          for (let x = step; x < HEIGHTMAP_SIZE - step; x += step) {
+            const h = heightmap[y * HEIGHTMAP_SIZE + x];
+            const elevM = Math.round((h - 0.15) * 3000 / 100) * 100; // round to 100m
+            if (elevM % 500 !== 0 || elevM <= 0) continue; // only label 500m intervals
+            const [px, py] = toWorld(x, y, 0);
+            const zh = h * 4 + 0.12;
+            labels.push(
+              <Text key={`el${x}_${y}`} position={[px, py, zh]} fontSize={0.08} color="#1a1816"
+                anchorX="center" anchorY="middle" outlineWidth={0.01} outlineColor="#e8e4df">
+                {elevM}m
+              </Text>
+            );
+          }
+        }
+        return <>{labels}</>;
+      })()}
       {/* River lines */}
       {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
         const points = path.map(([x, y]) => {

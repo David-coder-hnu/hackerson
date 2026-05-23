@@ -231,14 +231,14 @@ const fragmentShader = /* glsl */ `
       baseCol = baseCol * 0.75 + vec3(0.08, 0.08, 0.10);
       float interval = uContourInterval;
 
-      // Index contour (every 5th) = very thick bold black line
+      // Index contour (every 5th) = ultra thick bold black line
       float indexInterval = interval * 5.0;
       float idxC = abs(fract(h / indexInterval + 0.5) - 0.5) / fwidth(h);
-      float indexLine = 1.0 - smoothstep(0.0, 2.0, idxC);
+      float indexLine = 1.0 - smoothstep(0.0, 3.5, idxC);
 
       // Intermediate contour (every 1st) = thick dark line
       float c = abs(fract(h / interval + 0.5) - 0.5) / fwidth(h);
-      float interLine = 1.0 - smoothstep(0.0, 1.5, c);
+      float interLine = 1.0 - smoothstep(0.0, 2.5, c);
       interLine = interLine * (1.0 - indexLine);
 
       vec3 color = mix(baseCol, vec3(0.12, 0.10, 0.08), interLine * 0.65);
