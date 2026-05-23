@@ -252,6 +252,14 @@ body {
 .pin-animal-name { font-size: 0.7rem; color: var(--text); font-weight: 500; }
 .pin-animal-meta { font-size: 0.6rem; color: var(--text-dim); margin-left: 6px; }
 
+.custompin-card {
+  position: absolute; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 25;
+  background: rgba(20,18,16,0.94); backdrop-filter: blur(12px);
+  border: 1px solid #f0c040; border-radius: var(--radius);
+  padding: 10px 16px; font-size: 0.8rem; color: var(--text);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 300px;
+}
+
 .share-button {
   position: absolute; bottom: var(--gutter); right: var(--gutter); z-index: 10;
   background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--border);

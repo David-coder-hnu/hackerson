@@ -23,6 +23,8 @@ export default function App() {
   const markers = useHeightmapStore((s) => s.markers);
   const activeTool = useHeightmapStore((s) => s.activeTool);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
+  const [hoveredCustomPin, setHoveredCustomPin] = useState<string | null>(null);
+  const customPins = useHeightmapStore((s) => s.customPins);
   const [pendingPin, setPendingPin] = useState<{x:number;y:number} | null>(null);
   const [pendingRegionPoints, setPendingRegionPoints] = useState<Array<{x:number;y:number}>>([]);
   const [pendingRegionName, setPendingRegionName] = useState(false);
@@ -38,6 +40,10 @@ export default function App() {
       setPendingRegionPoints((pts) => [...pts, { x, y }]);
     }
   }, [activeTool]);
+
+  const handleCustomPinHover = useCallback((id: string | null) => {
+    setHoveredCustomPin(id);
+  }, []);
 
   const handleRegionDone = useCallback((name: string | null) => {
     if (name && pendingRegionPoints.length > 2) {
@@ -92,7 +98,7 @@ export default function App() {
         </div>
       </header>
 
-      <Scene onPinHover={handlePinHover} onCustomClick={handleCustomClick} />
+      <Scene onPinHover={handlePinHover} onCustomClick={handleCustomClick} onCustomPinHover={handleCustomPinHover} />
 
       {/* Top-left compass */}
       <div className="compass" title="North">
@@ -138,6 +144,11 @@ export default function App() {
       )}
       {hoveredPin !== null && markers[hoveredPin]?.analysis && (
         <PinCard analysis={markers[hoveredPin].analysis!} pos={{ x: 60, y: 120 }} />
+      )}
+      {hoveredCustomPin && customPins.find(cp => cp.id === hoveredCustomPin) && (
+        <div className="custompin-card">
+          {customPins.find(cp => cp.id === hoveredCustomPin)!.content}
+        </div>
       )}
       {pendingPin && (
         <CustomPinInput x={pendingPin.x} y={pendingPin.y} onDone={() => setPendingPin(null)} />

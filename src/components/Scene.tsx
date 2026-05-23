@@ -204,7 +204,7 @@ function TerrainMesh({ onCustomClick }: { onCustomClick?: (x: number, y: number)
 }
 
 // All terrain overlays (markers + rivers + lakes) in one rotated group
-function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => void }) {
+function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: number | null) => void; onCustomPinHover?: (id: string | null) => void }) {
   const markers = useHeightmapStore((s) => s.markers);
   const customPins = useHeightmapStore((s) => s.customPins);
   const customRegions = useHeightmapStore((s) => s.customRegions);
@@ -257,8 +257,13 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
           const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 2 + 0.1;
           const [px, py] = toWorld(cp.x, cp.y, 0);
           return (
-            <mesh key={`cp${cp.id}`} position={[px, py, h]}>
-              <sphereGeometry args={[0.1, 8, 8]} />
+            <mesh
+              key={`cp${cp.id}`}
+              position={[px, py, h]}
+              onPointerEnter={() => onCustomPinHover?.(cp.id)}
+              onPointerLeave={() => onCustomPinHover?.(null)}
+            >
+              <sphereGeometry args={[0.12, 8, 8]} />
               <meshBasicMaterial color="#f0c040" />
             </mesh>
           );
@@ -482,7 +487,7 @@ function SceneControls() {
   );
 }
 
-export default function Scene({ onPinHover, onCustomClick }: { onPinHover: (i: number | null) => void; onCustomClick?: (x: number, y: number) => void }) {
+export default function Scene({ onPinHover, onCustomClick, onCustomPinHover }: { onPinHover: (i: number | null) => void; onCustomClick?: (x: number, y: number) => void; onCustomPinHover?: (id: string | null) => void }) {
   return (
     <Canvas
       camera={{ position: [0, 8, 6], fov: 50 }}
@@ -491,7 +496,7 @@ export default function Scene({ onPinHover, onCustomClick }: { onPinHover: (i: n
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh onCustomClick={onCustomClick} />
-      <TerrainOverlays onPinHover={onPinHover} />
+      <TerrainOverlays onPinHover={onPinHover} onCustomPinHover={onCustomPinHover} />
       <SceneControls />
     </Canvas>
   );
