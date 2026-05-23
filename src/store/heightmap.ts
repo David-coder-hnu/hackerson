@@ -101,13 +101,23 @@ function applyBrushOp(
         break;
       }
       case "glacier": {
-        // Low-frequency noise at brush scale — broad irregular valleys
-        const s = Math.max(radius * 0.4, 5);
-        const nx = px / s, ny = py / s;
-        const n1 = Math.sin(nx * 1.7 + ny * 2.3) * Math.cos(nx * 1.9 - ny * 1.4);
-        const n2 = Math.sin(nx * 3.1 - ny * 2.7) * Math.cos(nx * 2.5 + ny * 3.3) * 0.35;
-        const n = (n1 + n2) * 0.45 + 0.5;
-        const carve = w * Math.max(0, n - 0.3) * 1.4; // threshold: only carve where n > 0.3
+        // Aperiodic hash-based noise at brush scale
+        const s = Math.max(radius * 0.35, 4);
+        function h(x: number, y: number): number {
+          let v = x * 127.1 + y * 311.7;
+          v = Math.sin(v) * 43758.5453;
+          return v - Math.floor(v);
+        }
+        const fx = px / s, fy = py / s;
+        const ix = Math.floor(fx), iy = Math.floor(fy);
+        const rx = fx - ix, ry = fy - iy;
+        const sx = rx * rx * (3 - 2 * rx); // smoothstep
+        const sy = ry * ry * (3 - 2 * ry);
+        const n = (h(ix, iy) * (1 - sx) * (1 - sy) +
+                   h(ix + 1, iy) * sx * (1 - sy) +
+                   h(ix, iy + 1) * (1 - sx) * sy +
+                   h(ix + 1, iy + 1) * sx * sy);
+        const carve = w * Math.max(0, n - 0.35) * 1.5;
         hm[idx] = Math.max(0, hm[idx] - strength * 2 * carve);
         break;
       }
