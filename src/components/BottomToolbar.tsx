@@ -11,7 +11,6 @@ interface ToolDef {
 }
 
 const TOOLS: ToolDef[] = [
-  { key: "camera", label: "视角", icon: "camera", type: "camera" },
   { key: "raise", label: "隆起", icon: "raise", type: "raise" },
   { key: "lower", label: "削低", icon: "lower", type: "lower" },
   { key: "smooth", label: "平滑", icon: "smooth", type: "smooth" },
@@ -27,14 +26,6 @@ const TOOLS: ToolDef[] = [
 function ToolIcon({ icon, active }: { icon: string; active: boolean }) {
   const color = active ? "#e8945a" : "currentColor";
   switch (icon) {
-    case "camera":
-      return (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-          <circle cx="12" cy="12" r="9" />
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 3v2M12 19v2M3 12h2M19 12h2" strokeWidth="1.5" />
-        </svg>
-      );
     case "raise":
       return (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
@@ -125,7 +116,6 @@ export default function BottomToolbar() {
 
   const handleToolClick = (tool: ToolDef) => {
     switch (tool.type) {
-      case "camera":
       case "raise":
       case "lower":
       case "smooth":
@@ -206,7 +196,7 @@ export default function BottomToolbar() {
 
   const isActive = (tool: ToolDef) => {
     if (tool.type === "toggle") return viewMode === "2d";
-    if (tool.type === "camera" || tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "water" || tool.type === "marker") {
+    if (tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "water" || tool.type === "marker") {
       return brush.type === tool.type;
     }
     return false;

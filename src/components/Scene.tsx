@@ -30,7 +30,8 @@ function TerrainMesh() {
   const setMouseInfo = useHeightmapStore((s) => s.setMouseInfo);
   const addMarker = useHeightmapStore((s) => s.addMarker);
   const simProgress = useHeightmapStore((s) => s.simProgress);
-  const { camera, raycaster } = useThree();
+  const multiTouchActive = useHeightmapStore((s) => s.multiTouchActive);
+  const { camera, raycaster, gl } = useThree();
   const isDragging = useRef(false);
   const lastCell = useRef<{ x: number; y: number } | null>(null);
   const strokeCells = useRef<Set<string>>(new Set());
@@ -119,24 +120,31 @@ function TerrainMesh() {
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (mode !== "edit") return;
-    const uv = getUVFromEvent(e);
-    if (!uv) return;
-
-    if (brush.type === "marker") {
-      addMarker(uv.x, uv.y);
-      return;
-    }
+    const nativeEvent = e.nativeEvent as PointerEvent;
+    // Only left-click draws
+    if (nativeEvent.pointerType === "mouse" && nativeEvent.button !== 0) return;
+    // Suppress drawing during multi-touch gestures
+    if (nativeEvent.pointerType === "touch" && multiTouchActive) return;
 
     isDragging.current = true;
     strokeCells.current.clear();
     lastCell.current = null;
-    (e.target as HTMLElement)?.setPointerCapture?.((e as unknown as PointerEvent).pointerId);
-    lastCell.current = uv;
-    strokeCells.current.add(`${uv.x},${uv.y}`);
-    applyBrush(uv.x, uv.y);
-  }, [mode, brush.type, applyBrush, addMarker, getUVFromEvent]);
+    const canvas = gl.domElement as HTMLElement;
+    canvas.setPointerCapture(nativeEvent.pointerId);
+    const uv = getUVFromEvent(e);
+    if (uv) {
+      lastCell.current = uv;
+      if (brush.type === "marker") {
+        addMarker(uv.x, uv.y);
+      } else {
+        strokeCells.current.add(`${uv.x},${uv.y}`);
+        applyBrush(uv.x, uv.y);
+      }
+    }
+  }, [mode, brush.type, applyBrush, addMarker, getUVFromEvent, multiTouchActive, gl]);
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
+    const nativeEvent = e.nativeEvent as PointerEvent;
     const uv = getUVFromEvent(e);
     if (uv && heightmap) {
       const h = heightmap[uv.y * HEIGHTMAP_SIZE + uv.x];
@@ -145,6 +153,14 @@ function TerrainMesh() {
       setMouseInfo(Math.round(h * 3000), biomeAtHeight(h), lat, lon);
     }
     if (!isDragging.current || mode !== "edit") return;
+    // Only draw while left button is held
+    if (nativeEvent.pointerType === "mouse" && nativeEvent.buttons !== 1) return;
+    // Cancel stroke if multi-touch activates mid-draw
+    if (nativeEvent.pointerType === "touch" && multiTouchActive) {
+      isDragging.current = false;
+      lastCell.current = null;
+      return;
+    }
     if (!uv) return;
     if (brush.type === "marker") return;
 
@@ -160,7 +176,7 @@ function TerrainMesh() {
       }
     }
     lastCell.current = uv;
-  }, [mode, brush.type, applyBrush, heightmap, setMouseInfo, getUVFromEvent, lineTo]);
+  }, [mode, brush.type, applyBrush, heightmap, setMouseInfo, getUVFromEvent, lineTo, multiTouchActive]);
 
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
@@ -170,7 +186,7 @@ function TerrainMesh() {
   return (
     <mesh
       ref={meshRef}
-      rotation={[-Math.PI / 3, 0, 0]}
+      rotation={[Math.PI / 3, 0, 0]}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -207,7 +223,7 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
   }, []);
 
   return (
-    <group rotation={[-Math.PI / 3, 0, 0]}>
+    <group rotation={[Math.PI / 3, 0, 0]}>
       {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
@@ -270,28 +286,30 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
   );
 }
 
-const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"]; // "camera" is NOT sculpt — orbit enabled
 const ZOOM_2D_THRESHOLD = 18; // camera distance at which 2D toggles on
 
 function SceneControls() {
-  const brushType = useHeightmapStore((s) => s.brush.type);
   const setViewMode = useHeightmapStore((s) => s.setViewMode);
-  const sculpting = SCULPT_TOOLS.includes(brushType);
+  const setMultiTouchActive = useHeightmapStore((s) => s.setMultiTouchActive);
   const controlsRef = useRef<any>(null);
   const wasFar = useRef(false);
   const keysDown = useRef<Set<string>>(new Set());
+  const { gl } = useThree();
 
-  // Keyboard pan when camera tool is active
+  // ---- Keyboard handling (always active) ----
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (brushType !== "camera") return;
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      const gameKeys = [
+        "KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE",
+        "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+      ];
+      if (gameKeys.includes(e.code)) {
         e.preventDefault();
-        keysDown.current.add(e.key);
+        keysDown.current.add(e.code);
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
-      keysDown.current.delete(e.key);
+      keysDown.current.delete(e.code);
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKeyUp);
@@ -299,9 +317,72 @@ function SceneControls() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [brushType]);
+  }, []);
 
-  useFrame(() => {
+  // ---- Multi-touch detection (suppress draw during 2-finger gestures) ----
+  useEffect(() => {
+    const canvas = gl.domElement;
+    if (!canvas) return;
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length >= 2) setMultiTouchActive(true);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) setMultiTouchActive(false);
+    };
+    canvas.addEventListener("touchstart", onTouchStart);
+    canvas.addEventListener("touchend", onTouchEnd);
+    canvas.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchend", onTouchEnd);
+      canvas.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [gl, setMultiTouchActive]);
+
+  // ---- Two-finger rotation supplement (OrbitControls doesn't natively rotate with DollyPan) ----
+  useEffect(() => {
+    const canvas = gl.domElement;
+    if (!canvas) return;
+    let lastAngle = 0;
+    let isTwoFinger = false;
+
+    const getAngle = (touches: TouchList): number => {
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      return Math.atan2(dy, dx);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        lastAngle = getAngle(e.touches);
+        isTwoFinger = true;
+      }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const ctrl = controlsRef.current;
+      if (!ctrl || !isTwoFinger || e.touches.length !== 2) return;
+      const currentAngle = getAngle(e.touches);
+      const angleDelta = currentAngle - lastAngle;
+      if (Math.abs(angleDelta) > 0.0005) {
+        ctrl.setAzimuthalAngle(ctrl.getAzimuthalAngle() - angleDelta);
+      }
+      lastAngle = currentAngle;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) isTwoFinger = false;
+    };
+    canvas.addEventListener("touchstart", onTouchStart);
+    canvas.addEventListener("touchmove", onTouchMove, { passive: true });
+    canvas.addEventListener("touchend", onTouchEnd);
+    return () => {
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [gl]);
+
+  // ---- Per-frame: auto 2D/3D toggle + keyboard movement ----
+  useFrame((_, delta) => {
     if (!controlsRef.current) return;
     const ctrl = controlsRef.current;
     const cam = ctrl.object as THREE.Camera;
@@ -317,23 +398,30 @@ function SceneControls() {
       setViewMode("3d");
     }
 
-    // Arrow key panning via OrbitControls.pan(deltaX, deltaY)
-    if (brushType === "camera") {
-      const panSpeed = dist * 0.5;
-      let dx = 0, dy = 0;
-      if (keysDown.current.has("ArrowUp"))    dy -= panSpeed;
-      if (keysDown.current.has("ArrowDown"))  dy += panSpeed;
-      if (keysDown.current.has("ArrowLeft"))  dx += panSpeed;
-      if (keysDown.current.has("ArrowRight")) dx -= panSpeed;
+    // ---- Keyboard pan (WASD + Arrow keys) ----
+    const panSpeed = dist * 0.5;
+    let dx = 0, dy = 0;
+    if (keysDown.current.has("KeyW") || keysDown.current.has("ArrowUp"))    dy -= panSpeed;
+    if (keysDown.current.has("KeyS") || keysDown.current.has("ArrowDown"))  dy += panSpeed;
+    if (keysDown.current.has("KeyA") || keysDown.current.has("ArrowLeft"))  dx += panSpeed;
+    if (keysDown.current.has("KeyD") || keysDown.current.has("ArrowRight")) dx -= panSpeed;
 
-      if (dx !== 0 || dy !== 0) {
-        if (typeof ctrl.pan === "function") {
-          ctrl.pan(dx, dy);
-        } else {
-          ctrl.target.x += dx * 0.01;
-          ctrl.target.y += dy * 0.01;
-        }
+    if (dx !== 0 || dy !== 0) {
+      if (typeof ctrl.pan === "function") {
+        ctrl.pan(dx * delta * 2, dy * delta * 2);
+      } else {
+        target.x += dx * 0.01;
+        target.y += dy * 0.01;
       }
+    }
+
+    // ---- Keyboard rotation (Q = left, E = right) ----
+    const rotateSpeed = 1.5;
+    if (keysDown.current.has("KeyQ")) {
+      ctrl.setAzimuthalAngle(ctrl.getAzimuthalAngle() + rotateSpeed * delta);
+    }
+    if (keysDown.current.has("KeyE")) {
+      ctrl.setAzimuthalAngle(ctrl.getAzimuthalAngle() - rotateSpeed * delta);
     }
   });
 
@@ -346,12 +434,16 @@ function SceneControls() {
       minDistance={4}
       maxDistance={40}
       enableZoom={true}
-      enableRotate={!sculpting}
-      enablePan={!sculpting}
+      enableRotate={true}
+      enablePan={true}
       mouseButtons={{
-        LEFT: sculpting ? undefined : 0,
-        MIDDLE: 2,
-        RIGHT: 2,
+        LEFT: undefined as any,
+        MIDDLE: THREE.MOUSE.PAN,
+        RIGHT: THREE.MOUSE.ROTATE,
+      }}
+      touches={{
+        ONE: undefined as any,
+        TWO: THREE.TOUCH.DOLLY_PAN,
       }}
     />
   );

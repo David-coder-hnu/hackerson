@@ -1,4 +1,4 @@
-export type BrushType = "camera" | "raise" | "lower" | "flatten" | "smooth" | "water" | "marker";
+export type BrushType = "raise" | "lower" | "flatten" | "smooth" | "water" | "marker";
 export type AppMode = "edit" | "simulating" | "observing";
 export type ViewMode = "3d" | "2d";
 export type ToolType = BrushType | "random" | "rivers" | "diagnosis" | "toggle" | "reset";
@@ -102,6 +102,7 @@ export interface AppState {
   mouseBiome: string;
   mouseLat: number;
   mouseLon: number;
+  multiTouchActive: boolean;
   riverData: RiverData;
 
   setMode: (mode: AppMode) => void;
@@ -116,6 +117,7 @@ export interface AppState {
   setMouseInfo: (height: number, biome: string, lat: number, lon: number) => void;
   addMarker: (x: number, y: number) => void;
   setPinAnalyses: (analyses: PinAnalysis[]) => void;
+  setMultiTouchActive: (active: boolean) => void;
   setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
 }

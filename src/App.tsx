@@ -100,7 +100,8 @@ export default function App() {
 
       {mode === "edit" && (
         <div className="empty-hint">
-          推这片土地，创造你的世界
+          <div>左键拖动: 雕刻地形 &nbsp;|&nbsp; 右键拖动: 旋转 &nbsp;|&nbsp; 中键拖动: 平移 &nbsp;|&nbsp; 滚轮: 缩放</div>
+          <div>键盘 WASD: 平移 &nbsp;|&nbsp; Q/E: 旋转</div>
         </div>
       )}
 

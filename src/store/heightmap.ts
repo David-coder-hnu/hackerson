@@ -108,7 +108,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mode: "edit",
   viewMode: "3d",
   heightmap: null,
-  brush: { radius: 25, strength: 0.025, type: "camera" },
+  brush: { radius: 25, strength: 0.025, type: "raise" },
   simProgress: null,
   archive: null,
   undoStack: [],
@@ -118,6 +118,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mouseBiome: "海洋",
   mouseLat: 0,
   mouseLon: 0,
+  multiTouchActive: false,
   riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
 
   initHeightmap: (data: Float32Array) => {
@@ -165,6 +166,8 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   setArchive: (archive) => set({ archive }),
   setMouseInfo: (height, biome, lat, lon) => set({ mouseHeight: height, mouseBiome: biome, mouseLat: lat, mouseLon: lon }),
 
+  setMultiTouchActive: (active) => set({ multiTouchActive: active }),
+
   addMarker: (x, y) => {
     set((s) => ({ markers: [...s.markers, { x, y }] }));
   },
@@ -194,6 +197,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
       markers: [],
       mouseHeight: 0,
       mouseBiome: "海洋",
+      multiTouchActive: false,
       riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
     });
   },
