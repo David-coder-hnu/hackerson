@@ -56,6 +56,8 @@ export interface RiverData {
   flowAccum: Float32Array | null;
   precipMap: Float32Array | null;
   tempMap: Float32Array | null;
+  riverPaths: number[][][] | null;  // array of paths, each path is array of [x,y]
+  lakeRegions: number[][][] | null; // array of regions, each is array of [x,y] cells
 }
 
 export interface AppState {

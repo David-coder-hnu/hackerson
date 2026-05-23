@@ -145,11 +145,11 @@ export default function BottomToolbar() {
         if (!heightmap) return;
         setMode("simulating");
         setSimProgress(null);
-        setRiverData({ riverMask: null, lakeMask: null });
+        setRiverData({ riverMask: null, lakeMask: null, riverPaths: null, lakeRegions: null });
         runSimulation(heightmap, {
           onProgress: (phase, data) => {
             if (phase === "hydrology") {
-              setRiverData(data);
+              setRiverData(data as any);
               setSimProgress({ phase: "hydrology", ...data });
             }
           },
@@ -167,11 +167,11 @@ export default function BottomToolbar() {
         if (!heightmap) return;
         setMode("simulating");
         setSimProgress(null);
-        setRiverData({ riverMask: null, lakeMask: null });
+        setRiverData({ riverMask: null, lakeMask: null, riverPaths: null, lakeRegions: null });
         runSimulation(heightmap, {
           onProgress: (phase, data) => {
             if (phase === "hydrology") {
-              setRiverData(data);
+              setRiverData(data as any);
               setSimProgress({ phase: "hydrology", ...data });
             } else if (phase === "climate") {
               const prev = useHeightmapStore.getState().simProgress;

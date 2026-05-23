@@ -144,7 +144,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mouseBiome: "海洋",
   mouseLat: 0,
   mouseLon: 0,
-  riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null },
+  riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
 
   initHeightmap: (data: Float32Array) => {
     set({ heightmap: data, mode: "edit", undoStack: [], redoStack: [] });
@@ -211,7 +211,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
       markers: [],
       mouseHeight: 0,
       mouseBiome: "海洋",
-      riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null },
+      riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
     });
   },
 }));

@@ -108,6 +108,100 @@ function extractRivers(accum: Float32Array, threshold: number): Uint8Array {
   return rivers;
 }
 
+// Trace river paths from D8 directions — returns arrays of [x,y] segments
+function traceRiverPaths(
+  dirs: Int8Array,
+  accum: Float32Array,
+  threshold: number,
+  maxPaths: number
+): number[][][] {
+  const paths: number[][][] = [];
+  const visited = new Uint8Array(SIZE * SIZE);
+  const neighbors = [[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1]];
+
+  // Find top source cells by flow accumulation
+  const sources: [number, number, number][] = []; // [accum, x, y]
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const i = idx(x, y);
+      if (accum[i] > threshold && !visited[i]) {
+        // Check if this is a "source" — no upstream cells, or high accumulation
+        const d = dirs[i];
+        if (d >= 0) {
+          const nx = x + neighbors[d][0], ny = y + neighbors[d][1];
+          if (inBounds(nx, ny) && accum[idx(nx, ny)] > accum[i] * 0.8) continue; // has meaningful downstream
+        }
+        sources.push([accum[i], x, y]);
+      }
+    }
+  }
+  sources.sort((a, b) => b[0] - a[0]);
+
+  // Trace from top sources
+  for (let s = 0; s < Math.min(sources.length, maxPaths); s++) {
+    const [, sx, sy] = sources[s];
+    if (visited[idx(sx, sy)]) continue;
+
+    const path: number[][] = [];
+    let x = sx, y = sy;
+    let steps = 0;
+    while (steps < SIZE * 2) {
+      const i = idx(x, y);
+      if (visited[i] && steps > 10) break; // hit existing path — merge
+      visited[i] = 1;
+      path.push([x, y]);
+
+      const d = dirs[i];
+      if (d < 0) break; // sink
+      x += neighbors[d][0];
+      y += neighbors[d][1];
+      if (!inBounds(x, y)) break;
+      steps++;
+    }
+    if (path.length > 3) paths.push(path);
+  }
+
+  return paths;
+}
+
+// Flood-fill lake regions
+function extractLakeRegions(lakeMask: Uint8Array, maxLakes: number): number[][][] {
+  const visited = new Uint8Array(SIZE * SIZE);
+  const regions: number[][][] = [];
+
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const i = idx(x, y);
+      if (!lakeMask[i] || visited[i]) continue;
+
+      // BFS flood fill
+      const cells: number[][] = [];
+      const queue: [number, number][] = [[x, y]];
+      visited[i] = 1;
+
+      while (queue.length > 0) {
+        const [cx, cy] = queue.shift()!;
+        cells.push([cx, cy]);
+        for (const [dx, dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+          const nx = cx + dx, ny = cy + dy;
+          if (!inBounds(nx, ny)) continue;
+          const ni = idx(nx, ny);
+          if (lakeMask[ni] && !visited[ni]) {
+            visited[ni] = 1;
+            queue.push([nx, ny]);
+          }
+        }
+      }
+
+      if (cells.length > 4) regions.push(cells);
+      if (regions.length >= maxLakes) break;
+    }
+    if (regions.length >= maxLakes) break;
+  }
+
+  return regions;
+}
+
 function detectLakes(hm: Float32Array, dirs: Int8Array): Uint8Array {
   const lakes = new Uint8Array(SIZE * SIZE);
   const n8 = [[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1]];
@@ -337,10 +431,16 @@ onmessage = (e: MessageEvent) => {
   const accum = flowAccumulation(dirs);
   const riverMask = extractRivers(accum, SIZE * 0.5);
   const lakeMask = detectLakes(filled, dirs);
+  const riverPaths = traceRiverPaths(dirs, accum, SIZE * 0.5, 40);
+  const lakeRegions = extractLakeRegions(lakeMask, 20);
 
+  // Transfer binary data via buffers
+  const rMaskBuf = riverMask.buffer;
+  const lMaskBuf = lakeMask.buffer;
+  const accumBuf = accum.buffer;
   postMessage(
-    { phase: "hydrology", riverMask: riverMask.buffer, lakeMask: lakeMask.buffer, flowAccum: accum.buffer },
-    [riverMask.buffer, lakeMask.buffer, accum.buffer]
+    { phase: "hydrology", riverMask: rMaskBuf, lakeMask: lMaskBuf, flowAccum: accumBuf, riverPaths, lakeRegions },
+    [rMaskBuf, lMaskBuf, accumBuf]
   );
 
   // Climate

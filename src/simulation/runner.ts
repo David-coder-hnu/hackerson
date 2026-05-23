@@ -30,6 +30,8 @@ export function runSimulation(
         riverMask: new Uint8Array(data.riverMask),
         lakeMask: new Uint8Array(data.lakeMask),
         flowAccum: new Float32Array(data.flowAccum),
+        riverPaths: data.riverPaths || [],
+        lakeRegions: data.lakeRegions || [],
       });
     } else if (data.phase === "climate") {
       opts.onProgress?.("climate", {

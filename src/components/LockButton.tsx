@@ -16,12 +16,12 @@ export default function LockButton() {
     setMode("simulating");
     setSimProgress(null);
     setArchive(null);
-    setRiverData({ riverMask: null, lakeMask: null });
+    setRiverData({ riverMask: null, lakeMask: null, riverPaths: null, lakeRegions: null });
 
     runSimulation(heightmap, {
       onProgress: (phase, data) => {
         if (phase === "hydrology") {
-          setRiverData(data);
+          setRiverData(data as any);
           setSimProgress({ phase: "hydrology", ...data });
         } else if (phase === "climate") {
           const prev = useHeightmapStore.getState().simProgress;

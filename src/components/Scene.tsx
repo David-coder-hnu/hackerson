@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Line } from "@react-three/drei";
 import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
 import { createTerrainMaterial, setClimateTextures } from "../render/TerrainMaterial";
@@ -179,19 +179,16 @@ function TerrainMesh() {
   );
 }
 
-// All terrain overlays (markers + water) in one rotated group
+// All terrain overlays (markers + rivers + lakes) in one rotated group
 function TerrainOverlays() {
   const markers = useHeightmapStore((s) => s.markers);
   const heightmap = useHeightmapStore((s) => s.heightmap);
-  const rMask = useHeightmapStore((s) => s.riverData.riverMask);
-  const lMask = useHeightmapStore((s) => s.riverData.lakeMask);
+  const riverPaths = useHeightmapStore((s) => s.riverData.riverPaths);
+  const lakeRegions = useHeightmapStore((s) => s.riverData.lakeRegions);
   const mode = useHeightmapStore((s) => s.mode);
-  const riverRef = useRef<THREE.InstancedMesh>(null!);
-  const lakeRef = useRef<THREE.InstancedMesh>(null!);
   const riverMat = useRef<THREE.ShaderMaterial>(createRiverMaterial());
   const lakeMat = useRef<THREE.ShaderMaterial>(createLakeMaterial());
-  const scale = 10 / HEIGHTMAP_SIZE;
-  const showWater = mode === "observing" || !!rMask;
+  const showWater = mode === "observing" || !!riverPaths;
 
   // Animate water
   useFrame(({ clock }) => {
@@ -200,57 +197,13 @@ function TerrainOverlays() {
     if (lakeMat.current) lakeMat.current.uniforms.uTime.value = t;
   });
 
-  // Rebuild water instances only when masks change
-  useEffect(() => {
-    if (!showWater || !rMask || !heightmap) return;
-    const step = 3;
-    const riverCells: number[] = [];
-    const lakeCells: number[] = [];
-
-    for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
-      for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
-        const i = y * HEIGHTMAP_SIZE + x;
-        if (rMask[i]) riverCells.push(i);
-        if (lMask?.[i]) lakeCells.push(i);
-      }
-    }
-
-    const m = new THREE.Matrix4();
-    if (riverRef.current) {
-      riverRef.current.count = Math.min(riverCells.length, 50000);
-      for (let j = 0; j < riverRef.current.count; j++) {
-        const i = riverCells[j];
-        const y = Math.floor(i / HEIGHTMAP_SIZE), x = i % HEIGHTMAP_SIZE;
-        const h = heightmap[i] * 2;
-        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-        const s = scale * 2.5;
-        m.identity();
-        m.scale(new THREE.Vector3(s, s, 1));
-        m.setPosition(px, py, h + 0.02);
-        riverRef.current.setMatrixAt(j, m);
-      }
-      riverRef.current.instanceMatrix.needsUpdate = true;
-    }
-
-    if (lakeRef.current) {
-      lakeRef.current.count = Math.min(lakeCells.length, 50000);
-      const ls = scale * 4;
-      for (let j = 0; j < lakeRef.current.count; j++) {
-        const i = lakeCells[j];
-        const y = Math.floor(i / HEIGHTMAP_SIZE), x = i % HEIGHTMAP_SIZE;
-        const h = heightmap[i] * 2;
-        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-        m.identity();
-        m.scale(new THREE.Vector3(ls, ls, 1));
-        m.setPosition(px, py, h + 0.015);
-        lakeRef.current.setMatrixAt(j, m);
-      }
-      lakeRef.current.instanceMatrix.needsUpdate = true;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rMask, lMask, showWater]);
+  const toWorld = useCallback((x: number, y: number, z: number) => {
+    return [
+      (x / HEIGHTMAP_SIZE - 0.5) * 10,
+      (0.5 - y / HEIGHTMAP_SIZE) * 10,
+      z,
+    ] as const;
+  }, []);
 
   return (
     <group rotation={[-Math.PI / 3, 0, 0]}>
@@ -258,8 +211,7 @@ function TerrainOverlays() {
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
           const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
-          const px = (m.x / HEIGHTMAP_SIZE - 0.5) * 10;
-          const py = (0.5 - m.y / HEIGHTMAP_SIZE) * 10;
+          const [px, py] = toWorld(m.x, m.y, 0);
           return (
             <mesh key={`mk${i}`} position={[px, py, h]}>
               <sphereGeometry args={[0.08, 8, 8]} />
@@ -267,17 +219,46 @@ function TerrainOverlays() {
             </mesh>
           );
         })}
-      {/* Water */}
-      {showWater && (
-        <>
-          <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]} material={riverMat.current}>
-            <planeGeometry args={[1, 1]} />
-          </instancedMesh>
-          <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]} material={lakeMat.current}>
-            <planeGeometry args={[1, 1]} />
-          </instancedMesh>
-        </>
-      )}
+      {/* River lines */}
+      {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
+        const points = path.map(([x, y]) => {
+          const h = heightmap[y * HEIGHTMAP_SIZE + x] * 2 + 0.025;
+          const [px, py] = toWorld(x, y, 0);
+          return new THREE.Vector3(px, py, h);
+        });
+        if (points.length < 2) return null;
+        const curve = new THREE.CatmullRomCurve3(points);
+        const curvePts = curve.getPoints(points.length * 2);
+        return (
+          <Line
+            key={`rv${pi}`}
+            points={curvePts}
+            color="#3a8fd4"
+            lineWidth={1.5}
+          />
+        );
+      })}
+      {/* Lake regions as filled shapes */}
+      {showWater && lakeRegions && heightmap && lakeRegions.map((region, ri) => {
+        if (region.length < 5) return null;
+        const avgH = region.reduce((s, [x, y]) => s + heightmap[y * HEIGHTMAP_SIZE + x] * 2, 0) / region.length + 0.015;
+
+        // Create shape from convex hull of region points
+        const worldPts = region.map(([x, y]) => {
+          const [px, py] = toWorld(x, y, 0);
+          return new THREE.Vector2(px, py);
+        });
+        // Use first 32 perimeter points for simplicity
+        const simplified = worldPts.filter((_, i) => i % Math.max(1, Math.floor(worldPts.length / 32)) === 0);
+        if (simplified.length < 3) return null;
+        const shape = new THREE.Shape(simplified);
+        const shapeGeom = new THREE.ShapeGeometry(shape);
+        return (
+          <mesh key={`lk${ri}`} position={[0, 0, avgH]} material={lakeMat.current}>
+            <primitive object={shapeGeom} />
+          </mesh>
+        );
+      })}
     </group>
   );
 }
