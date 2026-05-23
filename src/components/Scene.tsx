@@ -310,7 +310,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
           }
           return (
             <group key={`cr${cr.id}`}>
-              <Line points={sampled} color="#f0c040" lineWidth={1.5} />
+              <Line points={(() => { const c = new THREE.CatmullRomCurve3(sampled, false, "catmullrom", 0.25); return c.getPoints(sampled.length); })()} color="#f0c040" lineWidth={1.5} />
               {(() => {
                 const cx = cr.points.reduce((s, p) => s + p.x, 0) / cr.points.length;
                 const cy = cr.points.reduce((s, p) => s + p.y, 0) / cr.points.length;
