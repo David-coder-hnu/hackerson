@@ -157,7 +157,7 @@ function TerrainMesh({ onCustomClick }: { onCustomClick?: (x: number, y: number)
       const h = heightmap[uv.y * HEIGHTMAP_SIZE + uv.x];
       const lat = cellLat(uv.y);
       const lon = cellLon(uv.x);
-      setMouseInfo(Math.round(h * 3000), biomeAtHeight(h), lat, lon);
+      setMouseInfo(Math.round((h - 0.15) * 3000), biomeAtHeight(h), lat, lon);
     }
     if (!isDragging.current || mode !== "edit") return;
     // Only draw while left button is held

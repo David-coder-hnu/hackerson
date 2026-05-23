@@ -469,7 +469,7 @@ onmessage = (e: MessageEvent) => {
     const pi = idx(pin.x, pin.y);
     const lat = cellLat(pin.y);
     const lon = cellLon(pin.x);
-    const elev = hm[pi] * 3000; // meters
+    const elev = (hm[pi] - seaLevel) * 3000; // meters relative to sea level
     const geo = getCellGeo(pin.x, pin.y, hm);
     const cdist = _coastDist[pi];
     const coastKm = Math.round(cdist * 10) / 10; // ~10km per cell
