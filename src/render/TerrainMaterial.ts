@@ -117,30 +117,44 @@ const fragmentShader = /* glsl */ `
     return shore + n;
   }
 
-  // ---- Land color WITHOUT climate (for transition blend) ----
+  // ---- Latitude-driven snow line ----
+  float snowLine(float lat, float h) {
+    float absLat = abs(lat);
+    float snowH = 0.88 - absLat * 0.011;
+    snowH = clamp(snowH, 0.04, 0.92);
+    return smoothstep(snowH - 0.05, snowH + 0.05, h);
+  }
+
+  float polarIce(float lat) {
+    return smoothstep(60.0, 75.0, abs(lat));
+  }
+
+  // ---- Land color WITHOUT climate ----
   vec3 landColorNoClimate(float h, float slope, vec2 uv) {
     float n = fbm(uv * uResolution * 1.5) * 0.04;
-    vec3 lowGreen   = vec3(0.250, 0.440, 0.160);
-    vec3 forest     = vec3(0.140, 0.340, 0.110);
-    vec3 highForest = vec3(0.180, 0.360, 0.130);
-    vec3 highland   = vec3(0.380, 0.340, 0.200);
-    vec3 rock       = vec3(0.480, 0.420, 0.340);
-    vec3 scree      = vec3(0.550, 0.500, 0.440);
-    vec3 snow       = vec3(0.850, 0.840, 0.810);
+    float lat = 90.0 - uv.y * 180.0;
+    vec3 tundra  = vec3(0.55, 0.58, 0.52);
+    vec3 lowGreen = vec3(0.250, 0.440, 0.160);
+    vec3 forest = vec3(0.140, 0.340, 0.110);
+    vec3 highland = vec3(0.380, 0.340, 0.200);
+    vec3 rock = vec3(0.480, 0.420, 0.340);
+    vec3 ice = vec3(0.88, 0.90, 0.93);
 
     float t1 = smoothstep(0.22, 0.38, h);
     float t2 = smoothstep(0.38, 0.52, h);
     float t3 = smoothstep(0.52, 0.65, h);
     float t4 = smoothstep(0.65, 0.78, h);
-    float t5 = smoothstep(0.78, 0.88, h);
-    float t6 = smoothstep(0.88, 0.95, h);
 
     vec3 col = mix(lowGreen, forest, t1);
-    col = mix(col, highForest, t2);
-    col = mix(col, highland, t3);
-    col = mix(col, rock, t4);
-    col = mix(col, scree, t5);
-    col = mix(col, snow, t6);
+    col = mix(col, highland, t2);
+    col = mix(col, rock, t3);
+
+    float s = snowLine(lat, h);
+    col = mix(col, ice, s);
+    float p = polarIce(lat);
+    col = mix(col, ice, p * (1.0 - h * 0.3));
+    float tm = smoothstep(50.0, 65.0, abs(lat)) * (1.0 - s);
+    col = mix(col, tundra, tm * 0.4);
 
     float steep = smoothstep(0.08, 0.40, slope);
     col = mix(col, rock * 0.9, steep * 0.5);
@@ -148,52 +162,45 @@ const fragmentShader = /* glsl */ `
     return col;
   }
 
-  // ---- Land color: satellite-style green/brown gradation ----
+  // ---- Land color: climate-driven + latitude snow/ice ----
   vec3 landColor(float h, float slope, vec2 uv) {
     float n = fbm(uv * uResolution * 1.5) * 0.04;
+    float lat = 90.0 - uv.y * 180.0;
 
-    // If climate data is available, use it to modulate colors
-    float precip = 1.0;
-    float temp = 0.5;
+    float precip = 1.0, temp = 0.5;
     if (uHasClimate > 0.5) {
       precip = texture2D(uPrecipMap, uv).r;
       temp = texture2D(uTempMap, uv).r;
     }
 
-    // Base land colors — modulated by precipitation
-    vec3 arid      = vec3(0.65, 0.55, 0.35);  // dry tan/brown
-    vec3 grassland = vec3(0.28, 0.48, 0.18);  // moderate green
-    vec3 wetForest = vec3(0.12, 0.32, 0.10);  // dark lush green
+    vec3 arid = vec3(0.65, 0.55, 0.35);
+    vec3 grassland = vec3(0.28, 0.48, 0.18);
+    vec3 wetForest = vec3(0.12, 0.32, 0.10);
+    vec3 tundra = vec3(0.55, 0.58, 0.52);
+    vec3 rock = vec3(0.48, 0.42, 0.34);
+    vec3 ice = vec3(0.88, 0.90, 0.93);
 
-    // Precip-driven greenness: dry → grassland → forest
     float greenT = smoothstep(0.1, 0.4, precip);
-    vec3 baseLand = mix(arid, grassland, greenT);
-    baseLand = mix(baseLand, wetForest, smoothstep(0.5, 0.8, precip));
+    vec3 col = mix(arid, grassland, greenT);
+    col = mix(col, wetForest, smoothstep(0.5, 0.8, precip));
 
-    // Temperature: cold = more blue-grey, hot = more yellow
-    float coldT = smoothstep(-5.0, 5.0, temp);
     vec3 coldMod = vec3(0.7, 0.72, 0.78);
-    vec3 hotMod  = vec3(1.05, 0.95, 0.80);
-    baseLand = mix(coldMod * baseLand, hotMod * baseLand, smoothstep(0.0, 20.0, temp));
+    vec3 hotMod = vec3(1.05, 0.95, 0.80);
+    col = mix(coldMod * col, hotMod * col, smoothstep(0.0, 20.0, temp));
 
-    // Height-based gradation on top of climate
-    vec3 rock  = vec3(0.48, 0.42, 0.34);
-    vec3 scree = vec3(0.55, 0.50, 0.44);
-    vec3 snow  = vec3(0.85, 0.84, 0.81);
-
-    float t4 = smoothstep(0.65, 0.78, h);  // → rock
-    float t5 = smoothstep(0.78, 0.88, h);  // → scree
-    float t6 = smoothstep(0.88, 0.95, h);  // → snow
-
-    vec3 col = baseLand;
+    float t4 = smoothstep(0.65, 0.78, h);
     col = mix(col, rock, t4);
-    col = mix(col, scree, t5);
-    col = mix(col, snow, t6);
 
-    // Slope steepens color: steeper = more rock/grey
+    // Latitude-driven snow + polar ice
+    float s = snowLine(lat, h);
+    col = mix(col, ice, s);
+    float p = polarIce(lat);
+    col = mix(col, ice, p * (1.0 - h * 0.3));
+    float tm = smoothstep(50.0, 65.0, abs(lat)) * (1.0 - s);
+    col = mix(col, tundra, tm * 0.4);
+
     float steep = smoothstep(0.08, 0.40, slope);
     col = mix(col, rock * 0.9, steep * 0.5);
-
     col += n;
     return col;
   }
