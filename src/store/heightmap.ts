@@ -60,33 +60,6 @@ function avgInRadius(
   return count > 0 ? sum / count : hm[getIndex(cx, cy)];
 }
 
-function gaussianBlur(
-  hm: Float32Array,
-  cx: number,
-  cy: number,
-  radius: number
-): number {
-  let sum = 0;
-  let weightSum = 0;
-  const sigma = radius / 3;
-  const r = Math.ceil(radius);
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const nx = cx + dx;
-      const ny = cy + dy;
-      if (inBounds(nx, ny)) {
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d <= radius) {
-          const w = Math.exp(-(d * d) / (2 * sigma * sigma));
-          sum += hm[getIndex(nx, ny)] * w;
-          weightSum += w;
-        }
-      }
-    }
-  }
-  return weightSum > 0 ? sum / weightSum : hm[getIndex(cx, cy)];
-}
-
 function applyBrushOp(
   hm: Float32Array,
   cx: number,
@@ -117,8 +90,9 @@ function applyBrushOp(
         break;
       }
       case "smooth": {
-        const blurred = gaussianBlur(hm, px, py, radius);
-        hm[idx] = hm[idx] + (blurred - hm[idx]) * strength * w;
+        const avg = avgInRadius(hm, px, py, radius);
+        const blend = Math.min(1, strength * 8 * w); // 8x boost for visible smoothing
+        hm[idx] = hm[idx] + (avg - hm[idx]) * blend;
         break;
       }
       case "water": {
