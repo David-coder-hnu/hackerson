@@ -136,7 +136,7 @@ export default function BottomToolbar() {
         setBrush({ type: "marker" });
         break;
       case "random": {
-        const presets = ["volcanic-island", "mountain-chain", "crater-lake", "archipelago"] as const;
+        const presets = ["earthlike", "subduction", "rift", "pangaea"] as const;
         const key = presets[Math.floor(Math.random() * presets.length)];
         initHeightmap(generatePreset(key));
         break;

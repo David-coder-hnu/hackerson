@@ -116,10 +116,10 @@ function PresetButtons() {
   if (mode !== "edit") return null;
 
   const presets = [
-    { key: "volcanic-island" as const, label: "火山岛" },
-    { key: "mountain-chain" as const, label: "山脉" },
-    { key: "crater-lake" as const, label: "陨石湖" },
-    { key: "archipelago" as const, label: "群岛" },
+    { key: "earthlike" as const, label: "类地大陆" },
+    { key: "subduction" as const, label: "岛弧" },
+    { key: "rift" as const, label: "裂谷" },
+    { key: "pangaea" as const, label: "盘古" },
   ];
 
   const handlePreset = async (key: typeof presets[0]["key"]) => {
