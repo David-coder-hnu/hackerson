@@ -225,13 +225,21 @@ const fragmentShader = /* glsl */ `
     float viewDist = length(vViewPos);
 
     if (uViewMode > 0.5) {
-      // ---- 2D Contour mode ----
+      // ---- 2D Contour mode with prominent topographic lines ----
       vec3 baseCol = contourColor(h, slope);
       float interval = uContourInterval;
-      float halfW = uContourWidth;
+      // Major contour (every 5th) = thick dark line
+      float majorInterval = interval * 5.0;
+      float mc = abs(fract(h / majorInterval + 0.5) - 0.5) / fwidth(h);
+      float majorLine = 1.0 - smoothstep(0.0, 0.6, mc);
+      // Minor contour = thin lighter line
       float c = abs(fract(h / interval + 0.5) - 0.5) / fwidth(h);
-      float line = 1.0 - smoothstep(0.0, halfW, c);
-      vec3 color = mix(baseCol, vec3(0.15, 0.15, 0.15), line * 0.3);
+      float minorLine = 1.0 - smoothstep(0.0, 0.35, c);
+      // Minor lines only where major lines aren't
+      minorLine = minorLine * (1.0 - majorLine);
+      // Blend: dark major lines, medium minor lines
+      vec3 color = mix(baseCol, vec3(0.10, 0.10, 0.10), majorLine * 0.6);
+      color = mix(color, vec3(0.20, 0.18, 0.15), minorLine * 0.4);
       gl_FragColor = vec4(color, 1.0);
 
     } else {
