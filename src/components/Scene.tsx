@@ -91,7 +91,7 @@ function TerrainMesh() {
     if (hits.length > 0 && hits[0].uv) {
       return {
         x: Math.floor(hits[0].uv.x * HEIGHTMAP_SIZE),
-        y: Math.floor(hits[0].uv.y * HEIGHTMAP_SIZE),
+        y: Math.floor((1 - hits[0].uv.y) * HEIGHTMAP_SIZE),
       };
     }
     return null;
