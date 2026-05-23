@@ -26,14 +26,17 @@ const fragmentShader = /* glsl */ `
   uniform float uHeightScale;
   uniform float uViewMode; // 0 = 3D realistic, 1 = 2D contour
 
-  // Elevation color ramp for 2D contour mode
+  // Elevation color ramp for 2D contour mode — high-contrast ocean
   vec3 contourColor(float h) {
-    if (h < 0.02) return vec3(0.04, 0.10, 0.35);
-    if (h < 0.05) return vec3(0.06, 0.16, 0.44);
-    if (h < 0.08) return vec3(0.08, 0.22, 0.52);
-    if (h < 0.11) return vec3(0.10, 0.30, 0.58);
-    if (h < 0.14) return vec3(0.14, 0.40, 0.62);
-    if (h < 0.18) return vec3(0.20, 0.52, 0.60);
+    if (h < 0.02) return vec3(0.02, 0.06, 0.25);
+    if (h < 0.04) return vec3(0.03, 0.10, 0.35);
+    if (h < 0.06) return vec3(0.05, 0.16, 0.44);
+    if (h < 0.08) return vec3(0.07, 0.22, 0.52);
+    if (h < 0.10) return vec3(0.10, 0.30, 0.58);
+    if (h < 0.12) return vec3(0.14, 0.38, 0.62);
+    if (h < 0.14) return vec3(0.20, 0.48, 0.64);
+    if (h < 0.16) return vec3(0.32, 0.54, 0.62);
+    if (h < 0.18) return vec3(0.50, 0.52, 0.38);
     if (h < 0.25) return vec3(0.22, 0.60, 0.28);
     if (h < 0.35) return vec3(0.40, 0.65, 0.20);
     if (h < 0.45) return vec3(0.55, 0.62, 0.18);
@@ -44,25 +47,25 @@ const fragmentShader = /* glsl */ `
     return vec3(0.55, 0.50, 0.50);
   }
 
-  // Realistic color for 3D mode (continuous gradient)
+  // Realistic color for 3D mode — high-contrast depth gradient
   vec3 realisticColor(float h) {
-    // Ocean depth gradient — deep to shallow
-    if (h < 0.02) return vec3(0.02, 0.06, 0.22);  // abyssal
-    if (h < 0.05) return vec3(0.04, 0.10, 0.32);  // deep ocean
-    if (h < 0.08) return vec3(0.06, 0.16, 0.42);  // ocean
-    if (h < 0.11) return vec3(0.08, 0.24, 0.52);  // mid ocean
-    if (h < 0.14) return vec3(0.10, 0.32, 0.58);  // shallow
-    if (h < 0.17) return vec3(0.18, 0.42, 0.62);  // coastal shelf
-    if (h < 0.19) return vec3(0.50, 0.50, 0.35);  // wet sand
-    if (h < 0.22) return vec3(0.55, 0.52, 0.32);  // dry sand/beach
-    // Land gradient
-    if (h < 0.30) return vec3(0.28, 0.52, 0.20); // grassland
-    if (h < 0.42) return vec3(0.20, 0.44, 0.16); // forest
-    if (h < 0.55) return vec3(0.32, 0.36, 0.18); // highland
-    if (h < 0.68) return vec3(0.38, 0.30, 0.16); // low mountain
-    if (h < 0.80) return vec3(0.42, 0.32, 0.20); // mountain
-    if (h < 0.92) return vec3(0.50, 0.45, 0.40); // rock
-    return vec3(0.78, 0.76, 0.72); // snow
+    if (h < 0.02) return vec3(0.01, 0.04, 0.18);
+    if (h < 0.04) return vec3(0.02, 0.07, 0.26);
+    if (h < 0.06) return vec3(0.03, 0.12, 0.35);
+    if (h < 0.08) return vec3(0.05, 0.18, 0.44);
+    if (h < 0.10) return vec3(0.07, 0.26, 0.52);
+    if (h < 0.12) return vec3(0.10, 0.35, 0.60);
+    if (h < 0.14) return vec3(0.15, 0.45, 0.66);
+    if (h < 0.16) return vec3(0.30, 0.50, 0.62);  // coastal shelf
+    if (h < 0.18) return vec3(0.50, 0.50, 0.35);  // wet sand
+    if (h < 0.22) return vec3(0.58, 0.55, 0.32);  // beach
+    if (h < 0.30) return vec3(0.28, 0.52, 0.20);
+    if (h < 0.42) return vec3(0.20, 0.44, 0.16);
+    if (h < 0.55) return vec3(0.32, 0.36, 0.18);
+    if (h < 0.68) return vec3(0.38, 0.30, 0.16);
+    if (h < 0.80) return vec3(0.42, 0.32, 0.20);
+    if (h < 0.92) return vec3(0.50, 0.45, 0.40);
+    return vec3(0.78, 0.76, 0.72);
   }
 
   void main() {

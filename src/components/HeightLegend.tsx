@@ -1,16 +1,17 @@
 import { useHeightmapStore } from "../store/heightmap";
 
 const LEVELS = [
-  { h: 2500, color: "#5e2c14", label: "2500m" },
-  { h: 2200, color: "#6b3a1f", label: "2200m" },
-  { h: 1900, color: "#7d4e2a", label: "1900m" },
+  { h: 2800, color: "#5e2c14", label: "2800m" },
+  { h: 2400, color: "#6b3a1f", label: "2400m" },
+  { h: 2000, color: "#7d4e2a", label: "2000m" },
   { h: 1600, color: "#9b6b3d", label: "1600m" },
-  { h: 1300, color: "#b8844a", label: "1300m" },
-  { h: 1000, color: "#c9a050", label: "1000m" },
-  { h: 700, color: "#b5b840", label: "700m" },
-  { h: 400, color: "#7fa83e", label: "400m" },
-  { h: 100, color: "#4d9230", label: "100m" },
-  { h: 0, color: "#2a7a7a", label: "Sub-sea" },
+  { h: 1200, color: "#c9a050", label: "1200m" },
+  { h: 800, color: "#9a9a42", label: "800m" },
+  { h: 500, color: "#55a040", label: "500m" },
+  { h: 200, color: "#e0d0a0", label: "200m" },   // beach
+  { h: 0, color: "#2a8aaa", label: "Sea level" },
+  { h: -200, color: "#1a5a9a", label: "-200m" },
+  { h: -400, color: "#0a2a6a", label: "-400m" },
 ];
 
 export default function HeightLegend() {

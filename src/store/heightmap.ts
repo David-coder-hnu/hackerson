@@ -6,7 +6,12 @@ function createEmptyHeightmap(): Float32Array {
   const size = HEIGHTMAP_SIZE * HEIGHTMAP_SIZE;
   const data = new Float32Array(size);
   for (let i = 0; i < size; i++) {
-    data[i] = 0.08; // shallow ocean
+    const x = i % HEIGHTMAP_SIZE;
+    const y = Math.floor(i / HEIGHTMAP_SIZE);
+    const nx = x / HEIGHTMAP_SIZE;
+    const ny = y / HEIGHTMAP_SIZE;
+    const dist = Math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2);
+    data[i] = 0.02 + dist * 0.05 + (Math.sin(nx * 9.5 + ny * 7.3) * 0.02);
   }
   return data;
 }
