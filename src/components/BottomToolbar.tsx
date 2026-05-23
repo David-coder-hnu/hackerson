@@ -1,6 +1,7 @@
 import { useHeightmapStore } from "../store/heightmap";
 import type { BrushType } from "../types";
 import { generatePreset } from "../presets/generate";
+import { runSimulation } from "../simulation/runner";
 
 interface ToolDef {
   key: string;
@@ -114,8 +115,13 @@ export default function BottomToolbar() {
   const setBrush = useHeightmapStore((s) => s.setBrush);
   const viewMode = useHeightmapStore((s) => s.viewMode);
   const setViewMode = useHeightmapStore((s) => s.setViewMode);
+  const heightmap = useHeightmapStore((s) => s.heightmap);
   const initHeightmap = useHeightmapStore((s) => s.initHeightmap);
   const reset = useHeightmapStore((s) => s.reset);
+  const setMode = useHeightmapStore((s) => s.setMode);
+  const setSimProgress = useHeightmapStore((s) => s.setSimProgress);
+  const setArchive = useHeightmapStore((s) => s.setArchive);
+  const setRiverData = useHeightmapStore((s) => s.setRiverData);
 
   const handleToolClick = (tool: ToolDef) => {
     switch (tool.type) {
@@ -127,6 +133,7 @@ export default function BottomToolbar() {
         setBrush({ type: tool.type });
         break;
       case "marker":
+        setBrush({ type: "marker" });
         break;
       case "random": {
         const presets = ["volcanic-island", "mountain-chain", "crater-lake", "archipelago"] as const;
@@ -135,8 +142,50 @@ export default function BottomToolbar() {
         break;
       }
       case "rivers":
+        if (!heightmap) return;
+        setMode("simulating");
+        setSimProgress(null);
+        setRiverData({ riverMask: null, lakeMask: null });
+        runSimulation(heightmap, {
+          onProgress: (phase, data) => {
+            if (phase === "hydrology") {
+              setRiverData(data);
+              setSimProgress({ phase: "hydrology", ...data });
+            }
+          },
+          onComplete: () => {
+            setMode("edit");
+            setSimProgress(null);
+          },
+          onError: (err) => {
+            setMode("edit");
+            alert(err);
+          },
+        });
         break;
       case "diagnosis":
+        if (!heightmap) return;
+        setMode("simulating");
+        setSimProgress(null);
+        runSimulation(heightmap, {
+          onProgress: (phase, data) => {
+            if (phase === "hydrology") {
+              setRiverData(data);
+              setSimProgress({ phase: "hydrology", ...data });
+            } else if (phase === "climate") {
+              setSimProgress({ phase: "climate", ...data });
+            }
+          },
+          onComplete: (archive) => {
+            setArchive(archive);
+            setMode("observing");
+            setSimProgress(null);
+          },
+          onError: (err) => {
+            setMode("edit");
+            alert(err);
+          },
+        });
         break;
       case "toggle":
         setViewMode(viewMode === "3d" ? "2d" : "3d");
@@ -149,7 +198,7 @@ export default function BottomToolbar() {
 
   const isActive = (tool: ToolDef) => {
     if (tool.type === "toggle") return viewMode === "2d";
-    if (tool.type === "camera" || tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "water") {
+    if (tool.type === "camera" || tool.type === "raise" || tool.type === "lower" || tool.type === "smooth" || tool.type === "water" || tool.type === "marker") {
       return brush.type === tool.type;
     }
     return false;

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -173,6 +173,49 @@ function MarkerDots() {
   );
 }
 
+function RiverLines() {
+  const riverData = useHeightmapStore((s) => s.riverData);
+  const heightmap = useHeightmapStore((s) => s.heightmap);
+  const rMask = riverData.riverMask;
+  const lMask = riverData.lakeMask;
+  if (!rMask || !heightmap) return null;
+
+  const step = 2; // sample every 2nd cell
+  const elems: React.ReactNode[] = [];
+  const scale = 10 / HEIGHTMAP_SIZE;
+  const color = new THREE.Color("#3a8fd4");
+
+  for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
+    for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
+      const idx = y * HEIGHTMAP_SIZE + x;
+      if (rMask[idx]) {
+        const h = heightmap[idx] * 2 + 0.03;
+        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+        elems.push(
+          <mesh key={`r${idx}`} position={[px, py, h]}>
+            <planeGeometry args={[scale * 2, scale * 2]} />
+            <meshBasicMaterial color={color} side={THREE.DoubleSide} />
+          </mesh>
+        );
+      }
+      if (lMask && lMask[idx]) {
+        const h = heightmap[idx] * 2 + 0.02;
+        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+        elems.push(
+          <mesh key={`l${idx}`} position={[px, py, h]}>
+            <planeGeometry args={[scale * 3, scale * 3]} />
+            <meshBasicMaterial color="#2a6aaa" side={THREE.DoubleSide} />
+          </mesh>
+        );
+      }
+    }
+  }
+
+  return <>{elems}</>;
+}
+
 const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"]; // "camera" is NOT sculpt — orbit enabled
 const ZOOM_2D_THRESHOLD = 18; // camera distance at which 2D toggles on
 
@@ -270,6 +313,7 @@ export default function Scene() {
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
       <MarkerDots />
+      <RiverLines />
       <SceneControls />
     </Canvas>
   );

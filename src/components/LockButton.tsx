@@ -1,5 +1,5 @@
 import { useHeightmapStore } from "../store/heightmap";
-import { useRef } from "react";
+import { runSimulation } from "../simulation/runner";
 
 export default function LockButton() {
   const mode = useHeightmapStore((s) => s.mode);
@@ -7,7 +7,7 @@ export default function LockButton() {
   const setMode = useHeightmapStore((s) => s.setMode);
   const setSimProgress = useHeightmapStore((s) => s.setSimProgress);
   const setArchive = useHeightmapStore((s) => s.setArchive);
-  const workerRef = useRef<Worker | null>(null);
+  const setRiverData = useHeightmapStore((s) => s.setRiverData);
 
   if (mode !== "edit") return null;
 
@@ -16,65 +16,26 @@ export default function LockButton() {
     setMode("simulating");
     setSimProgress(null);
     setArchive(null);
+    setRiverData({ riverMask: null, lakeMask: null });
 
-    const worker = new Worker(
-      new URL("../simulation/worker.ts", import.meta.url),
-      { type: "module" }
-    );
-    workerRef.current = worker;
-
-    const timeout = setTimeout(() => {
-      worker.terminate();
-      workerRef.current = null;
-      setMode("edit");
-      alert("Simulation timed out. Please try again.");
-    }, 30000);
-
-    worker.onmessage = (e) => {
-      const data = e.data;
-      if (data.phase === "hydrology") {
-        setSimProgress({
-          phase: "hydrology",
-          riverMask: new Uint8Array(data.riverMask),
-          lakeMask: new Uint8Array(data.lakeMask),
-          flowAccum: new Float32Array(data.flowAccum),
-        });
-      } else if (data.phase === "climate") {
-        const prev = useHeightmapStore.getState().simProgress;
-        setSimProgress({
-          phase: "climate",
-          riverMask: prev?.riverMask,
-          lakeMask: prev?.lakeMask,
-          flowAccum: prev?.flowAccum,
-          precipMap: new Float32Array(data.precipMap),
-          tempMap: new Float32Array(data.tempMap),
-        });
-      } else if (data.phase === "complete") {
-        clearTimeout(timeout);
-        setArchive(data.analysis);
-        setMode("observing");
-        worker.terminate();
-        workerRef.current = null;
-      }
-    };
-
-    worker.onerror = () => {
-      clearTimeout(timeout);
-      worker.terminate();
-      workerRef.current = null;
-      setMode("edit");
-      alert("Simulation failed. Please try again.");
-    };
-
-    worker.postMessage(
-      {
-        type: "SIMULATE",
-        heightmap: heightmap.buffer,
-        windDirection: Math.PI / 2,
-        seaLevel: 0.15,
+    runSimulation(heightmap, {
+      onProgress: (phase, data) => {
+        if (phase === "hydrology") {
+          setRiverData(data);
+          setSimProgress({ phase: "hydrology", ...data });
+        } else if (phase === "climate") {
+          setSimProgress({ phase: "climate", ...data });
+        }
       },
-      [heightmap.buffer.slice(0)]
-    );
+      onComplete: (archive) => {
+        setArchive(archive);
+        setMode("observing");
+      },
+      onError: (err) => {
+        setMode("edit");
+        alert(err);
+      },
+    });
   };
 
   return (

@@ -43,6 +43,14 @@ export interface SimRequest {
   seaLevel: number;
 }
 
+export interface RiverData {
+  riverMask: Uint8Array | null;
+  lakeMask: Uint8Array | null;
+  flowAccum: Float32Array | null;
+  precipMap: Float32Array | null;
+  tempMap: Float32Array | null;
+}
+
 export interface AppState {
   mode: AppMode;
   viewMode: ViewMode;
@@ -55,6 +63,7 @@ export interface AppState {
   markers: Array<{ x: number; y: number }>;
   mouseHeight: number;
   mouseBiome: string;
+  riverData: RiverData;
 
   setMode: (mode: AppMode) => void;
   setViewMode: (vm: ViewMode) => void;
@@ -67,6 +76,7 @@ export interface AppState {
   setArchive: (archive: PlanetArchive | null) => void;
   setMouseInfo: (height: number, biome: string) => void;
   addMarker: (x: number, y: number) => void;
+  setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
 }
 

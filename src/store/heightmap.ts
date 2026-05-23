@@ -121,6 +121,11 @@ function applyBrushOp(
         hm[idx] = hm[idx] + (blurred - hm[idx]) * strength * w;
         break;
       }
+      case "water": {
+        const target = 0.12; // pull toward shallow water level
+        hm[idx] = hm[idx] + (target - hm[idx]) * strength * w;
+        break;
+      }
     }
   }
 }
@@ -136,7 +141,8 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   redoStack: [],
   markers: [],
   mouseHeight: 0,
-  mouseBiome: "Ocean",
+  mouseBiome: "海洋",
+  riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null },
 
   initHeightmap: (data: Float32Array) => {
     set({ heightmap: data, mode: "edit", undoStack: [], redoStack: [] });
@@ -187,6 +193,10 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
     set((s) => ({ markers: [...s.markers, { x, y }] }));
   },
 
+  setRiverData: (data) => {
+    set((s) => ({ riverData: { ...s.riverData, ...data } }));
+  },
+
   reset: () => {
     set({
       mode: "edit",
@@ -198,7 +208,8 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
       archive: null,
       markers: [],
       mouseHeight: 0,
-      mouseBiome: "Ocean",
+      mouseBiome: "海洋",
+      riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null },
     });
   },
 }));
