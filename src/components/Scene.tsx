@@ -92,7 +92,7 @@ function TerrainMesh() {
     if (hits.length > 0 && hits[0].uv) {
       return {
         x: Math.floor(hits[0].uv.x * HEIGHTMAP_SIZE),
-        y: Math.floor((1 - hits[0].uv.y) * HEIGHTMAP_SIZE),
+        y: Math.floor(hits[0].uv.y * HEIGHTMAP_SIZE),
       };
     }
     return null;
@@ -217,7 +217,7 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
   const toWorld = useCallback((x: number, y: number, z: number) => {
     return [
       (x / HEIGHTMAP_SIZE - 0.5) * 10,
-      (0.5 - y / HEIGHTMAP_SIZE) * 10,
+      (y / HEIGHTMAP_SIZE - 0.5) * 10,
       z,
     ] as const;
   }, []);
