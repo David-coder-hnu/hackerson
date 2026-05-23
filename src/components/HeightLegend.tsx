@@ -1,17 +1,20 @@
 import { useHeightmapStore } from "../store/heightmap";
 
 const LEVELS = [
-  { h: 2800, color: "#5e2c14", label: "2800m" },
-  { h: 2400, color: "#6b3a1f", label: "2400m" },
-  { h: 2000, color: "#7d4e2a", label: "2000m" },
-  { h: 1600, color: "#9b6b3d", label: "1600m" },
-  { h: 1200, color: "#c9a050", label: "1200m" },
-  { h: 800, color: "#9a9a42", label: "800m" },
-  { h: 500, color: "#55a040", label: "500m" },
-  { h: 200, color: "#e0d0a0", label: "200m" },
-  { h: 0, color: "#2a8aaa", label: "0m" },
-  { h: -200, color: "#1a5a9a", label: "-200m" },
-  { h: -400, color: "#0a2a6a", label: "-400m" },
+  { h: 8000, color: "#FFFFFF", label: "8000m" },
+  { h: 5000, color: "#D9D9D9", label: "5000m" },
+  { h: 3500, color: "#B0A098", label: "3500m" },
+  { h: 2500, color: "#C9A06A", label: "2500m" },
+  { h: 1500, color: "#E5C27E", label: "1500m" },
+  { h: 1000, color: "#D2DF9E", label: "1000m" },
+  { h: 500, color: "#AAD1AA", label: "500m" },
+  { h: 200, color: "#7CB15E", label: "200m" },
+  { h: 0, color: "#4C8C3A", label: "0m" },
+  { h: -50, color: "#A8D8FF", label: "-50m" },
+  { h: -200, color: "#6BB5FF", label: "-200m" },
+  { h: -1000, color: "#3A85CC", label: "-1000m" },
+  { h: -3000, color: "#1A5C99", label: "-3000m" },
+  { h: -6000, color: "#0D3B66", label: "-6000m" },
 ];
 
 export default function HeightLegend() {

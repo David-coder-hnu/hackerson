@@ -70,31 +70,31 @@ const fragmentShader = /* glsl */ `
     return sqrt((hx - h0) * (hx - h0) + (hy - h0) * (hy - h0)) / s;
   }
 
-  // ---- Ocean color with depth ----
+  // ---- Bathymetric tint (professional cartographic) ----
   vec3 oceanColor(float h, float slope) {
-    // Deep abyssal to shallow turquoise
-    vec3 deep   = vec3(0.012, 0.045, 0.160);
-    vec3 abyss  = vec3(0.018, 0.065, 0.210);
-    vec3 ocean  = vec3(0.025, 0.100, 0.280);
-    vec3 mid    = vec3(0.035, 0.155, 0.360);
-    vec3 shallow= vec3(0.055, 0.210, 0.440);
-    vec3 reef   = vec3(0.100, 0.310, 0.520);
-    vec3 shelf  = vec3(0.180, 0.420, 0.600);
+    // h: 0.00=deepest trench, 0.15=sea level
+    // Normalized depth: 1.0=deepest, 0.0=surface
+    float d = 1.0 - h / 0.15;
+    d = clamp(d, 0.0, 1.0);
 
-    float t;
+    vec3 trench  = vec3(0.024, 0.102, 0.200);   // 6000m+ 墨黑蓝 #061A33
+    vec3 abyss   = vec3(0.051, 0.231, 0.400);   // 3000m 午夜蓝 #0D3B66
+    vec3 deep    = vec3(0.102, 0.361, 0.600);   // 1000m 深蓝 #1A5C99
+    vec3 mid     = vec3(0.227, 0.522, 0.800);   // 200m 深海蓝 #3A85CC
+    vec3 ocean   = vec3(0.420, 0.710, 1.000);   // 50m 标准蓝 #6BB5FF
+    vec3 shallow = vec3(0.659, 0.847, 1.000);   // 20m 浅蓝 #A8D8FF
+    vec3 reef    = vec3(0.847, 0.941, 1.000);   // 0m 极浅蓝 #D8F0FF
+
     vec3 col;
-    if (h < 0.04) { t = h / 0.04; col = mix(deep, abyss, t); }
-    else if (h < 0.07) { t = (h - 0.04) / 0.03; col = mix(abyss, ocean, t); }
-    else if (h < 0.10) { t = (h - 0.07) / 0.03; col = mix(ocean, mid, t); }
-    else if (h < 0.12) { t = (h - 0.10) / 0.02; col = mix(mid, shallow, t); }
-    else if (h < 0.14) { t = (h - 0.12) / 0.02; col = mix(shallow, reef, t); }
-    else { t = (h - 0.14) / 0.05; col = mix(reef, shelf, clamp(t, 0.0, 1.0)); }
+    if (d > 0.85) col = mix(abyss, trench, (d - 0.85) / 0.15);
+    else if (d > 0.65) col = mix(deep, abyss, (d - 0.65) / 0.20);
+    else if (d > 0.45) col = mix(mid, deep, (d - 0.45) / 0.20);
+    else if (d > 0.25) col = mix(ocean, mid, (d - 0.25) / 0.20);
+    else if (d > 0.10) col = mix(shallow, ocean, (d - 0.10) / 0.15);
+    else col = mix(reef, shallow, d / 0.10);
 
-    // Subtle noise variation on seafloor
-    float n = fbm(vUv * uResolution * 0.5) * 0.03;
-    col = mix(col, col * 1.1, n);
-
-    return col;
+    float n = fbm(vUv * uResolution * 0.5) * 0.02;
+    return col + n;
   }
 
   // ---- Shoreline transition ----
@@ -129,78 +129,110 @@ const fragmentShader = /* glsl */ `
     return smoothstep(60.0, 75.0, abs(lat));
   }
 
-  // ---- Land color WITHOUT climate ----
+  // ---- Hypsometric tint (professional cartographic) ----
   vec3 landColorNoClimate(float h, float slope, vec2 uv) {
-    float n = fbm(uv * uResolution * 1.5) * 0.04;
+    float n = fbm(uv * uResolution * 1.5) * 0.03;
     float lat = uv.y * 180.0 - 90.0;
-    vec3 tundra  = vec3(0.55, 0.58, 0.52);
-    vec3 lowGreen = vec3(0.250, 0.440, 0.160);
-    vec3 forest = vec3(0.140, 0.340, 0.110);
-    vec3 highland = vec3(0.380, 0.340, 0.200);
-    vec3 rock = vec3(0.480, 0.420, 0.340);
-    vec3 ice = vec3(0.88, 0.90, 0.93);
 
-    float t1 = smoothstep(0.22, 0.38, h);
-    float t2 = smoothstep(0.38, 0.52, h);
-    float t3 = smoothstep(0.52, 0.65, h);
-    float t4 = smoothstep(0.65, 0.78, h);
+    // h normalized to 0-10km for hypsometric bands
+    float elev = h * 10.0; // 0-10 km
 
-    vec3 col = mix(lowGreen, forest, t1);
-    col = mix(col, highland, t2);
-    col = mix(col, rock, t3);
+    vec3 lowGreen  = vec3(0.298, 0.549, 0.227);  // 0-200m  #4C8C3A
+    vec3 plainGreen= vec3(0.486, 0.694, 0.369);  // 200-500m #7CB15E
+    vec3 hillGreen = vec3(0.667, 0.820, 0.667);  // 500-1km #AAD1AA
+    vec3 highGreen = vec3(0.824, 0.875, 0.620);  // 1-1.5km #D2DF9E
+    vec3 brownLow  = vec3(0.898, 0.761, 0.494);  // 1.5-2.5k #E5C27E
+    vec3 brownMid  = vec3(0.788, 0.627, 0.416);  // 2.5-3.5k #C9A06A
+    vec3 greyBrown = vec3(0.690, 0.627, 0.596);  // 3.5-5km #B0A098
+    vec3 greyHigh  = vec3(0.851, 0.851, 0.851);  // 5-8km   #D9D9D9
+    vec3 white     = vec3(1.000, 1.000, 1.000);  // 8km+    #FFFFFF
 
+    vec3 col;
+    if (elev < 0.2) col = mix(lowGreen, plainGreen, elev / 0.2);
+    else if (elev < 0.5) col = mix(plainGreen, hillGreen, (elev - 0.2) / 0.3);
+    else if (elev < 1.0) col = mix(hillGreen, highGreen, (elev - 0.5) / 0.5);
+    else if (elev < 1.5) col = mix(highGreen, brownLow, (elev - 1.0) / 0.5);
+    else if (elev < 2.5) col = mix(brownLow, brownMid, (elev - 1.5) / 1.0);
+    else if (elev < 3.5) col = mix(brownMid, greyBrown, (elev - 2.5) / 1.0);
+    else if (elev < 5.0) col = mix(greyBrown, greyHigh, (elev - 3.5) / 1.5);
+    else if (elev < 8.0) col = mix(greyHigh, white, (elev - 5.0) / 3.0);
+    else col = white;
+
+    // Latitude snow/ice override
+    vec3 ice = vec3(0.90, 0.92, 0.95);
     float s = snowLine(lat, h);
     col = mix(col, ice, s);
     float p = polarIce(lat);
     col = mix(col, ice, p * (1.0 - h * 0.3));
     float tm = smoothstep(50.0, 65.0, abs(lat)) * (1.0 - s);
+    vec3 tundra = vec3(0.55, 0.58, 0.52);
     col = mix(col, tundra, tm * 0.4);
 
-    float steep = smoothstep(0.08, 0.40, slope);
-    col = mix(col, rock * 0.9, steep * 0.5);
+    float steep = smoothstep(0.10, 0.50, slope);
+    col = mix(col, greyBrown * 0.9, steep * 0.5);
     col += n;
     return col;
   }
 
   // ---- Land color: climate-driven + latitude snow/ice ----
   vec3 landColor(float h, float slope, vec2 uv) {
-    float n = fbm(uv * uResolution * 1.5) * 0.04;
+    float n = fbm(uv * uResolution * 1.5) * 0.03;
     float lat = uv.y * 180.0 - 90.0;
+    float elev = h * 10.0;
 
-    float precip = 1.0, temp = 0.5;
-    if (uHasClimate > 0.5) {
-      precip = texture2D(uPrecipMap, uv).r;
-      temp = texture2D(uTempMap, uv).r;
-    }
+    // Hypsometric base
+    vec3 lowGreen  = vec3(0.298, 0.549, 0.227);
+    vec3 plainGreen= vec3(0.486, 0.694, 0.369);
+    vec3 hillGreen = vec3(0.667, 0.820, 0.667);
+    vec3 highGreen = vec3(0.824, 0.875, 0.620);
+    vec3 brownLow  = vec3(0.898, 0.761, 0.494);
+    vec3 brownMid  = vec3(0.788, 0.627, 0.416);
+    vec3 greyBrown = vec3(0.690, 0.627, 0.596);
+    vec3 greyHigh  = vec3(0.851, 0.851, 0.851);
 
-    vec3 arid = vec3(0.65, 0.55, 0.35);
-    vec3 grassland = vec3(0.28, 0.48, 0.18);
-    vec3 wetForest = vec3(0.12, 0.32, 0.10);
-    vec3 tundra = vec3(0.55, 0.58, 0.52);
-    vec3 rock = vec3(0.48, 0.42, 0.34);
-    vec3 ice = vec3(0.88, 0.90, 0.93);
+    vec3 base;
+    if (elev < 0.2) base = mix(lowGreen, plainGreen, elev / 0.2);
+    else if (elev < 0.5) base = mix(plainGreen, hillGreen, (elev - 0.2) / 0.3);
+    else if (elev < 1.0) base = mix(hillGreen, highGreen, (elev - 0.5) / 0.5);
+    else if (elev < 1.5) base = mix(highGreen, brownLow, (elev - 1.0) / 0.5);
+    else if (elev < 2.5) base = mix(brownLow, brownMid, (elev - 1.5) / 1.0);
+    else if (elev < 3.5) base = mix(brownMid, greyBrown, (elev - 2.5) / 1.0);
+    else base = mix(greyBrown, greyHigh, (elev - 3.5) / 1.5);
 
-    float greenT = smoothstep(0.1, 0.4, precip);
-    vec3 col = mix(arid, grassland, greenT);
-    col = mix(col, wetForest, smoothstep(0.5, 0.8, precip));
+    // Vegetation density from precipitation
+    float precip = 1.0;
+    if (uHasClimate > 0.5) precip = texture2D(uPrecipMap, uv).r;
 
-    vec3 coldMod = vec3(0.7, 0.72, 0.78);
-    vec3 hotMod = vec3(1.05, 0.95, 0.80);
-    col = mix(coldMod * col, hotMod * col, smoothstep(0.0, 20.0, temp));
+    vec3 desert  = vec3(0.949, 0.890, 0.776);
+    vec3 steppe  = vec3(0.851, 0.878, 0.651);
+    vec3 shrub   = vec3(0.702, 0.804, 0.541);
+    vec3 woodland= vec3(0.537, 0.690, 0.384);
+    vec3 forest  = vec3(0.353, 0.561, 0.278);
+    vec3 jungle  = vec3(0.173, 0.369, 0.180);
 
-    float t4 = smoothstep(0.65, 0.78, h);
-    col = mix(col, rock, t4);
+    vec3 veg;
+    if (precip < 0.1) veg = mix(desert, steppe, precip / 0.1);
+    else if (precip < 0.3) veg = mix(steppe, shrub, (precip - 0.1) / 0.2);
+    else if (precip < 0.5) veg = mix(shrub, woodland, (precip - 0.3) / 0.2);
+    else if (precip < 0.7) veg = mix(woodland, forest, (precip - 0.5) / 0.2);
+    else if (precip < 0.9) veg = mix(forest, jungle, (precip - 0.7) / 0.2);
+    else veg = jungle;
 
-    // Latitude-driven snow + polar ice
+    float rockT = smoothstep(2.0, 4.0, elev);
+    vec3 col = mix(veg, base, rockT);
+
+    vec3 ice = vec3(0.90, 0.92, 0.95);
+    vec3 white = vec3(1.0, 1.0, 1.0);
     float s = snowLine(lat, h);
-    col = mix(col, ice, s);
+    col = mix(col, elev > 7.0 ? white : ice, s);
     float p = polarIce(lat);
     col = mix(col, ice, p * (1.0 - h * 0.3));
     float tm = smoothstep(50.0, 65.0, abs(lat)) * (1.0 - s);
+    vec3 tundra = vec3(0.55, 0.58, 0.52);
     col = mix(col, tundra, tm * 0.4);
 
-    float steep = smoothstep(0.08, 0.40, slope);
-    col = mix(col, rock * 0.9, steep * 0.5);
+    float steep = smoothstep(0.10, 0.50, slope);
+    col = mix(col, greyBrown * 0.9, steep * 0.5);
     col += n;
     return col;
   }
