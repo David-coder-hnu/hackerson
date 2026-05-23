@@ -119,20 +119,21 @@ function TerrainMesh() {
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (mode !== "edit") return;
+    const uv = getUVFromEvent(e);
+    if (!uv) return;
+
+    if (brush.type === "marker") {
+      addMarker(uv.x, uv.y);
+      return;
+    }
+
     isDragging.current = true;
     strokeCells.current.clear();
     lastCell.current = null;
     (e.target as HTMLElement)?.setPointerCapture?.((e as unknown as PointerEvent).pointerId);
-    const uv = getUVFromEvent(e);
-    if (uv) {
-      lastCell.current = uv;
-      if (brush.type === "marker") {
-        addMarker(uv.x, uv.y);
-      } else {
-        strokeCells.current.add(`${uv.x},${uv.y}`);
-        applyBrush(uv.x, uv.y);
-      }
-    }
+    lastCell.current = uv;
+    strokeCells.current.add(`${uv.x},${uv.y}`);
+    applyBrush(uv.x, uv.y);
   }, [mode, brush.type, applyBrush, addMarker, getUVFromEvent]);
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
