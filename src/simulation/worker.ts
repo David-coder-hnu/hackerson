@@ -2,6 +2,10 @@ import { classifyKoppen, generateMonthlyTemp, generateMonthlyPrecip } from "./ko
 import { classifyHoldridge, inferSoil, recommendPlants } from "./biome";
 import type { KoppenResult } from "./koppen";
 import type { HoldridgeZone, SoilType, HabitatPlants } from "./biome";
+import {
+  cellLat, baseTempByLatitude,
+  prevailingWindDir, latPrecipFactor, getCellGeo,
+} from "./geo";
 
 declare function postMessage(message: any, transfer?: Transferable[]): void;
 declare var onmessage: ((this: Window, ev: MessageEvent) => any) | null;
@@ -122,27 +126,58 @@ function detectLakes(hm: Float32Array, dirs: Int8Array): Uint8Array {
   return lakes;
 }
 
-// ---- Climate model: elevation + wind → temperature + precipitation ----
+// ---- Climate model: latitude-driven + terrain-modulated ----
 function computeClimateFields(
   hm: Float32Array,
-  windDir: number
+  _windDir: number // kept for API compat, but lat/lon determines wind now
 ): { precipMap: Float32Array; tempMap: Float32Array } {
   const precip = new Float32Array(SIZE * SIZE);
   const temp = new Float32Array(SIZE * SIZE);
-  const tempLapseRate = 6.5, baseTemp = 25, precipScale = 0.8;
-  const wx = Math.cos(windDir), wy = Math.sin(windDir);
+  const tempLapseRate = 6.5; // °C per 1000m
+  const precipScale = 0.6;
 
   for (let y = 0; y < SIZE; y++) {
+    const lat = cellLat(y);
+    const baseT = baseTempByLatitude(lat);
+    const latPrecip = latPrecipFactor(lat);
+    const windDir = prevailingWindDir(lat);
+    const wx = Math.cos(windDir), wy = Math.sin(windDir);
+
     for (let x = 0; x < SIZE; x++) {
-      const h = hm[idx(x, y)];
-      temp[idx(x, y)] = baseTemp - (h * 10) * tempLapseRate / 1000;
-      let p = 0.3;
-      const ux = Math.round(x - wx * 2), uy = Math.round(y - wy * 2);
+      const i = idx(x, y);
+      const elev = hm[i] * 10; // 0-1 → 0-10 km
+      const geo = getCellGeo(x, y, hm);
+
+      // Temperature: latitude base + lapse rate + seasonality
+      const tBase = baseT - elev * tempLapseRate;
+      temp[i] = tBase;
+
+      // Precipitation: latitude factor × orographic enhancement × distance from water
+      let p = latPrecip * 0.3;
+
+      // Orographic lift: wind blows upslope → rain
+      const ux = Math.round(x - wx * 3);
+      const uy = Math.round(y - wy * 3);
       if (inBounds(ux, uy)) {
-        const slope = (h - hm[idx(ux, uy)]) / 2;
-        p += slope > 0 ? slope * precipScale * 2.0 : -Math.abs(slope) * precipScale;
+        const upwindH = hm[idx(ux, uy)];
+        const elevDiff = (elev - upwindH * 10) / 3; // slope along wind
+        if (elevDiff > 0) {
+          p += elevDiff * precipScale * 2.0; // windward = rain
+        } else {
+          p += elevDiff * precipScale * 0.8; // leeward = rain shadow (weaker)
+        }
       }
-      precip[idx(x, y)] = Math.max(0, Math.min(1, p));
+
+      // Mountain barrier effect: high peaks force air up, creating rain
+      if (elev > 1.5 && geo.slope > 0.01) {
+        p += geo.slope * precipScale * 1.5;
+      }
+
+      // Coastal proximity bonus (simplified by checking if near sea level)
+      // In a real model, distance to coastline would be computed
+      if (elev < 0.5) p += 0.15; // coastal moisture
+
+      precip[i] = Math.max(0, Math.min(1, p));
     }
   }
   return { precipMap: precip, tempMap: temp };
@@ -158,11 +193,13 @@ function climateStats(
   avgTemp: number; avgPrecip: number; annualRange: number;
   monthlyTemp: number[]; monthlyPrecip: number[];
   landArea: number; maxElev: number; avgSlope: number;
+  avgLat: number;
 } {
   let sumT = 0, sumP = 0, minT = Infinity, maxT = -Infinity;
-  let landCells = 0, maxH = 0, sumSlope = 0;
+  let landCells = 0, maxH = 0, sumSlope = 0, sumLat = 0;
 
   for (let y = 0; y < SIZE; y++) {
+    const lat = cellLat(y);
     for (let x = 0; x < SIZE; x++) {
       const i = idx(x, y);
       const t = tempMap[i];
@@ -172,23 +209,22 @@ function climateStats(
       if (hm[i] > seaLevel) {
         landCells++;
         if (hm[i] > maxH) maxH = hm[i];
-        // Approximate slope
-        const h0 = hm[i];
-        const hx = x < SIZE - 1 ? hm[idx(x + 1, y)] : h0;
-        const hy = y < SIZE - 1 ? hm[idx(x, y + 1)] : h0;
-        sumSlope += Math.sqrt((hx - h0) ** 2 + (hy - h0) ** 2);
+        sumLat += lat;
+        const geo = getCellGeo(x, y, hm);
+        sumSlope += geo.slope;
       }
     }
   }
 
   const n = SIZE * SIZE;
   const avgT = sumT / n;
-  const avgPmm = (sumP / n) * 3000; // Convert [0,1] to approximate mm
+  const avgPmm = (sumP / n) * 3000;
   const annualRange = Math.max(maxT - minT, 5);
+  const avgLat = landCells > 0 ? sumLat / landCells : 0;
 
-  // Generate monthly profiles
-  const hemisphere: "N" | "S" = "N";
-  const seasonalPeak = "summer"; // default
+  // Use latitude-aware monthly profiles
+  const hemisphere: "N" | "S" = avgLat >= 0 ? "N" : "S";
+  const seasonalPeak = "summer";
   const monthlyTemp = generateMonthlyTemp(avgT, annualRange, hemisphere);
   const monthlyPrecip = generateMonthlyPrecip(avgPmm, seasonalPeak);
 
@@ -197,6 +233,7 @@ function climateStats(
     monthlyTemp, monthlyPrecip,
     landArea: landCells, maxElev: maxH,
     avgSlope: landCells > 0 ? sumSlope / landCells : 0,
+    avgLat,
   };
 }
 

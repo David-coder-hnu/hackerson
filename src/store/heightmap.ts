@@ -142,6 +142,8 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   markers: [],
   mouseHeight: 0,
   mouseBiome: "海洋",
+  mouseLat: 0,
+  mouseLon: 0,
   riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null },
 
   initHeightmap: (data: Float32Array) => {
@@ -187,7 +189,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   setViewMode: (vm) => set({ viewMode: vm }),
   setSimProgress: (progress) => set({ simProgress: progress }),
   setArchive: (archive) => set({ archive }),
-  setMouseInfo: (height, biome) => set({ mouseHeight: height, mouseBiome: biome }),
+  setMouseInfo: (height, biome, lat, lon) => set({ mouseHeight: height, mouseBiome: biome, mouseLat: lat, mouseLon: lon }),
 
   addMarker: (x, y) => {
     set((s) => ({ markers: [...s.markers, { x, y }] }));

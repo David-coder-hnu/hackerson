@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
 import { createTerrainMaterial, setClimateTextures } from "../render/TerrainMaterial";
 import { HEIGHTMAP_SIZE } from "../types";
+import { cellLat, cellLon } from "../simulation/geo";
 
 function biomeAtHeight(h: number): string {
   if (h < 0.1) return "海洋";
@@ -122,7 +123,9 @@ function TerrainMesh() {
     const uv = getUVFromEvent(e);
     if (uv && heightmap) {
       const h = heightmap[uv.y * HEIGHTMAP_SIZE + uv.x];
-      setMouseInfo(Math.round(h * 3000), biomeAtHeight(h));
+      const lat = cellLat(uv.y);
+      const lon = cellLon(uv.x);
+      setMouseInfo(Math.round(h * 3000), biomeAtHeight(h), lat, lon);
     }
     if (!isDragging.current || mode !== "edit") return;
     if (!uv) return;

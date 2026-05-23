@@ -70,6 +70,8 @@ export interface AppState {
   markers: Array<{ x: number; y: number }>;
   mouseHeight: number;
   mouseBiome: string;
+  mouseLat: number;
+  mouseLon: number;
   riverData: RiverData;
 
   setMode: (mode: AppMode) => void;
@@ -81,7 +83,7 @@ export interface AppState {
   setBrush: (brush: Partial<BrushState>) => void;
   setSimProgress: (progress: SimProgress | null) => void;
   setArchive: (archive: PlanetArchive | null) => void;
-  setMouseInfo: (height: number, biome: string) => void;
+  setMouseInfo: (height: number, biome: string, lat: number, lon: number) => void;
   addMarker: (x: number, y: number) => void;
   setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
