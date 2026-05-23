@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Test-Path *)",
+      "PowerShell(git config *)",
+      "Bash(npx skills *)"
+    ]
+  }
+}
