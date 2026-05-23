@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Line } from "@react-three/drei";
+import { OrbitControls, Line, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
 import { createTerrainMaterial, setClimateTextures } from "../render/TerrainMaterial";
@@ -308,7 +308,30 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
               if (e2 < dx) { err += dx; y0 += sy; }
             }
           }
-          return <Line key={`cr${cr.id}`} points={sampled} color="#f0c040" lineWidth={1.5} />;
+          return (
+            <group key={`cr${cr.id}`}>
+              <Line points={sampled} color="#f0c040" lineWidth={1.5} />
+              {(() => {
+                const cx = cr.points.reduce((s, p) => s + p.x, 0) / cr.points.length;
+                const cy = cr.points.reduce((s, p) => s + p.y, 0) / cr.points.length;
+                const ch = heightmap[Math.round(cy) * HEIGHTMAP_SIZE + Math.round(cx)] * 2 + 0.15;
+                const [cpx, cpy] = toWorld(Math.round(cx), Math.round(cy), 0);
+                return (
+                  <Text
+                    position={[cpx, cpy, ch]}
+                    fontSize={0.12}
+                    color="#f0c040"
+                    anchorX="center"
+                    anchorY="middle"
+                    outlineWidth={0.02}
+                    outlineColor="#1a1816"
+                  >
+                    {cr.name}
+                  </Text>
+                );
+              })()}
+            </group>
+          );
         })}
       {/* River lines */}
       {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
