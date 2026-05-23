@@ -101,14 +101,14 @@ function applyBrushOp(
         break;
       }
       case "glacier": {
-        // Coherent noise: smooth 2D fractal variation for glacial erosion
-        const nx = px * 3.7, ny = py * 2.9;
-        const n1 = Math.sin(nx * 1.3 + ny * 2.1) * Math.cos(nx * 2.3 - ny * 1.1);
-        const n2 = Math.sin(nx * 5.7 - ny * 3.3) * Math.cos(nx * 1.9 + ny * 4.7) * 0.5;
-        const n3 = Math.sin(nx * 11.3 + ny * 7.1) * Math.cos(nx * 8.5 - ny * 5.9) * 0.25;
-        const n = (n1 + n2 + n3) * 0.4 + 0.5; // multi-octave, range ~0-1
-        const carve = w * (0.15 + n * 0.85);
-        hm[idx] = Math.max(0, hm[idx] - strength * 2.5 * carve);
+        // Low-frequency noise at brush scale — broad irregular valleys
+        const s = Math.max(radius * 0.4, 5);
+        const nx = px / s, ny = py / s;
+        const n1 = Math.sin(nx * 1.7 + ny * 2.3) * Math.cos(nx * 1.9 - ny * 1.4);
+        const n2 = Math.sin(nx * 3.1 - ny * 2.7) * Math.cos(nx * 2.5 + ny * 3.3) * 0.35;
+        const n = (n1 + n2) * 0.45 + 0.5;
+        const carve = w * Math.max(0, n - 0.3) * 1.4; // threshold: only carve where n > 0.3
+        hm[idx] = Math.max(0, hm[idx] - strength * 2 * carve);
         break;
       }
     }
