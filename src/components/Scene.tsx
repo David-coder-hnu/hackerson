@@ -272,13 +272,28 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {customRegions.length > 0 && heightmap &&
         customRegions.map((cr) => {
           if (cr.points.length < 2) return null;
-          const linePts = cr.points.map((p) => {
-            const h = heightmap[p.y * HEIGHTMAP_SIZE + p.x] * 2 + 0.06;
-            const [px, py] = toWorld(p.x, p.y, 0);
-            return new THREE.Vector3(px, py, h);
-          });
-          linePts.push(linePts[0].clone());
-          return <Line key={`cr${cr.id}`} points={linePts} color="#f0c040" lineWidth={1.5} />;
+          // Sample terrain height along each edge to avoid cutting through mountains
+          const sampled: THREE.Vector3[] = [];
+          for (let i = 0; i < cr.points.length; i++) {
+            const a = cr.points[i];
+            const b = cr.points[(i + 1) % cr.points.length];
+            // Bresenham line between a and b, sample height at each step
+            let x0 = a.x, y0 = a.y;
+            const dx = Math.abs(b.x - x0), dy = Math.abs(b.y - y0);
+            const sx = x0 < b.x ? 1 : -1, sy = y0 < b.y ? 1 : -1;
+            let err = dx - dy;
+            while (true) {
+              const idx = y0 * HEIGHTMAP_SIZE + x0;
+              const h = heightmap[idx] * 2 + 0.06;
+              const [px, py] = toWorld(x0, y0, 0);
+              sampled.push(new THREE.Vector3(px, py, h));
+              if (x0 === b.x && y0 === b.y) break;
+              const e2 = 2 * err;
+              if (e2 > -dy) { err -= dy; x0 += sx; }
+              if (e2 < dx) { err += dx; y0 += sy; }
+            }
+          }
+          return <Line key={`cr${cr.id}`} points={sampled} color="#f0c040" lineWidth={1.5} />;
         })}
       {/* River lines */}
       {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
