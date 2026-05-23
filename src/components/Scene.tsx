@@ -236,36 +236,51 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
-          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.08;
+          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2;
           const [px, py] = toWorld(m.x, m.y, 0);
           const hasAnalysis = !!m.analysis;
+          const color = hasAnalysis ? "#4ae0a0" : "#e8945a";
           return (
-            <mesh
+            <group
               key={`mk${i}`}
               position={[px, py, h]}
               onPointerEnter={() => hasAnalysis && onPinHover(i)}
               onPointerLeave={() => onPinHover(null)}
             >
-              <sphereGeometry args={[hasAnalysis ? 0.12 : 0.08, 8, 8]} />
-              <meshBasicMaterial color={hasAnalysis ? "#4ae0a0" : "#e8945a"} />
-            </mesh>
+              {/* Pin shaft */}
+              <mesh position={[0, 0, 0.06]}>
+                <cylinderGeometry args={[0.012, 0.018, 0.12, 6]} />
+                <meshBasicMaterial color="#888" />
+              </mesh>
+              {/* Pin head */}
+              <mesh position={[0, 0, 0.13]}>
+                <sphereGeometry args={[0.04, 8, 8]} />
+                <meshBasicMaterial color={color} />
+              </mesh>
+            </group>
           );
         })}
       {/* Custom pins (worldbuilding) */}
       {customPins.length > 0 && heightmap &&
         customPins.map((cp) => {
-          const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 2 + 0.1;
+          const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 2;
           const [px, py] = toWorld(cp.x, cp.y, 0);
           return (
-            <mesh
+            <group
               key={`cp${cp.id}`}
               position={[px, py, h]}
               onPointerEnter={() => onCustomPinHover?.(cp.id)}
               onPointerLeave={() => onCustomPinHover?.(null)}
             >
-              <sphereGeometry args={[0.12, 8, 8]} />
-              <meshBasicMaterial color="#f0c040" />
-            </mesh>
+              <mesh position={[0, 0, 0.06]}>
+                <cylinderGeometry args={[0.012, 0.018, 0.12, 6]} />
+                <meshBasicMaterial color="#888" />
+              </mesh>
+              <mesh position={[0, 0, 0.13]}>
+                <sphereGeometry args={[0.04, 8, 8]} />
+                <meshBasicMaterial color="#f0c040" />
+              </mesh>
+            </group>
           );
         })}
       {/* Custom regions (worldbuilding) */}

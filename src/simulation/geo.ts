@@ -16,7 +16,7 @@ export interface CellGeo {
 // y=0 = 90°N (north pole), y=SIZE-1 = -90°S (south pole)
 // x=0 = -180°W, x=SIZE-1 = 180°E
 export function cellLat(y: number): number {
-  return 90 - (y / (SIZE - 1)) * 180;
+  return (y / (SIZE - 1)) * 180 - 90; // north at top
 }
 
 export function cellLon(x: number): number {

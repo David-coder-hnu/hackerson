@@ -132,7 +132,7 @@ const fragmentShader = /* glsl */ `
   // ---- Land color WITHOUT climate ----
   vec3 landColorNoClimate(float h, float slope, vec2 uv) {
     float n = fbm(uv * uResolution * 1.5) * 0.04;
-    float lat = 90.0 - uv.y * 180.0;
+    float lat = uv.y * 180.0 - 90.0;
     vec3 tundra  = vec3(0.55, 0.58, 0.52);
     vec3 lowGreen = vec3(0.250, 0.440, 0.160);
     vec3 forest = vec3(0.140, 0.340, 0.110);
@@ -165,7 +165,7 @@ const fragmentShader = /* glsl */ `
   // ---- Land color: climate-driven + latitude snow/ice ----
   vec3 landColor(float h, float slope, vec2 uv) {
     float n = fbm(uv * uResolution * 1.5) * 0.04;
-    float lat = 90.0 - uv.y * 180.0;
+    float lat = uv.y * 180.0 - 90.0;
 
     float precip = 1.0, temp = 0.5;
     if (uHasClimate > 0.5) {
