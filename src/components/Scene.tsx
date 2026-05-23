@@ -182,6 +182,27 @@ function SceneControls() {
   const sculpting = SCULPT_TOOLS.includes(brushType);
   const controlsRef = useRef<any>(null);
   const wasFar = useRef(false);
+  const keysDown = useRef<Set<string>>(new Set());
+
+  // Keyboard pan when camera tool is active
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (brushType !== "camera") return;
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        keysDown.current.add(e.key);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      keysDown.current.delete(e.key);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [brushType]);
 
   useFrame(() => {
     if (!controlsRef.current) return;
@@ -189,12 +210,29 @@ function SceneControls() {
     const target = controlsRef.current.target as THREE.Vector3;
     const dist = cam.position.distanceTo(target);
 
+    // Auto 2D/3D toggle by zoom distance
     if (dist > ZOOM_2D_THRESHOLD && !wasFar.current) {
       wasFar.current = true;
       setViewMode("2d");
     } else if (dist <= ZOOM_2D_THRESHOLD && wasFar.current) {
       wasFar.current = false;
       setViewMode("3d");
+    }
+
+    // Arrow key panning (camera mode only)
+    if (brushType === "camera") {
+      const panSpeed = dist * 0.015;
+      const fwd = cam.position.clone().sub(target).normalize();
+      const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 0, 1)).normalize();
+      const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+
+      if (keysDown.current.has("ArrowUp"))    target.add(up.multiplyScalar(panSpeed));
+      if (keysDown.current.has("ArrowDown"))  target.add(up.clone().multiplyScalar(-panSpeed));
+      if (keysDown.current.has("ArrowLeft"))  target.add(right.clone().multiplyScalar(-panSpeed));
+      if (keysDown.current.has("ArrowRight")) target.add(right.multiplyScalar(panSpeed));
+
+      controlsRef.current.target = target;
+      controlsRef.current.update();
     }
   });
 

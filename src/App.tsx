@@ -6,7 +6,7 @@ import Scene from "./components/Scene";
 import BottomToolbar from "./components/BottomToolbar";
 import FloatingPanel from "./components/FloatingPanel";
 import StatusBar from "./components/StatusBar";
-import HeightLegend from "./components/HeightLegend";
+import HeightLegend, { ScaleBar } from "./components/HeightLegend";
 import LockButton from "./components/LockButton";
 import ProgressOverlay from "./components/ProgressOverlay";
 import PlanetArchive from "./components/PlanetArchive";
@@ -88,6 +88,7 @@ export default function App() {
       <FloatingPanel />
       <StatusBar />
       <HeightLegend />
+      <ScaleBar />
       <BottomToolbar />
 
       {mode === "edit" && (
