@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
-import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
@@ -174,21 +174,43 @@ function MarkerDots() {
 }
 
 const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"];
+const ZOOM_2D_THRESHOLD = 18; // camera distance at which 2D toggles on
 
 function SceneControls() {
   const brushType = useHeightmapStore((s) => s.brush.type);
+  const setViewMode = useHeightmapStore((s) => s.setViewMode);
   const sculpting = SCULPT_TOOLS.includes(brushType);
+  const controlsRef = useRef<any>(null);
+  const wasFar = useRef(false);
+
+  useFrame(() => {
+    if (!controlsRef.current) return;
+    const cam = controlsRef.current.object as THREE.Camera;
+    const target = controlsRef.current.target as THREE.Vector3;
+    const dist = cam.position.distanceTo(target);
+
+    if (dist > ZOOM_2D_THRESHOLD && !wasFar.current) {
+      wasFar.current = true;
+      setViewMode("2d");
+    } else if (dist <= ZOOM_2D_THRESHOLD && wasFar.current) {
+      wasFar.current = false;
+      setViewMode("3d");
+    }
+  });
 
   return (
     <OrbitControls
+      ref={controlsRef}
       enableDamping
       dampingFactor={0.1}
       maxPolarAngle={Math.PI / 2.2}
+      minDistance={4}
+      maxDistance={40}
       enabled={!sculpting}
       mouseButtons={{
-        LEFT: sculpting ? undefined : 0,   // left-drag orbits only when not sculpting
-        MIDDLE: 2,   // middle-drag always orbits
-        RIGHT: 2,    // right-drag always orbits
+        LEFT: sculpting ? undefined : 0,
+        MIDDLE: 2,
+        RIGHT: 2,
       }}
     />
   );
