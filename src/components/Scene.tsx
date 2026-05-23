@@ -206,8 +206,9 @@ function SceneControls() {
 
   useFrame(() => {
     if (!controlsRef.current) return;
-    const cam = controlsRef.current.object as THREE.Camera;
-    const target = controlsRef.current.target as THREE.Vector3;
+    const ctrl = controlsRef.current;
+    const cam = ctrl.object as THREE.Camera;
+    const target = ctrl.target as THREE.Vector3;
     const dist = cam.position.distanceTo(target);
 
     // Auto 2D/3D toggle by zoom distance
@@ -219,24 +220,22 @@ function SceneControls() {
       setViewMode("3d");
     }
 
-    // Arrow key panning (camera mode only)
+    // Arrow key panning via OrbitControls.pan(deltaX, deltaY)
     if (brushType === "camera") {
-      const panSpeed = dist * 0.02;
-      const fwd = new THREE.Vector3().copy(cam.position).sub(target).normalize();
-      const worldUp = new THREE.Vector3(0, 0, 1);
-      const right = new THREE.Vector3().crossVectors(fwd, worldUp).normalize();
-      const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
-
+      const panSpeed = dist * 0.5;
       let dx = 0, dy = 0;
-      if (keysDown.current.has("ArrowUp"))    dy += panSpeed;
-      if (keysDown.current.has("ArrowDown"))  dy -= panSpeed;
-      if (keysDown.current.has("ArrowLeft"))  dx -= panSpeed;
-      if (keysDown.current.has("ArrowRight")) dx += panSpeed;
+      if (keysDown.current.has("ArrowUp"))    dy -= panSpeed;
+      if (keysDown.current.has("ArrowDown"))  dy += panSpeed;
+      if (keysDown.current.has("ArrowLeft"))  dx += panSpeed;
+      if (keysDown.current.has("ArrowRight")) dx -= panSpeed;
 
       if (dx !== 0 || dy !== 0) {
-        target.x += right.x * dx + up.x * dy;
-        target.y += right.y * dx + up.y * dy;
-        target.z += right.z * dx + up.z * dy;
+        if (typeof ctrl.pan === "function") {
+          ctrl.pan(dx, dy);
+        } else {
+          ctrl.target.x += dx * 0.01;
+          ctrl.target.y += dy * 0.01;
+        }
       }
     }
   });
