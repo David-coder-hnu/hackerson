@@ -6,45 +6,11 @@ export default function PlanetArchive() {
 
   if (mode !== "observing" || !archive) return null;
 
-  const { terrain, climate, hydrology, soils, plants, landArea } = archive;
+  const { terrain, hydrology, soils, plants, landArea } = archive;
 
   return (
     <div className="archive-panel">
       <h2 className="archive-title">星球档案</h2>
-
-      {/* Climate — global average, regional detail on pins */}
-      <div className="archive-section">
-        <h3>全球平均气候</h3>
-        <div className="stat-row">
-          <span className="stat-label">Köppen 分类</span>
-          <span className="stat-value accent">{climate.koppen.code} — {climate.koppen.name}</span>
-        </div>
-        <div className="koppen-desc">{climate.koppen.description}</div>
-        <div className="stat-row">
-          <span className="stat-label">Holdridge 生命带</span>
-          <span className="stat-value">{climate.holdridge.biomeZh}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">纬度带 / 湿度</span>
-          <span className="stat-value">{climate.holdridge.latBelt} · {climate.holdridge.humidity}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">生物温度 BT</span>
-          <span className="stat-value">{climate.holdridge.bt}°C</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">蒸散率 PER</span>
-          <span className="stat-value">{climate.holdridge.per}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">年均温 / 年降水</span>
-          <span className="stat-value">{climate.avgTemp}°C / {climate.avgPrecip}mm</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">年温差 / 盛行风</span>
-          <span className="stat-value">{climate.annualRange}°C / {climate.prevailingWind === "Westerly" ? "西风" : climate.prevailingWind}</span>
-        </div>
-      </div>
 
       {/* Terrain */}
       <div className="archive-section">
