@@ -198,7 +198,7 @@ function TerrainMesh({ onCustomClick }: { onCustomClick?: (x: number, y: number)
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <planeGeometry args={[10, 10, HEIGHTMAP_SIZE - 1, HEIGHTMAP_SIZE - 1]} />
+      <planeGeometry args={[20, 10, HEIGHTMAP_SIZE - 1, HEIGHTMAP_SIZE - 1]} />
     </mesh>
   );
 }
@@ -223,10 +223,11 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
     if (lakeMat.current) lakeMat.current.uniforms.uTime.value = t;
   });
 
+  const PLANE_W = 20, PLANE_H = 10;
   const toWorld = useCallback((x: number, y: number, z: number) => {
     return [
-      (x / HEIGHTMAP_SIZE - 0.5) * 10,
-      (y / HEIGHTMAP_SIZE - 0.5) * 10,
+      (x / HEIGHTMAP_SIZE - 0.5) * PLANE_W,
+      (y / HEIGHTMAP_SIZE - 0.5) * PLANE_H,
       z,
     ] as const;
   }, []);
@@ -547,7 +548,7 @@ function SceneControls() {
 export default function Scene({ onPinHover, onCustomClick, onCustomPinHover }: { onPinHover: (i: number | null) => void; onCustomClick?: (x: number, y: number) => void; onCustomPinHover?: (id: string | null) => void }) {
   return (
     <Canvas
-      camera={{ position: [0, 8, 6], fov: 50 }}
+      camera={{ position: [0, 12, 8], fov: 50 }}
       style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
     >
       <ambientLight intensity={0.5} />
