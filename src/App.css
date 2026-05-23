@@ -43,6 +43,14 @@ body {
 .app { width: 100vw; height: 100vh; position: relative; }
 
 /* Header */
+.world-summary {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 12;
+  background: rgba(20,18,16,0.9); backdrop-filter: blur(12px);
+  border: 1px solid rgba(232,148,90,0.3); border-radius: var(--radius);
+  padding: 8px 20px; font-size: 0.8rem; color: var(--text);
+  white-space: nowrap; letter-spacing: 0.02em;
+}
+
 .app-header {
   position: absolute; top: 0; left: 0; right: 0; z-index: 10;
   display: flex; align-items: center; justify-content: space-between;

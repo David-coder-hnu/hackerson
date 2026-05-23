@@ -14,6 +14,7 @@ import ShareButton from "./components/ShareButton";
 import ResetButton from "./components/ResetButton";
 import PinCard from "./components/PinCard";
 import { CustomPinInput, RegionNameInput } from "./components/WorldbuildTools";
+import WorldSummary from "./components/WorldSummary";
 import "./App.css";
 
 export default function App() {
@@ -99,6 +100,7 @@ export default function App() {
       </header>
 
       <Scene onPinHover={handlePinHover} onCustomClick={handleCustomClick} onCustomPinHover={handleCustomPinHover} />
+      <WorldSummary />
 
       {/* Top-left compass */}
       <div className="compass" title="North">
