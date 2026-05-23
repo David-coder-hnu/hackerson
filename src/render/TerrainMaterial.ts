@@ -225,27 +225,24 @@ const fragmentShader = /* glsl */ `
     float viewDist = length(vViewPos);
 
     if (uViewMode > 0.5) {
-      // ---- 2D Hypsometric + Contour topographic map ----
+      // ---- 2D Topographic map: muted colors + bold dark contours ----
       vec3 baseCol = contourColor(h, slope);
+      // Darken and desaturate base colors for readability
+      baseCol = baseCol * 0.75 + vec3(0.08, 0.08, 0.10);
       float interval = uContourInterval;
-      // Index contour (every 5th) = thick bold dark line
+
+      // Index contour (every 5th) = very thick bold black line
       float indexInterval = interval * 5.0;
       float idxC = abs(fract(h / indexInterval + 0.5) - 0.5) / fwidth(h);
-      float indexLine = 1.0 - smoothstep(0.0, 0.8, idxC);
-      // Intermediate contour (every 1st) = medium line
-      float c = abs(fract(h / interval + 0.5) - 0.5) / fwidth(h);
-      float interLine = 1.0 - smoothstep(0.0, 0.5, c);
-      interLine = interLine * (1.0 - indexLine); // don't overlap index lines
-      // Quarter contours = very thin subtle lines
-      float qInterval = interval * 0.25;
-      float qc = abs(fract(h / qInterval + 0.5) - 0.5) / fwidth(h);
-      float qLine = 1.0 - smoothstep(0.0, 0.2, qc);
-      qLine = qLine * (1.0 - interLine) * (1.0 - indexLine);
+      float indexLine = 1.0 - smoothstep(0.0, 2.0, idxC);
 
-      // Layer: elevation color -> quarter lines -> intermediate lines -> index lines
-      vec3 color = mix(baseCol, vec3(0.25, 0.22, 0.18), qLine * 0.15);
-      color = mix(color, vec3(0.18, 0.15, 0.10), interLine * 0.5);
-      color = mix(color, vec3(0.05, 0.05, 0.05), indexLine * 0.75);
+      // Intermediate contour (every 1st) = thick dark line
+      float c = abs(fract(h / interval + 0.5) - 0.5) / fwidth(h);
+      float interLine = 1.0 - smoothstep(0.0, 1.5, c);
+      interLine = interLine * (1.0 - indexLine);
+
+      vec3 color = mix(baseCol, vec3(0.12, 0.10, 0.08), interLine * 0.65);
+      color = mix(color, vec3(0.02, 0.02, 0.02), indexLine * 0.85);
       gl_FragColor = vec4(color, 1.0);
 
     } else {
