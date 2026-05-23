@@ -151,69 +151,63 @@ function TerrainMesh() {
   );
 }
 
-function MarkerDots() {
+// Terrain overlays share the same rotation as the terrain mesh
+function TerrainOverlays() {
   const markers = useHeightmapStore((s) => s.markers);
   const heightmap = useHeightmapStore((s) => s.heightmap);
-  if (markers.length === 0 || !heightmap) return null;
-
-  return (
-    <>
-      {markers.map((m, i) => {
-        const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
-        const px = (m.x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - m.y / HEIGHTMAP_SIZE) * 10;
-        return (
-          <mesh key={i} position={[px, py, h]}>
-            <sphereGeometry args={[0.08, 8, 8]} />
-            <meshBasicMaterial color="#e8945a" />
-          </mesh>
-        );
-      })}
-    </>
-  );
-}
-
-function RiverLines() {
   const riverData = useHeightmapStore((s) => s.riverData);
-  const heightmap = useHeightmapStore((s) => s.heightmap);
   const rMask = riverData.riverMask;
   const lMask = riverData.lakeMask;
-  if (!rMask || !heightmap) return null;
-
-  const step = 2; // sample every 2nd cell
-  const elems: React.ReactNode[] = [];
   const scale = 10 / HEIGHTMAP_SIZE;
-  const color = new THREE.Color("#3a8fd4");
 
-  for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
-    for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
-      const idx = y * HEIGHTMAP_SIZE + x;
-      if (rMask[idx]) {
-        const h = heightmap[idx] * 2 + 0.03;
-        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-        elems.push(
-          <mesh key={`r${idx}`} position={[px, py, h]}>
-            <planeGeometry args={[scale * 2, scale * 2]} />
-            <meshBasicMaterial color={color} side={THREE.DoubleSide} />
-          </mesh>
-        );
-      }
-      if (lMask && lMask[idx]) {
-        const h = heightmap[idx] * 2 + 0.02;
-        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-        elems.push(
-          <mesh key={`l${idx}`} position={[px, py, h]}>
-            <planeGeometry args={[scale * 3, scale * 3]} />
-            <meshBasicMaterial color="#2a6aaa" side={THREE.DoubleSide} />
-          </mesh>
-        );
-      }
-    }
-  }
-
-  return <>{elems}</>;
+  return (
+    <group rotation={[-Math.PI / 3, 0, 0]}>
+      {/* Markers */}
+      {markers.length > 0 && heightmap &&
+        markers.map((m, i) => {
+          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
+          const px = (m.x / HEIGHTMAP_SIZE - 0.5) * 10;
+          const py = (0.5 - m.y / HEIGHTMAP_SIZE) * 10;
+          return (
+            <mesh key={`mk${i}`} position={[px, py, h]}>
+              <sphereGeometry args={[0.08, 8, 8]} />
+              <meshBasicMaterial color="#e8945a" />
+            </mesh>
+          );
+        })}
+      {/* Rivers & Lakes */}
+      {rMask && heightmap && (() => {
+        const elems: React.ReactNode[] = [];
+        const step = 2;
+        const riverColor = new THREE.Color("#3a8fd4");
+        for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
+          for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
+            const i = y * HEIGHTMAP_SIZE + x;
+            const h = heightmap[i] * 2 + 0.03;
+            const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+            const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+            if (rMask[i]) {
+              elems.push(
+                <mesh key={`r${i}`} position={[px, py, h]}>
+                  <planeGeometry args={[scale * 2, scale * 2]} />
+                  <meshBasicMaterial color={riverColor} side={THREE.DoubleSide} />
+                </mesh>
+              );
+            }
+            if (lMask && lMask[i]) {
+              elems.push(
+                <mesh key={`l${i}`} position={[px, py, h - 0.01]}>
+                  <planeGeometry args={[scale * 3, scale * 3]} />
+                  <meshBasicMaterial color="#2a6aaa" side={THREE.DoubleSide} />
+                </mesh>
+              );
+            }
+          }
+        }
+        return <>{elems}</>;
+      })()}
+    </group>
+  );
 }
 
 const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"]; // "camera" is NOT sculpt — orbit enabled
@@ -312,8 +306,7 @@ export default function Scene() {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
-      <MarkerDots />
-      <RiverLines />
+      <TerrainOverlays />
       <SceneControls />
     </Canvas>
   );
