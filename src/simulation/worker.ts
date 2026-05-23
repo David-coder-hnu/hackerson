@@ -6,6 +6,7 @@ import {
   cellLat, cellLon, baseTempByLatitude,
   prevailingWindDir, latPrecipFactor, getCellGeo,
 } from "./geo";
+import { getWildlife, getMinerals, getCityPotential } from "./knowledge";
 
 declare function postMessage(message: any, transfer?: Transferable[]): void;
 declare var onmessage: ((this: Window, ev: MessageEvent) => any) | null;
@@ -516,8 +517,19 @@ onmessage = (e: MessageEvent) => {
     // Plant species names
     const plantNames = localPlants.flatMap(h => h.plants.map(p => p.name)).slice(0, 5);
 
-    // Description
-    const desc = `${localKoppen.name}，${localHoldridge.biomeZh}。年均温${localT.toFixed(1)}°C，年降水${Math.round(localP)}mm。${localSoils[0]?.name || "雏形土"}。`;
+    // Knowledge base lookups
+    const terrainType = elev > 3000 ? "high_mountain" : elev > 1500 ? "low_mountain" : elev > 500 ? "hill" : slopeDeg < 3 ? "plain" : "hill";
+    const wildlife = getWildlife(localKoppen.code).map(a => ({
+      name: a.name_zh,
+      size: a.body_size,
+      diet: a.diet,
+      habitat: a.activity_rhythm === "夜行" ? "林冠/洞穴" : "开阔/林缘",
+      special: a.special_adaptation.slice(0, 40),
+    }));
+    const minerals = getMinerals(elev, slopeDeg, terrainType, localKoppen.code);
+    const cityP = getCityPotential(elev, slopeDeg, coastKm, localP, localT, localSoils[0]?.wrb || "Cambisols");
+
+    const desc = `${localKoppen.name}，${localHoldridge.biomeZh}。年均温${localT.toFixed(1)}°C，年降水${Math.round(localP)}mm。${localSoils[0]?.name || "雏形土"}。城镇潜力${cityP.score}/100。`;
 
     return {
       lat: Math.round(lat * 10) / 10, lon: Math.round(lon * 10) / 10,
@@ -532,6 +544,9 @@ onmessage = (e: MessageEvent) => {
       tempAnnual: Math.round(localT * 10) / 10,
       precipAnnual: Math.round(localP),
       description: desc,
+      animals: wildlife,
+      minerals,
+      cityPotential: cityP,
     };
   });
 

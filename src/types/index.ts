@@ -64,19 +64,22 @@ export interface RiverData {
 export interface PinAnalysis {
   lat: number;
   lon: number;
-  elevation: number;       // meters
-  slope: number;           // degrees
-  aspect: string;          // "N/NE/E/SE/S/SW/W/NW"
-  coastDist: number;       // km
-  pressureBelt: string;    // "赤道低压/副热带高压/西风带/极地东风/副极地低压"
-  koppen: string;          // Köppen code + name
-  holdridge: string;       // biome name
-  soil: string;            // dominant soil type
-  plants: string[];        // representative species
-  crops: string[];         // suitable crops
-  tempAnnual: number;      // °C
-  precipAnnual: number;    // mm
-  description: string;     // natural language summary
+  elevation: number;
+  slope: number;
+  aspect: string;
+  coastDist: number;
+  pressureBelt: string;
+  koppen: string;
+  holdridge: string;
+  soil: string;
+  plants: string[];
+  crops: string[];
+  tempAnnual: number;
+  precipAnnual: number;
+  description: string;
+  animals?: Array<{ name: string; size: string; diet: string; habitat: string; special: string }>;
+  minerals?: string[];
+  cityPotential?: { score: number; strengths: string[]; suitable: string[] };
 }
 
 export interface Marker {

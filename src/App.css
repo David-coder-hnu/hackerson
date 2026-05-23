@@ -246,6 +246,10 @@ body {
 .pin-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.4; margin-top: 3px; }
 .pin-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 .pin-tags { font-size: 0.65rem; color: var(--text); line-height: 1.5; }
+.pin-tags.accent { color: var(--accent); }
+.pin-animal { margin-bottom: 3px; }
+.pin-animal-name { font-size: 0.7rem; color: var(--text); font-weight: 500; }
+.pin-animal-meta { font-size: 0.6rem; color: var(--text-dim); margin-left: 6px; }
 
 .share-button {
   position: absolute; bottom: var(--gutter); right: var(--gutter); z-index: 10;

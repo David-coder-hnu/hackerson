@@ -42,6 +42,37 @@ export default function PinCard({ analysis, pos }: { analysis: PinAnalysis; pos:
           <div className="pin-tags">{analysis.crops.join(" · ")}</div>
         </div>
       )}
+
+      {analysis.animals && analysis.animals.length > 0 && (
+        <div className="pin-section">
+          <div className="pin-label">代表性动物</div>
+          {analysis.animals.map((a, i) => (
+            <div key={i} className="pin-animal">
+              <span className="pin-animal-name">{a.name}</span>
+              <span className="pin-animal-meta">{a.size}型 · {a.diet} · {a.habitat}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {analysis.minerals && analysis.minerals.length > 0 && (
+        <div className="pin-section">
+          <div className="pin-label">潜在矿产</div>
+          <div className="pin-tags">{analysis.minerals.join(" · ")}</div>
+        </div>
+      )}
+
+      {analysis.cityPotential && (
+        <div className="pin-section">
+          <div className="pin-label">城镇发展潜力: {analysis.cityPotential.score}/100</div>
+          {analysis.cityPotential.strengths.length > 0 && (
+            <div className="pin-tags accent">优势: {analysis.cityPotential.strengths.join(" · ")}</div>
+          )}
+          {analysis.cityPotential.suitable.length > 0 && (
+            <div className="pin-tags">适宜: {analysis.cityPotential.suitable.join(" · ")}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
