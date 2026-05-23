@@ -481,13 +481,17 @@ function SceneControls() {
     const dist = cam.position.distanceTo(target);
 
     // Auto 2D/3D toggle by zoom distance
-    if (dist > ZOOM_2D_THRESHOLD && !wasFar.current) {
+    const targetTopDown = dist > ZOOM_2D_THRESHOLD;
+    if (targetTopDown && !wasFar.current) {
       wasFar.current = true;
       setViewMode("2d");
-    } else if (dist <= ZOOM_2D_THRESHOLD && wasFar.current) {
+    } else if (!targetTopDown && wasFar.current) {
       wasFar.current = false;
       setViewMode("3d");
     }
+
+    // Dynamic max polar angle: top-down when far, tilted when close
+    ctrl.maxPolarAngle = targetTopDown ? 0.25 : Math.PI / 2.2;
 
     // ---- Keyboard pan (WASD + Arrow keys) ----
     const panSpeed = dist * 0.5;
