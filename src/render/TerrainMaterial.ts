@@ -29,6 +29,9 @@ const fragmentShader = /* glsl */ `
   uniform float uHeightScale;
   uniform float uViewMode;
   uniform sampler2D uHeightmap;
+  uniform sampler2D uPrecipMap;
+  uniform sampler2D uTempMap;
+  uniform float uHasClimate;
   uniform float uResolution;
 
   // ---- Hash / noise for texture variation ----
@@ -117,37 +120,49 @@ const fragmentShader = /* glsl */ `
   vec3 landColor(float h, float slope, vec2 uv) {
     float n = fbm(uv * uResolution * 1.5) * 0.04;
 
-    // Base land colors
-    vec3 lowGreen   = vec3(0.250, 0.440, 0.160);  // grassland
-    vec3 forest     = vec3(0.140, 0.340, 0.110);  // dark forest
-    vec3 highForest = vec3(0.180, 0.360, 0.130);  // upland forest
-    vec3 highland   = vec3(0.380, 0.340, 0.200);  // scrub/grass
-    vec3 rock       = vec3(0.480, 0.420, 0.340);  // exposed rock
-    vec3 scree      = vec3(0.550, 0.500, 0.440);  // scree/talus
-    vec3 snow       = vec3(0.850, 0.840, 0.810);  // snow
+    // If climate data is available, use it to modulate colors
+    float precip = 1.0;
+    float temp = 0.5;
+    if (uHasClimate > 0.5) {
+      precip = texture2D(uPrecipMap, uv).r;
+      temp = texture2D(uTempMap, uv).r;
+    }
 
-    // Height-based mix
-    float t1 = smoothstep(0.22, 0.38, h);  // green → forest
-    float t2 = smoothstep(0.38, 0.52, h);  // forest → high forest
-    float t3 = smoothstep(0.52, 0.65, h);  // high forest → highland
-    float t4 = smoothstep(0.65, 0.78, h);  // highland → rock
-    float t5 = smoothstep(0.78, 0.88, h);  // rock → scree
-    float t6 = smoothstep(0.88, 0.95, h);  // scree → snow
+    // Base land colors — modulated by precipitation
+    vec3 arid      = vec3(0.65, 0.55, 0.35);  // dry tan/brown
+    vec3 grassland = vec3(0.28, 0.48, 0.18);  // moderate green
+    vec3 wetForest = vec3(0.12, 0.32, 0.10);  // dark lush green
 
-    vec3 col = mix(lowGreen, forest, t1);
-    col = mix(col, highForest, t2);
-    col = mix(col, highland, t3);
+    // Precip-driven greenness: dry → grassland → forest
+    float greenT = smoothstep(0.1, 0.4, precip);
+    vec3 baseLand = mix(arid, grassland, greenT);
+    baseLand = mix(baseLand, wetForest, smoothstep(0.5, 0.8, precip));
+
+    // Temperature: cold = more blue-grey, hot = more yellow
+    float coldT = smoothstep(-5.0, 5.0, temp);
+    vec3 coldMod = vec3(0.7, 0.72, 0.78);
+    vec3 hotMod  = vec3(1.05, 0.95, 0.80);
+    baseLand = mix(coldMod * baseLand, hotMod * baseLand, smoothstep(0.0, 20.0, temp));
+
+    // Height-based gradation on top of climate
+    vec3 rock  = vec3(0.48, 0.42, 0.34);
+    vec3 scree = vec3(0.55, 0.50, 0.44);
+    vec3 snow  = vec3(0.85, 0.84, 0.81);
+
+    float t4 = smoothstep(0.65, 0.78, h);  // → rock
+    float t5 = smoothstep(0.78, 0.88, h);  // → scree
+    float t6 = smoothstep(0.88, 0.95, h);  // → snow
+
+    vec3 col = baseLand;
     col = mix(col, rock, t4);
     col = mix(col, scree, t5);
     col = mix(col, snow, t6);
 
-    // Slope steepens color: steeper = more rock/grey, gentler = greener
+    // Slope steepens color: steeper = more rock/grey
     float steep = smoothstep(0.08, 0.40, slope);
     col = mix(col, rock * 0.9, steep * 0.5);
 
-    // Noise variation for natural patchiness
     col += n;
-
     return col;
   }
 
@@ -244,6 +259,9 @@ export function createTerrainMaterial(heightmapData: Float32Array): {
   );
   texture.needsUpdate = true;
 
+  const dummyTex = new THREE.DataTexture(new Uint8Array([128]), 1, 1, THREE.RedFormat);
+  dummyTex.needsUpdate = true;
+
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -254,9 +272,36 @@ export function createTerrainMaterial(heightmapData: Float32Array): {
       uContourInterval: { value: 0.04 },
       uContourWidth: { value: 0.3 },
       uViewMode: { value: 0 },
+      uPrecipMap: { value: dummyTex },
+      uTempMap: { value: dummyTex },
+      uHasClimate: { value: 0 },
     },
     side: THREE.DoubleSide,
   });
 
   return { material, texture };
+}
+
+export function setClimateTextures(
+  material: THREE.ShaderMaterial,
+  precipMap: Float32Array | null,
+  tempMap: Float32Array | null
+): void {
+  if (precipMap && tempMap) {
+    const pTex = new THREE.DataTexture(precipMap, HEIGHTMAP_SIZE, HEIGHTMAP_SIZE, THREE.RedFormat, THREE.FloatType);
+    pTex.needsUpdate = true;
+    const tTex = new THREE.DataTexture(tempMap, HEIGHTMAP_SIZE, HEIGHTMAP_SIZE, THREE.RedFormat, THREE.FloatType);
+    tTex.needsUpdate = true;
+
+    const oldP = material.uniforms.uPrecipMap.value as THREE.DataTexture;
+    const oldT = material.uniforms.uTempMap.value as THREE.DataTexture;
+    if (oldP && oldP.image.width > 1) oldP.dispose();
+    if (oldT && oldT.image.width > 1) oldT.dispose();
+
+    material.uniforms.uPrecipMap.value = pTex;
+    material.uniforms.uTempMap.value = tTex;
+    material.uniforms.uHasClimate.value = 1;
+  } else {
+    material.uniforms.uHasClimate.value = 0;
+  }
 }

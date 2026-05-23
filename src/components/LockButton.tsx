@@ -24,7 +24,14 @@ export default function LockButton() {
           setRiverData(data);
           setSimProgress({ phase: "hydrology", ...data });
         } else if (phase === "climate") {
-          setSimProgress({ phase: "climate", ...data });
+          const prev = useHeightmapStore.getState().simProgress;
+          setSimProgress({
+            phase: "climate",
+            riverMask: prev?.riverMask,
+            lakeMask: prev?.lakeMask,
+            flowAccum: prev?.flowAccum,
+            ...data,
+          });
         }
       },
       onComplete: (archive) => {

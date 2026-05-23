@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
-import { createTerrainMaterial } from "../render/TerrainMaterial";
+import { createTerrainMaterial, setClimateTextures } from "../render/TerrainMaterial";
 import { HEIGHTMAP_SIZE } from "../types";
 
 function biomeAtHeight(h: number): string {
@@ -27,6 +27,7 @@ function TerrainMesh() {
   const applyBrush = useHeightmapStore((s) => s.applyBrush);
   const setMouseInfo = useHeightmapStore((s) => s.setMouseInfo);
   const addMarker = useHeightmapStore((s) => s.addMarker);
+  const simProgress = useHeightmapStore((s) => s.simProgress);
   const { camera, raycaster } = useThree();
   const isDragging = useRef(false);
   const lastCell = useRef<{ x: number; y: number } | null>(null);
@@ -50,6 +51,14 @@ function TerrainMesh() {
     if (tex) { tex.image.data = heightmap; tex.needsUpdate = true; }
     materialRef.current.uniforms.uViewMode.value = viewMode === "2d" ? 1 : 0;
   }, [heightmap, viewMode]);
+
+  // Update climate textures on terrain when simulation provides them
+  useEffect(() => {
+    if (!materialRef.current) return;
+    if (simProgress?.precipMap && simProgress?.tempMap) {
+      setClimateTextures(materialRef.current, simProgress.precipMap, simProgress.tempMap);
+    }
+  }, [simProgress?.precipMap, simProgress?.tempMap]);
 
   const getUVFromEvent = useCallback((e: ThreeEvent<PointerEvent>): { x: number; y: number } | null => {
     if (!meshRef.current) return null;
