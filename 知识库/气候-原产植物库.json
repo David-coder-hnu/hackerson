@@ -1,0 +1,701 @@
+[
+  {
+    "climate": "热带雨林",
+    "koppen": "Af",
+    "description": "终年高温多雨，物种多样性最高，乔木层、林下层、藤本、附生植物分层复杂",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "海拔<500m，终年湿润，三层乔木+林下荫蔽",
+        "plants": [
+          { "name": "龙脑香属 (Dipterocarpus spp.)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "娑罗双属 (Shorea spp.)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "大叶桃花心木 (Swietenia macrophylla)", "uses": ["建材"], "rarity": "少见" },
+          { "name": "巴西栗 (Bertholletia excelsa)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "橡胶树 (Hevea brasiliensis)", "uses": ["树脂", "建材"], "rarity": "常见" },
+          { "name": "可可树 (Theobroma cacao)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "榕属 (Ficus spp.)", "uses": ["食物", "饲料"], "rarity": "常见" },
+          { "name": "面包树 (Artocarpus altilis)", "uses": ["食物", "建材"], "rarity": "少见" },
+          { "name": "榴莲属 (Durio spp.)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "藤黄属 (Garcinia spp.)", "uses": ["食物", "药材"], "rarity": "少见" },
+          { "name": "金鸡纳树 (Cinchona officinalis)", "uses": ["药材"], "rarity": "稀有" },
+          { "name": "箭毒木 (Antiaris toxicaria)", "uses": ["药材", "纤维"], "rarity": "少见" },
+          { "name": "萝芙木属 (Rauvolfia spp.)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "藤本棕榈 (Calamus spp.)", "uses": ["纤维", "建材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "海拔500-1500m，温度稍低，云雾增多，附生植物丰富",
+        "plants": [
+          { "name": "罗汉松属 (Podocarpus spp.)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "桫椤属 (Cyathea spp.)", "uses": ["纤维", "观赏"], "rarity": "常见" },
+          { "name": "奎宁树 (Cinchona pubescens)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "杜鹃花属 (Rhododendron spp.)", "uses": ["观赏", "染料"], "rarity": "常见" },
+          { "name": "秋海棠属 (Begonia spp.)", "uses": ["观赏", "药材"], "rarity": "常见" },
+          { "name": "兰属 (Orchidaceae)", "uses": ["观赏", "香料"], "rarity": "常见" },
+          { "name": "咖啡属 (Coffea arabica)", "uses": ["食物"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "河漫滩沼泽、季节性积水林地",
+        "plants": [
+          { "name": "水椰子 (Nypa fruticans)", "uses": ["食物", "纤维", "建材"], "rarity": "常见" },
+          { "name": "红树属 (Rhizophora spp.)", "uses": ["建材", "染料", "药材"], "rarity": "常见" },
+          { "name": "海榄雌属 (Avicennia spp.)", "uses": ["建材", "饲料"], "rarity": "常见" },
+          { "name": "莎草属 (Cyperus spp.)", "uses": ["纤维", "药材"], "rarity": "常见" },
+          { "name": "芋属 (Colocasia esculenta)", "uses": ["食物"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "河流两岸，季节性洪水，冲积土壤",
+        "plants": [
+          { "name": "轻木 (Ochroma pyramidale)", "uses": ["建材", "纤维"], "rarity": "少见" },
+          { "name": "号角树 (Cecropia spp.)", "uses": ["药材", "纤维"], "rarity": "常见" },
+          { "name": "大椿树 (Ceiba pentandra)", "uses": ["纤维", "建材"], "rarity": "少见" },
+          { "name": "榕属河岸种 (Ficus insipida)", "uses": ["食物", "饲料"], "rarity": "少见" },
+          { "name": "刺竹属 (Bambusa spp.)", "uses": ["建材", "食物", "纤维"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "红树林、海岸林、沙滩植被",
+        "plants": [
+          { "name": "红茄冬 (Rhizophora mucronata)", "uses": ["建材", "染料"], "rarity": "常见" },
+          { "name": "海桑 (Sonneratia alba)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "露兜树 (Pandanus tectorius)", "uses": ["纤维", "食物"], "rarity": "常见" },
+          { "name": "椰子 (Cocos nucifera)", "uses": ["食物", "纤维", "建材"], "rarity": "常见" },
+          { "name": "榄仁树 (Terminalia catappa)", "uses": ["染料", "药材", "建材"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "热带季风",
+    "koppen": "Am",
+    "description": "终年高温，降水极集中于夏季，有短干季(1-3月)，植被以热带季雨林为主",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "干季部分落叶的季雨林，林分高度低于雨林",
+        "plants": [
+          { "name": "柚木 (Tectona grandis)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "紫檀属 (Pterocarpus spp.)", "uses": ["建材", "染料"], "rarity": "少见" },
+          { "name": "黄檀属 (Dalbergia spp.)", "uses": ["建材"], "rarity": "少见" },
+          { "name": "檀香属 (Santalum album)", "uses": ["香料", "药材", "建材"], "rarity": "稀有" },
+          { "name": "印度楝 (Azadirachta indica)", "uses": ["药材", "农药"], "rarity": "常见" },
+          { "name": "芒果 (Mangifera indica)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "菠萝蜜 (Artocarpus heterophyllus)", "uses": ["食物", "建材", "饲料"], "rarity": "常见" },
+          { "name": "榕属 (Ficus benghalensis)", "uses": ["饲料", "药材"], "rarity": "常见" },
+          { "name": "棕榈属 (Borassus flabellifer)", "uses": ["食物", "纤维", "建材"], "rarity": "常见" },
+          { "name": "木麻黄属 (Casuarina equisetifolia)", "uses": ["建材", "染料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "迎风坡降水极大，云雾林常见",
+        "plants": [
+          { "name": "润楠属 (Machilus spp.)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "栲属 (Castanopsis spp.)", "uses": ["建材", "食物"], "rarity": "常见" },
+          { "name": "柯属 (Lithocarpus spp.)", "uses": ["建材", "食物"], "rarity": "常见" },
+          { "name": "茶属 (Camellia sinensis)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "姜黄属 (Curcuma spp.)", "uses": ["香料", "染料", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "季风区内部的干旱谷地或背风坡，树木稀疏，高草为主",
+        "plants": [
+          { "name": "白茅 (Imperata cylindrica)", "uses": ["饲料", "纤维", "药材"], "rarity": "常见" },
+          { "name": "甜根子草 (Saccharum spontaneum)", "uses": ["纤维", "饲料"], "rarity": "常见" },
+          { "name": "金合欢属 (Acacia spp.)", "uses": ["建材", "饲料", "染料"], "rarity": "常见" },
+          { "name": "木豆 (Cajanus cajan)", "uses": ["食物", "饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "季风雨季积水，干季退水",
+        "plants": [
+          { "name": "野生稻 (Oryza rufipogon)", "uses": ["食物"], "rarity": "稀有" },
+          { "name": "灯心草属 (Juncus spp.)", "uses": ["纤维", "建材"], "rarity": "常见" },
+          { "name": "蒲草属 (Typha spp.)", "uses": ["纤维", "食物"], "rarity": "常见" },
+          { "name": "莲 (Nelumbo nucifera)", "uses": ["食物", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "季节性河流，冲积平原",
+        "plants": [
+          { "name": "竹属 (Dendrocalamus spp.)", "uses": ["建材", "食物"], "rarity": "常见" },
+          { "name": "榕属 (Ficus racemosa)", "uses": ["食物", "饲料", "药材"], "rarity": "常见" },
+          { "name": "水黄皮 (Pongamia pinnata)", "uses": ["药材", "燃料"], "rarity": "少见" },
+          { "name": "香蒲属 (Typha angustifolia)", "uses": ["纤维"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "红树林和沿海沙地",
+        "plants": [
+          { "name": "海榄雌 (Avicennia marina)", "uses": ["建材", "饲料", "药材"], "rarity": "常见" },
+          { "name": "红茄冬 (Rhizophora apiculata)", "uses": ["建材", "染料"], "rarity": "常见" },
+          { "name": "黄槿 (Hibiscus tiliaceus)", "uses": ["纤维", "建材"], "rarity": "常见" },
+          { "name": "椰子 (Cocos nucifera)", "uses": ["食物", "纤维"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "热带稀树草原",
+    "koppen": "Aw",
+    "description": "终年高温，明显干湿季交替(干季3-6月)，以高草+散生乔木为特征",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "干季落叶的干燥林地，沿河岸形成走廊林",
+        "plants": [
+          { "name": "猴面包树 (Adansonia digitata)", "uses": ["食物", "纤维", "药材"], "rarity": "少见" },
+          { "name": "金合欢属 (Acacia tortilis)", "uses": ["建材", "饲料", "染料"], "rarity": "常见" },
+          { "name": "风车藤 (Combretum spp.)", "uses": ["药材", "染料"], "rarity": "常见" },
+          { "name": "乳香属 (Boswellia spp.)", "uses": ["香料", "药材"], "rarity": "少见" },
+          { "name": "没药属 (Commiphora spp.)", "uses": ["香料", "药材"], "rarity": "少见" },
+          { "name": "非洲黑木 (Dalbergia melanoxylon)", "uses": ["建材"], "rarity": "稀有" },
+          { "name": "马鲁拉树 (Sclerocarya birrea)", "uses": ["食物", "药材"], "rarity": "常见" },
+          { "name": "腊肠树 (Kigelia africana)", "uses": ["药材", "食物"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "广阔的热带高草草原，树木稀疏",
+        "plants": [
+          { "name": "象草 (Pennisetum purpureum)", "uses": ["饲料", "纤维"], "rarity": "常见" },
+          { "name": "须芒草属 (Andropogon spp.)", "uses": ["饲料", "纤维"], "rarity": "常见" },
+          { "name": "苞茅属 (Hyparrhenia spp.)", "uses": ["饲料", "建材"], "rarity": "常见" },
+          { "name": "狗尾草属 (Setaria spp.)", "uses": ["饲料", "食物"], "rarity": "常见" },
+          { "name": "罗望子 (Tamarindus indica)", "uses": ["食物", "药材", "建材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "高原残丘和山地的干燥林地",
+        "plants": [
+          { "name": "Bra冲积属 (Brachystegia spp.)", "uses": ["建材", "染料"], "rarity": "常见" },
+          { "name": "朱缨花属 (Calliandra spp.)", "uses": ["饲料", "染料"], "rarity": "常见" },
+          { "name": "龙舌兰属 (Agave spp.)", "uses": ["纤维", "食物"], "rarity": "常见" },
+          { "name": "仙人掌属 (Opuntia spp.)", "uses": ["食物", "饲料", "染料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "季节性泛滥的草地和沼泽",
+        "plants": [
+          { "name": "纸莎草 (Cyperus papyrus)", "uses": ["纤维", "建材"], "rarity": "常见" },
+          { "name": "野生稻属 (Oryza barthii)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "芦苇属 (Phragmites spp.)", "uses": ["纤维", "建材", "饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "沿河走廊林，终年有水",
+        "plants": [
+          { "name": "非洲桃花心木 (Khaya senegalensis)", "uses": ["建材", "药材"], "rarity": "少见" },
+          { "name": "榄仁树属 (Terminalia spp.)", "uses": ["建材", "染料", "药材"], "rarity": "常见" },
+          { "name": "水蒲桃 (Syzygium guineense)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "枣椰属 (Phoenix reclinata)", "uses": ["食物", "纤维"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "温带海洋性",
+    "koppen": "Cfb",
+    "description": "冬暖夏凉，终年湿润，降水均匀，以落叶阔叶林和混交林为主",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "以栎、槭、桦、榉、榆为主的落叶阔叶林",
+        "plants": [
+          { "name": "英国栎 (Quercus robur)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "欧洲山毛榉 (Fagus sylvatica)", "uses": ["建材", "食物"], "rarity": "常见" },
+          { "name": "欧亚槭 (Acer pseudoplatanus)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "欧洲白桦 (Betula pendula)", "uses": ["建材", "药材"], "rarity": "常见" },
+          { "name": "欧洲鹅耳枥 (Carpinus betulus)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "欧洲榛 (Corylus avellana)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "欧洲冬青 (Ilex aquifolium)", "uses": ["观赏", "建材"], "rarity": "常见" },
+          { "name": "蓝铃花 (Hyacinthoides non-scripta)", "uses": ["观赏"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "海拔升高后转为针叶林或针阔混交林",
+        "plants": [
+          { "name": "欧洲云杉 (Picea abies)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "欧洲冷杉 (Abies alba)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "欧洲落叶松 (Larix decidua)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "欧洲山松 (Pinus mugo)", "uses": ["树脂", "药材"], "rarity": "常见" },
+          { "name": "越橘 (Vaccinium myrtillus)", "uses": ["食物", "药材"], "rarity": "常见" },
+          { "name": "欧洲蕨 (Pteridium aquilinum)", "uses": ["食物", "饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "白垩丘陵草地、石南荒原",
+        "plants": [
+          { "name": "帚石南 (Calluna vulgaris)", "uses": ["染料", "药材", "饲料"], "rarity": "常见" },
+          { "name": "荆豆 (Ulex europaeus)", "uses": ["饲料", "染料"], "rarity": "常见" },
+          { "name": "羊茅属 (Festuca spp.)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "黑麦草 (Lolium perenne)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "蓍草 (Achillea millefolium)", "uses": ["药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "泥炭沼泽、湿草甸",
+        "plants": [
+          { "name": "泥炭藓属 (Sphagnum spp.)", "uses": ["燃料", "纤维"], "rarity": "常见" },
+          { "name": "水葱 (Schoenoplectus lacustris)", "uses": ["纤维", "建材"], "rarity": "常见" },
+          { "name": "睡菜 (Menyanthes trifoliata)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "驴蹄草 (Caltha palustris)", "uses": ["观赏", "药材"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "河流两岸，冲积土壤肥沃",
+        "plants": [
+          { "name": "欧洲桤木 (Alnus glutinosa)", "uses": ["建材", "染料"], "rarity": "常见" },
+          { "name": "白柳 (Salix alba)", "uses": ["建材", "药材"], "rarity": "常见" },
+          { "name": "黑杨 (Populus nigra)", "uses": ["建材"], "rarity": "少见" },
+          { "name": "荨麻 (Urtica dioica)", "uses": ["纤维", "食物", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "海岸悬崖草地、沙丘、盐沼",
+        "plants": [
+          { "name": "沙滩燕麦 (Ammophila arenaria)", "uses": ["纤维", "固沙"], "rarity": "常见" },
+          { "name": "海石竹 (Armeria maritima)", "uses": ["观赏"], "rarity": "常见" },
+          { "name": "海蓬子 (Salicornia europaea)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "补血草属 (Limonium spp.)", "uses": ["观赏", "染料"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "地中海式",
+    "koppen": "Csa/Csb",
+    "description": "夏季炎热干燥，冬季温和多雨，植被以硬叶灌丛和矮林为主",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "常绿硬叶林和疏林，适应夏季干旱",
+        "plants": [
+          { "name": "冬青栎 (Quercus ilex)", "uses": ["建材", "食物", "饲料"], "rarity": "常见" },
+          { "name": "栓皮栎 (Quercus suber)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "油橄榄 (Olea europaea)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "欧洲松 (Pinus halepensis)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "意大利伞松 (Pinus pinea)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "月桂 (Laurus nobilis)", "uses": ["香料", "药材"], "rarity": "常见" },
+          { "name": "黄连木 (Pistacia lentiscus)", "uses": ["树脂", "药材", "香料"], "rarity": "常见" },
+          { "name": "草莓树 (Arbutus unedo)", "uses": ["食物"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "海拔升高，降水增多，转为落叶阔叶或针叶林",
+        "plants": [
+          { "name": "欧洲栗 (Castanea sativa)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "黑松 (Pinus nigra)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "西班牙冷杉 (Abies pinsapo)", "uses": ["建材"], "rarity": "稀有" },
+          { "name": "黎巴嫩雪松 (Cedrus libani)", "uses": ["建材", "香料"], "rarity": "稀有" },
+          { "name": "薰衣草属 (Lavandula spp.)", "uses": ["香料", "药材"], "rarity": "常见" },
+          { "name": "鼠尾草属 (Salvia officinalis)", "uses": ["香料", "药材"], "rarity": "常见" },
+          { "name": "牛至 (Origanum vulgare)", "uses": ["香料", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "石质灌丛带（马基斯/加里格群落）",
+        "plants": [
+          { "name": "迷迭香 (Salvia rosmarinus)", "uses": ["香料", "药材"], "rarity": "常见" },
+          { "name": "百里香属 (Thymus spp.)", "uses": ["香料", "药材"], "rarity": "常见" },
+          { "name": "岩蔷薇 (Cistus spp.)", "uses": ["香料", "树脂"], "rarity": "常见" },
+          { "name": "桃金娘 (Myrtus communis)", "uses": ["香料", "药材", "染料"], "rarity": "常见" },
+          { "name": "刺山柑 (Capparis spinosa)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "针茅属 (Stipa spp.)", "uses": ["饲料", "纤维"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "地中海区湿地稀少，多为季节性盐沼",
+        "plants": [
+          { "name": "柽柳属 (Tamarix spp.)", "uses": ["建材", "药材", "染料"], "rarity": "常见" },
+          { "name": "盐角草 (Salicornia fruticosa)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "芦苇 (Phragmites australis)", "uses": ["纤维", "建材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "河流沿岸，湿润走廊",
+        "plants": [
+          { "name": "法国梧桐 (Platanus orientalis)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "黑杨 (Populus nigra)", "uses": ["建材"], "rarity": "少见" },
+          { "name": "夹竹桃 (Nerium oleander)", "uses": ["观赏", "药材"], "rarity": "常见" },
+          { "name": "香桃木 (Myrtus communis)", "uses": ["香料", "染料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "沿海沙丘、岩岸",
+        "plants": [
+          { "name": "海茴香 (Crithmum maritimum)", "uses": ["食物", "药材"], "rarity": "少见" },
+          { "name": "海滨刺芹 (Eryngium maritimum)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "番杏 (Tetragonia tetragonioides)", "uses": ["食物"], "rarity": "少见" },
+          { "name": "海薰衣草 (Limonium vulgare)", "uses": ["观赏", "染料"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "温带大陆性湿润",
+    "koppen": "Dfa/Dfb",
+    "description": "夏季温暖至炎热，冬季寒冷，降水集中在夏季，以落叶阔叶林、混交林和草原过渡带为主",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "栎-槭-椴-榆混交落叶林",
+        "plants": [
+          { "name": "美洲红栎 (Quercus rubra)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "糖枫 (Acer saccharum)", "uses": ["食物", "建材"], "rarity": "常见" },
+          { "name": "美洲椴 (Tilia americana)", "uses": ["建材", "纤维"], "rarity": "常见" },
+          { "name": "美洲白蜡 (Fraxinus americana)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "黑胡桃 (Juglans nigra)", "uses": ["建材", "食物", "染料"], "rarity": "少见" },
+          { "name": "美洲山核桃 (Carya illinoinensis)", "uses": ["食物", "建材"], "rarity": "少见" },
+          { "name": "北美柿 (Diospyros virginiana)", "uses": ["食物", "建材"], "rarity": "少见" },
+          { "name": "美洲鹅掌楸 (Liriodendron tulipifera)", "uses": ["建材", "观赏"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "山坡中上部，针叶林或混交林",
+        "plants": [
+          { "name": "北美乔松 (Pinus strobus)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "加拿大铁杉 (Tsuga canadensis)", "uses": ["建材", "树脂", "药材"], "rarity": "常见" },
+          { "name": "香脂冷杉 (Abies balsamea)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "北美短叶松 (Pinus banksiana)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "宾州杨梅 (Myrica pensylvanica)", "uses": ["香料", "染料"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "湿润高草草原，现已大部分开垦为农田",
+        "plants": [
+          { "name": "大须芒草 (Andropogon gerardii)", "uses": ["饲料", "纤维"], "rarity": "常见" },
+          { "name": "柳枝稷 (Panicum virgatum)", "uses": ["饲料", "燃料"], "rarity": "常见" },
+          { "name": "加拿大披碱草 (Elymus canadensis)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "紫松果菊 (Echinacea purpurea)", "uses": ["药材", "观赏"], "rarity": "少见" },
+          { "name": "向日葵 (Helianthus annuus)", "uses": ["食物", "饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "冰蚀湖沼、河漫滩沼泽",
+        "plants": [
+          { "name": "落羽杉 (Taxodium distichum)", "uses": ["建材"], "rarity": "少见" },
+          { "name": "红槭 (Acer rubrum)", "uses": ["建材", "染料"], "rarity": "常见" },
+          { "name": "宽叶香蒲 (Typha latifolia)", "uses": ["纤维", "食物"], "rarity": "常见" },
+          { "name": "蔓越莓 (Vaccinium macrocarpon)", "uses": ["食物", "药材"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "河流两岸，冲积土壤深厚",
+        "plants": [
+          { "name": "北美柳 (Salix nigra)", "uses": ["建材", "药材"], "rarity": "常见" },
+          { "name": "北美悬铃木 (Platanus occidentalis)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "北美红桦 (Betula nigra)", "uses": ["建材", "染料"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "湖泊/大河岸线（本类型通常不临海，但有大湖）",
+        "plants": [
+          { "name": "北美崖柏 (Thuja occidentalis)", "uses": ["建材", "药材"], "rarity": "常见" },
+          { "name": "白云杉 (Picea glauca)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "沙滩草 (Ammophila breviligulata)", "uses": ["固沙"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "温带大陆性干旱/半干旱",
+    "koppen": "BSk/BWk",
+    "description": "年降水150-400mm，年温差极大，以短草草原、荒漠草原和荒漠为主",
+    "habitats": [
+      {
+        "habitat": "草原",
+        "description": "短草草原和荒漠草原，植被稀疏",
+        "plants": [
+          { "name": "格兰马草 (Bouteloua gracilis)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "野牛草 (Buchloe dactyloides)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "针茅属 (Stipa capillata)", "uses": ["饲料", "纤维"], "rarity": "常见" },
+          { "name": "冰草属 (Agropyron spp.)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "蒿属 (Artemisia tridentata)", "uses": ["药材", "染料", "燃料"], "rarity": "常见" },
+          { "name": "驼绒藜 (Krascheninnikovia ceratoides)", "uses": ["饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "低地森林",
+        "description": "荒漠灌丛带，树木极少",
+        "plants": [
+          { "name": "梭梭 (Haloxylon ammodendron)", "uses": ["建材", "燃料", "饲料"], "rarity": "常见" },
+          { "name": "沙拐枣 (Calligonum mongolicum)", "uses": ["固沙", "饲料"], "rarity": "常见" },
+          { "name": "胡杨 (Populus euphratica)", "uses": ["建材", "药材"], "rarity": "少见" },
+          { "name": "柠条 (Caragana spp.)", "uses": ["固沙", "饲料", "燃料"], "rarity": "常见" },
+          { "name": "白刺 (Nitraria tangutorum)", "uses": ["食物", "固沙"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "干旱山地的稀疏林地",
+        "plants": [
+          { "name": "杜松 (Juniperus communis)", "uses": ["建材", "香料", "药材"], "rarity": "常见" },
+          { "name": "矮松 (Pinus edulis)", "uses": ["食物", "建材", "树脂"], "rarity": "少见" },
+          { "name": "栒子属 (Cotoneaster spp.)", "uses": ["观赏", "建材"], "rarity": "常见" },
+          { "name": "麻黄属 (Ephedra spp.)", "uses": ["药材"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "干旱区湿地极为稀少，仅存于绿洲和尾闾湖",
+        "plants": [
+          { "name": "芦苇 (Phragmites australis)", "uses": ["纤维", "建材", "饲料"], "rarity": "常见" },
+          { "name": "柽柳 (Tamarix ramosissima)", "uses": ["固沙", "燃料", "药材"], "rarity": "常见" },
+          { "name": "罗布麻 (Apocynum venetum)", "uses": ["纤维", "药材"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "内流河两岸的狭窄绿洲植被带",
+        "plants": [
+          { "name": "胡杨 (Populus euphratica)", "uses": ["建材", "药材"], "rarity": "少见" },
+          { "name": "沙枣 (Elaeagnus angustifolia)", "uses": ["食物", "固沙"], "rarity": "常见" },
+          { "name": "甘草 (Glycyrrhiza uralensis)", "uses": ["药材", "饲料"], "rarity": "少见" },
+          { "name": "枸杞 (Lycium barbarum)", "uses": ["食物", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "盐碱滩/内陆盐湖岸",
+        "plants": [
+          { "name": "碱蓬 (Suaeda glauca)", "uses": ["食物", "染料"], "rarity": "常见" },
+          { "name": "盐爪爪 (Kalidium foliatum)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "骆驼刺 (Alhagi sparsifolia)", "uses": ["饲料", "药材"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "亚热带季风",
+    "koppen": "Cfa/Cwa",
+    "description": "夏季炎热多雨，冬季温和，植被以常绿阔叶林为主，物种丰富",
+    "habitats": [
+      {
+        "habitat": "低地森林",
+        "description": "常绿阔叶林，以壳斗科、樟科、山茶科为主",
+        "plants": [
+          { "name": "樟树 (Cinnamomum camphora)", "uses": ["建材", "药材", "香料"], "rarity": "常见" },
+          { "name": "苦槠 (Castanopsis sclerophylla)", "uses": ["建材", "食物"], "rarity": "常见" },
+          { "name": "青冈栎 (Cyclobalanopsis glauca)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "杉木 (Cunninghamia lanceolata)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "楠木 (Phoebe zhennan)", "uses": ["建材"], "rarity": "稀有" },
+          { "name": "乌桕 (Triadica sebifera)", "uses": ["染料", "香料"], "rarity": "常见" },
+          { "name": "油茶 (Camellia oleifera)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "毛竹 (Phyllostachys edulis)", "uses": ["建材", "食物", "纤维"], "rarity": "常见" },
+          { "name": "漆树 (Toxicodendron vernicifluum)", "uses": ["树脂", "涂料"], "rarity": "少见" },
+          { "name": "杜仲 (Eucommia ulmoides)", "uses": ["药材", "树脂"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "海拔500-1500m，常绿落叶阔叶混交林",
+        "plants": [
+          { "name": "黄山松 (Pinus hwangshanensis)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "银杏 (Ginkgo biloba)", "uses": ["食物", "药材", "建材"], "rarity": "稀有" },
+          { "name": "柳杉 (Cryptomeria japonica)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "厚朴 (Houpoea officinalis)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "红豆杉 (Taxus chinensis)", "uses": ["药材", "建材"], "rarity": "稀有" },
+          { "name": "山茱萸 (Cornus officinalis)", "uses": ["药材", "食物"], "rarity": "少见" },
+          { "name": "猕猴桃 (Actinidia chinensis)", "uses": ["食物"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "次生灌草丛，多为人类干扰后形成",
+        "plants": [
+          { "name": "白茅 (Imperata cylindrica)", "uses": ["饲料", "纤维", "药材"], "rarity": "常见" },
+          { "name": "芒属 (Miscanthus spp.)", "uses": ["纤维", "燃料", "饲料"], "rarity": "常见" },
+          { "name": "蕨菜 (Pteridium aquilinum)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "紫珠 (Callicarpa spp.)", "uses": ["药材", "观赏"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "湖沼、水田湿地",
+        "plants": [
+          { "name": "莲 (Nelumbo nucifera)", "uses": ["食物", "药材", "观赏"], "rarity": "常见" },
+          { "name": "菱角 (Trapa natans)", "uses": ["食物"], "rarity": "常见" },
+          { "name": "茨实 (Euryale ferox)", "uses": ["食物", "药材"], "rarity": "少见" },
+          { "name": "水松 (Glyptostrobus pensilis)", "uses": ["建材"], "rarity": "稀有" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "河流两岸及江心沙洲",
+        "plants": [
+          { "name": "枫杨 (Pterocarya stenoptera)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "榕属 (Ficus microcarpa)", "uses": ["观赏", "药材"], "rarity": "常见" },
+          { "name": "水杉 (Metasequoia glyptostroboides)", "uses": ["建材", "观赏"], "rarity": "稀有" },
+          { "name": "竹子 (Bambusa vulgaris)", "uses": ["建材", "纤维", "食物"], "rarity": "常见" },
+          { "name": "紫藤 (Wisteria sinensis)", "uses": ["观赏", "纤维"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "亚热带海岸沙地和岩岸",
+        "plants": [
+          { "name": "木麻黄 (Casuarina equisetifolia)", "uses": ["建材", "固沙"], "rarity": "常见" },
+          { "name": "苦槛蓝 (Myoporum bontioides)", "uses": ["固沙", "药材"], "rarity": "少见" },
+          { "name": "厚藤 (Ipomoea pes-caprae)", "uses": ["固沙", "药材"], "rarity": "常见" },
+          { "name": "露兜树 (Pandanus odorifer)", "uses": ["纤维", "观赏"], "rarity": "少见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "寒带苔原",
+    "koppen": "ET",
+    "description": "最热月0-10°C，永久冻土，生长季极短(<90天)，以苔藓、地衣、矮灌丛为主",
+    "habitats": [
+      {
+        "habitat": "草原",
+        "description": "苔原的主体：矮灌丛-苔藓-地衣群落",
+        "plants": [
+          { "name": "矮桦 (Betula nana)", "uses": ["燃料", "药材"], "rarity": "常见" },
+          { "name": "极柳 (Salix polaris)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "岩高兰 (Empetrum nigrum)", "uses": ["食物", "染料"], "rarity": "常见" },
+          { "name": "越橘属 (Vaccinium vitis-idaea)", "uses": ["食物", "药材"], "rarity": "常见" },
+          { "name": "仙女木 (Dryas octopetala)", "uses": ["药材", "染料"], "rarity": "常见" },
+          { "name": "苔藓属 (Sphagnum & Polytrichum)", "uses": ["燃料", "纤维"], "rarity": "常见" },
+          { "name": "石蕊 (Cladonia rangiferina)", "uses": ["饲料", "染料"], "rarity": "常见" },
+          { "name": "冰岛苔 (Cetraria islandica)", "uses": ["食物", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "苔原沼泽和泥炭地",
+        "plants": [
+          { "name": "羊胡子草 (Eriophorum spp.)", "uses": ["纤维"], "rarity": "常见" },
+          { "name": "苔草属 (Carex spp.)", "uses": ["饲料", "纤维"], "rarity": "常见" },
+          { "name": "泥炭藓 (Sphagnum fuscum)", "uses": ["燃料", "防腐"], "rarity": "常见" },
+          { "name": "沼泽茶 (Ledum palustre)", "uses": ["药材", "香料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "夏季融水河流两岸",
+        "plants": [
+          { "name": "矮柳 (Salix glauca)", "uses": ["饲料", "燃料"], "rarity": "常见" },
+          { "name": "虎耳草属 (Saxifraga spp.)", "uses": ["药材", "观赏"], "rarity": "常见" },
+          { "name": "拳蓼 (Bistorta vivipara)", "uses": ["食物", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "北冰洋沿岸",
+        "plants": [
+          { "name": "海乳草 (Glaux maritima)", "uses": ["饲料"], "rarity": "少见" },
+          { "name": "碱茅 (Puccinellia phryganodes)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "冰岛罂粟 (Papaver radicatum)", "uses": ["观赏", "药材"], "rarity": "少见" }
+        ]
+      },
+      {
+        "habitat": "山地森林",
+        "description": "苔原带基本无乔木，"山地"实为裸岩和碎石坡",
+        "plants": [
+          { "name": "地衣 (Umbilicaria & Rhizocarpon)", "uses": ["饲料", "染料"], "rarity": "常见" },
+          { "name": "高山罂粟 (Papaver alpinum)", "uses": ["观赏"], "rarity": "稀有" },
+          { "name": "苔藓 (Racomitrium lanuginosum)", "uses": ["保温材料"], "rarity": "常见" }
+        ]
+      }
+    ]
+  },
+  {
+    "climate": "高山气候",
+    "koppen": "H",
+    "description": "温度随海拔剧降，紫外线强，生长季短，植物呈垂直带状分布",
+    "habitats": [
+      {
+        "habitat": "山地森林",
+        "description": "森林线以下的针叶林或针阔混交林带",
+        "plants": [
+          { "name": "落叶松属 (Larix gmelinii)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "云杉属 (Picea likiangensis)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "冷杉属 (Abies fabri)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "高山松 (Pinus densata)", "uses": ["建材", "树脂"], "rarity": "常见" },
+          { "name": "杜鹃花属 (Rhododendron racemosum)", "uses": ["观赏", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "草原",
+        "description": "高山草甸带（森林线以上至雪线以下），矮草+杂类草",
+        "plants": [
+          { "name": "嵩草属 (Kobresia spp.)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "羊茅属 (Festuca ovina)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "龙胆属 (Gentiana spp.)", "uses": ["药材", "观赏"], "rarity": "常见" },
+          { "name": "雪莲 (Saussurea involucrata)", "uses": ["药材"], "rarity": "稀有" },
+          { "name": "红景天 (Rhodiola rosea)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "高山火绒草 (Leontopodium alpinum)", "uses": ["药材", "观赏"], "rarity": "少见" },
+          { "name": "珠芽蓼 (Bistorta vivipara)", "uses": ["食物", "饲料"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "低地森林",
+        "description": "高山峡谷底部的温暖小气候带",
+        "plants": [
+          { "name": "山杨 (Populus davidiana)", "uses": ["建材"], "rarity": "常见" },
+          { "name": "白桦 (Betula platyphylla)", "uses": ["建材", "药材"], "rarity": "常见" },
+          { "name": "沙棘 (Hippophae rhamnoides)", "uses": ["食物", "药材"], "rarity": "常见" },
+          { "name": "青海云杉 (Picea crassifolia)", "uses": ["建材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "湿地",
+        "description": "高山沼泽草甸和融水区",
+        "plants": [
+          { "name": "灯心草属 (Juncus thomsonii)", "uses": ["纤维"], "rarity": "常见" },
+          { "name": "苔草属 (Carex moorcroftii)", "uses": ["饲料"], "rarity": "常见" },
+          { "name": "报春花属 (Primula spp.)", "uses": ["观赏", "药材"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "河岸",
+        "description": "高山溪流和融水河道两岸",
+        "plants": [
+          { "name": "柳属 (Salix oritrepha)", "uses": ["建材", "饲料"], "rarity": "常见" },
+          { "name": "水杨梅 (Geum rivale)", "uses": ["药材"], "rarity": "少见" },
+          { "name": "金露梅 (Dasiphora fruticosa)", "uses": ["药材", "观赏"], "rarity": "常见" }
+        ]
+      },
+      {
+        "habitat": "海岸",
+        "description": "高山湖泊岸（高山无真正的海岸）",
+        "plants": [
+          { "name": "水毛茛 (Ranunculus aquatilis)", "uses": ["观赏"], "rarity": "常见" },
+          { "name": "杉叶藻 (Hippuris vulgaris)", "uses": ["药材"], "rarity": "常见" },
+          { "name": "眼子菜属 (Potamogeton spp.)", "uses": ["饲料", "观赏"], "rarity": "常见" }
+        ]
+      }
+    ]
+  }
+]

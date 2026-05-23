@@ -1,0 +1,280 @@
+
+[
+  {
+    "climate": "热带雨林气候",
+    "koppen": "Af",
+    "typical_soils": [
+      { "name": "砖红壤", "wrb": "Ferralsols", "frequency": "dominant", "note": "强脱硅富铝化，铁铝氧化物富集，呈红色，深厚(>2m)，酸性强(pH 4.5-5.5)，养分多在生物量中循环" },
+      { "name": "赤红壤", "wrb": "Acrisols/Lixisols", "frequency": "common", "note": "出现在雨林边缘或稍高海拔，黏化层发育，盐基饱和度低" },
+      { "name": "黄壤", "wrb": "Alisols", "frequency": "occasional", "note": "出现在海拔较高(500-1500m)的雨林区，湿度更大，铁氧化物水化呈黄色" }
+    ],
+    "mountain_soil": {
+      "name": "山地黄壤 / 石质土",
+      "wrb": "Dystric Cambisols / Leptosols",
+      "mechanism": "海拔升高→温度降低→风化减弱→砖红壤化过程减弱，转为黄壤化；坡度>30°→侵蚀强烈→土层变薄→石质土"
+    },
+    "valley_soil": {
+      "name": "冲积土 / 潜育性冲积土",
+      "wrb": "Fluvisols / Gleyic Fluvisols",
+      "mechanism": "河谷沉积深厚冲积物→层理发育；地下水位高→下部潜育化→形成潜育层"
+    },
+    "rules": [
+      "IF 年均温>24°C AND 年降水>2000mm AND 海拔<500m AND 坡度<5° THEN 砖红壤 (Ferralsols) 置信度=高",
+      "IF 年均温>24°C AND 年降水>2000mm AND 海拔500-1500m THEN 黄壤 (Alisols) 置信度=高",
+      "IF 砖红壤区 AND 坡度>25° THEN 表层侵蚀→土壤变薄→山地砖红壤/石质土→厚度<50cm",
+      "IF 砖红壤区 AND 位于河谷/冲积平原 THEN 冲积物覆盖→冲积土(Fluvisols)→下部潜育化",
+      "IF 母质=花岗岩/砂岩 THEN 砖红壤更酸、更贫瘠；IF 母质=玄武岩 THEN 砖红壤铁铝更富、呈暗红色"
+    ]
+  },
+  {
+    "climate": "热带季风气候",
+    "koppen": "Am",
+    "typical_soils": [
+      { "name": "砖红壤", "wrb": "Ferralsols", "frequency": "dominant", "note": "与Af类似但存在短干季(1-3月)→干季土壤表面可形成硬结皮" },
+      { "name": "赤红壤", "wrb": "Acrisols", "frequency": "common", "note": "干季使黏粒絮凝→结构稍好于常年湿润的砖红壤" },
+      { "name": "变性土", "wrb": "Vertisols", "frequency": "occasional", "note": "母质为基性岩/黏质冲积物时→干湿交替→膨缩→裂隙和滑擦面发育" }
+    ],
+    "mountain_soil": {
+      "name": "山地赤红壤 / 粗骨土",
+      "wrb": "Skeletic Acrisols / Regosols",
+      "mechanism": "迎风坡降水极大(>3000mm)→强烈淋溶+侵蚀→盐基极度淋失→强酸性；陡坡→粗骨化"
+    },
+    "valley_soil": {
+      "name": "水稻土 / 冲积土",
+      "wrb": "Anthrosols / Fluvisols",
+      "mechanism": "热带季风区河谷多为水稻主产区→长期淹水耕作→形成水稻土(人为土)；未被耕作的为深厚冲积土"
+    },
+    "rules": [
+      "IF 年均温>24°C AND 年降水1500-3000mm AND 干季1-3月 AND 海拔<500m AND 母质=花岗岩/砂岩 THEN 赤红壤 (Acrisols) 置信度=高",
+      "IF 年均温>24°C AND 年降水1500-3000mm AND 母质=玄武岩 THEN 砖红壤/变性土→视排水条件而定",
+      "IF Am迎风坡 AND 年降水>3000mm THEN 强烈淋溶→盐基饱和度<20%→强酸性(pH<5.0)→赤红壤",
+      "IF Am河谷 AND 长期灌溉耕作 THEN 水稻土(Anthrosols)→水耕表层+氧化还原层",
+      "IF 干季>3月 AND 黏质母质 THEN 变性土(Vertisols)→膨缩裂隙>1cm宽→自覆作用"
+    ]
+  },
+  {
+    "climate": "热带稀树草原气候",
+    "koppen": "Aw",
+    "typical_soils": [
+      { "name": "燥红土", "wrb": "Chromic Luvisols / Lixisols", "frequency": "dominant", "note": "干季显著(3-6月)→铁氧化物脱水→呈红褐色；黏化层发育但盐基饱和度较砖红壤高" },
+      { "name": "变性土", "wrb": "Vertisols", "frequency": "common", "note": "黏质母质+强烈干湿交替→膨缩→裂隙→自覆→深厚均质暗色黏土" },
+      { "name": "红褐土", "wrb": "Calcic Luvisols", "frequency": "occasional", "note": "更干边缘→钙积层开始出现" },
+      { "name": "砖红壤性土", "wrb": "Ferralic Cambisols", "frequency": "occasional", "note": "古风化壳残余，具有铁铝特性但已不处于活跃风化环境" }
+    ],
+    "mountain_soil": {
+      "name": "山地红褐土 / 石质薄层土",
+      "wrb": "Leptic Luvisols / Leptosols",
+      "mechanism": "山地降水稍多但侵蚀强→黏化层发育弱且薄；坡度大处→基岩出露→石质土"
+    },
+    "valley_soil": {
+      "name": "冲积土 / 潜育土",
+      "wrb": "Fluvisols / Gleysols",
+      "mechanism": "干季河流水位低→冲积物暴露氧化；雨季洪水泛滥→新鲜冲积物沉积→形成层理明显的冲积土；低洼处→潜育化"
+    },
+    "rules": [
+      "IF 年均温22-27°C AND 年降水600-1500mm AND 干季3-6月 AND 排水良好 AND 母质=花岗岩/砂岩 THEN 燥红土 (Chromic Luvisols/Lixisols) 置信度=高",
+      "IF 年均温22-27°C AND 干季>4月 AND 母质=玄武岩/黏质冲积物 THEN 变性土 (Vertisols) 置信度=高",
+      "IF Aw 且 年降水<800mm AND 母质含钙 THEN 出现钙积层→红褐土(Calcic Luvisols)",
+      "IF Aw 且 位于古老稳定台地 AND 可见铁结核/网纹层 THEN 砖红壤性土(古风化壳残余)",
+      "IF Aw河谷 AND 季节性洪水 THEN 冲积土→下部可能有潜育特征",
+      "IF Aw 且 海拔>1500m THEN 温度降低→进入Cwb→土壤转为红壤/黄壤类型"
+    ]
+  },
+  {
+    "climate": "温带海洋性气候",
+    "koppen": "Cfb",
+    "typical_soils": [
+      { "name": "棕壤", "wrb": "Cambisols / Luvisols", "frequency": "dominant", "note": "温和湿润+落叶阔叶林→中度风化+黏粒迁移→黏化层或雏形层→中性至微酸性(pH 5.5-6.5)" },
+      { "name": "黄棕壤", "wrb": "Luvisols / Alisols", "frequency": "common", "note": "降水更多/更暖的Cfb南缘→铁氧化物水化呈黄棕色→黏化更明显" },
+      { "name": "灰化土", "wrb": "Podzols", "frequency": "occasional", "note": "母质为酸性砂质(花岗岩/砂岩)+高降水+针叶/石楠植被→强酸淋溶→灰化层(spodic)" }
+    ],
+    "mountain_soil": {
+      "name": "山地棕壤 / 灰化土",
+      "wrb": "Dystric Cambisols / Podzols",
+      "mechanism": "海拔升高→温度降低→有机质分解减缓→表层积累粗腐殖质→酸度增加→向灰化方向发展；迎风坡降水增强淋溶→更酸"
+    },
+    "valley_soil": {
+      "name": "冲积土 / 草甸土",
+      "wrb": "Fluvisols / Mollic Gleysols",
+      "mechanism": "河谷冲积物深厚→冲积土；地下水位较高处→草甸植被→有机质积累+潜育化→草甸土"
+    },
+    "rules": [
+      "IF 年均温8-15°C AND 年降水600-1200mm AND 落叶阔叶林 AND 母质=黄土/壤质 THEN 棕壤(Cambisols/Luvisols) 置信度=高",
+      "IF Cfb AND 年降水>1000mm AND 母质=花岗岩/砂岩 THEN 强淋溶→灰化土(Podzols)或酸性棕壤",
+      "IF Cfb AND 母质=石灰岩 THEN 棕壤偏碱性→类似褐土性质",
+      "IF Cfb山地 AND 海拔>800m THEN 温度降低→有机质层增厚→山地棕壤→更高处→灰化土趋势",
+      "IF Cfb河谷 AND 排水良好 THEN 冲积土；IF 排水不良 THEN 潜育化→草甸土/潜育土"
+    ]
+  },
+  {
+    "climate": "地中海式气候",
+    "koppen": "Csa/Csb",
+    "typical_soils": [
+      { "name": "褐土", "wrb": "Calcic Cambisols / Chromic Luvisols", "frequency": "dominant", "note": "夏干冬湿+硬叶灌丛→淋溶不彻底→钙积层常在1-2m深处→中性至微碱性(pH 7.0-8.0)→褐色" },
+      { "name": "红色石灰土(Terra Rossa)", "wrb": "Chromic Luvisols", "frequency": "common", "note": "石灰岩母质+季节性湿→碳酸盐淋失→铁氧化物残留→鲜艳红色黏土→深厚但石砾多" },
+      { "name": "栗钙土", "wrb": "Kastanozems", "frequency": "occasional", "note": "更干旱边缘(Csa→BSk过渡)→草原植被替代灌丛→暗色表层(mollic)+钙积层" }
+    ],
+    "mountain_soil": {
+      "name": "山地褐土 / 石灰岩薄层土",
+      "wrb": "Leptic Cambisols / Leptosols",
+      "mechanism": "山地+石灰岩母质→强烈侵蚀→土层浅薄(<30cm)→石质化→石灰岩薄层土(Leptosols)；硬叶灌丛→有机质输入有限"
+    },
+    "valley_soil": {
+      "name": "冲积土 / 盐渍化冲积土",
+      "wrb": "Fluvisols / Salic Fluvisols",
+      "mechanism": "地中海区夏季干旱+河谷灌→蒸发强→盐分向上移动→河谷低处可能出现盐渍化(Solonchaks倾向)"
+    },
+    "rules": [
+      "IF 年均温12-20°C AND 年降水400-900mm AND 夏干冬湿 AND 母质=黄土/砂砾 THEN 褐土(Calcic Cambisols) 置信度=高",
+      "IF Csa AND 母质=石灰岩 AND 降水500-800mm THEN 红色石灰土(Terra Rossa / Chromic Luvisols)→碳酸盐淋失→铁质残留→红色",
+      "IF Csa AND 年降水<500mm THEN 淋溶更弱→钙积层更浅(50-100cm)→向栗钙土过渡",
+      "IF Csa山地 AND 石灰岩母质 AND 坡度>20° THEN 强烈侵蚀→石灰岩薄层土(Leptosols)→基岩裸露",
+      "IF Csa河谷 AND 夏季灌溉 THEN 蒸发→盐分表聚→盐渍化风险→需注意排水",
+      "IF Csb(凉夏型) THEN 风化稍弱→褐土有机质含量比Csa略高"
+    ]
+  },
+  {
+    "climate": "温带大陆性湿润气候",
+    "koppen": "Dfa/Dfb",
+    "typical_soils": [
+      { "name": "黑土 / 黑钙土", "wrb": "Phaeozems / Chernozems", "frequency": "dominant", "note": "温带草原-森林过渡→深厚暗沃层(>30cm, 黑色, 有机质3-8%)+钙积层在1-2m→团粒结构极好" },
+      { "name": "暗棕壤", "wrb": "Umbrisols / Cambisols", "frequency": "common", "note": "Dfb较湿/偏林区→有机质层暗色但酸性较强→无钙积层→暗沃层偏酸" },
+      { "name": "草甸黑土", "wrb": "Gleyic Phaeozems", "frequency": "occasional", "note": "地势低平+地下水位较高→草甸植被+潜育化迹象→下部有锈纹锈斑" }
+    ],
+    "mountain_soil": {
+      "name": "山地暗棕壤 / 灰化土",
+      "wrb": "Dystric Cambisols / Podzols",
+      "mechanism": "海拔升高→针叶林替代阔叶林→凋落物变酸性→淋溶增强→暗棕壤→灰化土过渡；坡度大→侵蚀→土层变薄"
+    },
+    "valley_soil": {
+      "name": "草甸土 / 冲积土",
+      "wrb": "Mollic Gleysols / Fluvisols",
+      "mechanism": "河谷地下水位高→草甸植被茂盛→有机质积累+潜育化→草甸土；河流泛滥沉积→冲积土→常被开垦为高产农田"
+    },
+    "rules": [
+      "IF 年均温5-15°C AND 年降水500-1000mm AND 高草草原/森林草原 AND 母质=黄土 THEN 黑钙土(Chernozems)或黑土(Phaeozems)→区别在于钙积层的有无",
+      "IF Dfa/Dfb 且 年降水>800mm AND 森林植被 THEN 淋溶增强→钙积层消失→暗棕壤/黑土(Umbrisols/Phaeozems)→pH降低",
+      "IF Dfa/Dfb 且 年降水<600mm AND 短草草原 THEN 有机质层较薄→向栗钙土(Kastanozems)过渡",
+      "IF Dfa/Dfb山地 AND 针叶林替代阔叶林 THEN 酸性增强→暗棕壤→更高处→灰化土趋势",
+      "IF Dfa/Dfb河谷 AND 地下水位<2m THEN 草甸黑土(Gleyic Phaeozems)→潜育特征",
+      "IF 母质=冲积物/黄土 AND 排水良好 AND 草原植被 THEN Chernozems/Phaeozems均可能→需检查钙积层深度区分"
+    ]
+  },
+  {
+    "climate": "温带大陆性干旱/半干旱气候",
+    "koppen": "BSk/BWk",
+    "typical_soils": [
+      { "name": "栗钙土", "wrb": "Kastanozems", "frequency": "dominant_BSk", "note": "半干旱草原(年降水250-400mm)→暗色表层较薄(15-25cm, 有机质1.5-3%)+钙积层在30-60cm→栗色" },
+      { "name": "棕钙土", "wrb": "Calcisols", "frequency": "dominant_BWk", "note": "干旱(年降水150-250mm)→钙积层极浅(20-40cm)+石膏可能在1-2m→浅棕色→有机质<1.5%" },
+      { "name": "灰钙土", "wrb": "Calcisols / Gypsisols", "frequency": "common", "note": "极干旱(年降水<150mm)→石膏层+可溶盐积累→灰白色→有机质<1%" },
+      { "name": "荒漠土(漠土)", "wrb": "Gypsisols / Calcisols", "frequency": "dominant_BWk_extreme", "note": "极端干旱→石膏壳/盐壳→地表砾幕(戈壁面)→无有机质层→生物活动极弱" },
+      { "name": "盐土 / 碱土", "wrb": "Solonchaks / Solonetz", "frequency": "occasional", "note": "洼地+蒸发强→盐分表聚→盐土(Solonchaks)；钠质化→碱土(Solonetz)→柱状碱化层" }
+    ],
+    "mountain_soil": {
+      "name": "山地栗钙土 / 山地荒漠土 / 石质土",
+      "wrb": "Leptic Kastanozems / Leptosols",
+      "mechanism": "山地降水稍多→淋溶稍增→钙积层位置更深；但坡度大→侵蚀强→土层薄→石质化；海拔升高→温度降低→有机质分解减缓"
+    },
+    "valley_soil": {
+      "name": "盐土 / 草甸土 / 冲积土",
+      "wrb": "Solonchaks / Gleysols / Fluvisols",
+      "mechanism": "干旱区河谷=盐分汇集地→蒸发强烈→盐渍化严重→盐土(Solonchaks)；若有灌溉→冲积土可改良为灌溉农田；地下水位高处→草甸土"
+    },
+    "rules": [
+      "IF 年均温3-12°C AND 年降水250-400mm AND 短草草原 THEN 栗钙土(Kastanozems)→暗色表层15-25cm, 有机质1.5-3%, 钙积层30-60cm 置信度=高",
+      "IF 年均温0-10°C AND 年降水150-250mm AND 荒漠草原 THEN 棕钙土(Calcisols)→钙积层20-40cm, 有机质<1.5% 置信度=高",
+      "IF 年降水<150mm AND 石膏富集>1% THEN 灰钙土(Gypsisols)→石膏层在50-150cm",
+      "IF 年降水<100mm AND 几乎无植被 THEN 荒漠土→地表砾幕(风蚀残留)→石膏壳/盐壳",
+      "IF BSk/BWk 洼地 AND 蒸发/降水>10 THEN 盐分表聚→盐土(Solonchaks)→电导率>15 dS/m",
+      "IF BSk/BWk 洼地 AND 钠饱和度>15% THEN 碱土(Solonetz)→柱状碱化层→pH>9",
+      "IF BSk 山地 AND 海拔>1500m THEN 降水增加→淋溶增强→钙积层位置更深→山地栗钙土→更高处→山地黑钙土过渡",
+      "IF BWk 河谷 AND 引水灌溉 THEN 冲积土可改良→但必须排水防盐渍化"
+    ]
+  },
+  {
+    "climate": "亚热带季风气候",
+    "koppen": "Cfa/Cwa",
+    "typical_soils": [
+      { "name": "红壤", "wrb": "Acrisols / Alisols", "frequency": "dominant", "note": "高温多雨+季节性干湿→中等强度脱硅富铝化→铁氧化物呈红色→黏化层发育→酸性(pH 4.5-5.5)→盐基饱和度低(<35%)" },
+      { "name": "黄壤", "wrb": "Alisols", "frequency": "common", "note": "海拔较高(500-1500m)或多雾山区→湿度更大→铁氧化物水化→黄色→更酸→有机质表层积累" },
+      { "name": "黄棕壤", "wrb": "Luvisols / Alisols", "frequency": "common", "note": "Cfa北缘/Cwa向温带过渡→富铝化减弱→黏化层+弱富铝化→黄棕色→盐基饱和度高于红壤" },
+      { "name": "水稻土", "wrb": "Anthrosols", "frequency": "occasional", "note": "长期水耕→水耕表层(淹水还原+排水氧化交替)→犁底层→人为土" }
+    ],
+    "mountain_soil": {
+      "name": "山地黄壤 / 山地黄棕壤 / 石质土",
+      "wrb": "Dystric Cambisols / Leptosols",
+      "mechanism": "海拔升高→红壤化减弱→先过渡为黄壤(500-1500m)→再过渡为黄棕壤(>1500m)→更高处转为山地灌丛草甸土；陡坡→石质土"
+    },
+    "valley_soil": {
+      "name": "水稻土 / 冲积土 / 潮土",
+      "wrb": "Anthrosols / Fluvisols / Cambisols",
+      "mechanism": "亚热带河谷=传统水稻产区→长期水耕→水稻土(Anthrosols)发育完善；非耕作河谷→冲积土；地下水位波动带→潮土(氧化还原交替)"
+    },
+    "rules": [
+      "IF 年均温15-22°C AND 年降水800-1600mm AND 常绿阔叶林 AND 海拔<500m AND 母质=花岗岩/砂岩 THEN 红壤(Acrisols) 置信度=高",
+      "IF Cfa 且 海拔500-1500m AND 湿度更高 THEN 黄壤(Alisols)→铁氧化物水化→黄色→pH更低(4.0-5.0)",
+      "IF Cfa/Cwa 北缘 AND 年均温<16°C THEN 富铝化减弱→黄棕壤(Luvisols)→盐基饱和度升高(>50%)",
+      "IF Cwa 且 干季更显著 THEN 红壤中铁氧化物脱水更彻底→颜色更鲜红",
+      "IF Cfa 山地 AND 海拔>1500m THEN 黄棕壤→山地灌丛草甸土→依次出现",
+      "IF Cfa/Cwa 河谷 AND 长期水耕 THEN 水稻土(Anthrosols)→水耕表层+犁底层+氧化还原层",
+      "IF 母质=石灰岩 AND Cfa THEN 淋溶虽强→但石灰岩缓冲→pH偏高→红色石灰土→区别于典型红壤",
+      "IF 母质=玄武岩 AND Cfa THEN 铁铝更富→砖红壤性红壤→富铝化程度介于红壤与砖红壤之间"
+    ]
+  },
+  {
+    "climate": "寒带苔原气候",
+    "koppen": "ET",
+    "typical_soils": [
+      { "name": "冰沼土", "wrb": "Cryosols", "frequency": "dominant", "note": "永久冻土+冻融扰动→活动层(夏季解冻0.5-2m)→冻融泥流→有机质在活动层底部积累→冰冻特性(cryic)→低温抑制分解" },
+      { "name": "泥炭土(有机土)", "wrb": "Histosols", "frequency": "common", "note": "排水不良洼地+低温→有机质分解极慢→泥炭积累>40cm→酸性极强→贫营养" },
+      { "name": "潜育土", "wrb": "Gleysols", "frequency": "occasional", "note": "活动层滞水+永久冻土隔水→还原环境→潜育层→蓝灰色+锈纹" }
+    ],
+    "mountain_soil": {
+      "name": "山地冰沼土 / 石质寒漠土",
+      "wrb": "Leptic Cryosols / Leptosols",
+      "mechanism": "山地无永久冻土但温度极低→风化极弱→碎石遍布→石质寒漠土(高山荒漠土)→无有机质积累→植被稀少"
+    },
+    "valley_soil": {
+      "name": "泥炭土 / 潜育冰沼土",
+      "wrb": "Histosols / Gleyic Cryosols",
+      "mechanism": "苔原河谷夏季积水+冻土隔水→泥炭积累加速→厚层泥炭土；水流缓慢处→潜育化强烈"
+    },
+    "rules": [
+      "IF 最热月0-10°C AND 永久冻土存在 AND 排水尚可 THEN 冰沼土(Cryosols)→活动层0.5-2m, 冻融扰动特征 置信度=高",
+      "IF ET 且 排水不良(洼地/平坦) AND 有机质积累>40cm THEN 泥炭土(Histosols)→有机碳含量>20%",
+      "IF ET 且 活动层滞水 THEN 潜育土(Gleysols)→蓝灰色潜育层+锈纹锈斑",
+      "IF ET 山地 AND 海拔>1000m THEN 无永久冻土但风化石质化→石质寒漠土(Leptosols/Gelic Regosols)",
+      "IF ET 河谷 AND 夏季融水汇集 THEN 泥炭土增厚+潜育化增强",
+      "IF 纬度>70° AND 降水<200mm THEN 极地荒漠土→几乎无土壤发育(物理风化为主)"
+    ]
+  },
+  {
+    "climate": "高山气候",
+    "koppen": "H",
+    "typical_soils": [
+      { "name": "高山草甸土", "wrb": "Mollic Leptosols / Umbric Cambisols", "frequency": "dominant_mid", "note": "高山草甸带(海拔3000-4500m, 视纬度)→低温+草甸植被→根系盘结→有机质表层积累(草毡层)→但分解慢→酸性" },
+      { "name": "高山荒漠土(寒漠土)", "wrb": "Gelic Leptosols / Regosols", "frequency": "dominant_high", "note": "极高海拔(>4500m)或极高纬度→无连续植被→物理风化为主→碎石遍布→几乎无有机质→类似火星表面" },
+      { "name": "高山灌丛草甸土", "wrb": "Umbric Cambisols", "frequency": "common", "note": "森林线以上灌丛带→有机质积累次于草甸→酸性→暗色表层较薄" },
+      { "name": "冰沼土", "wrb": "Cryosols", "frequency": "occasional", "note": "高海拔仍有局部永久冻土→冻融扰动→冰沼土特征" }
+    ],
+    "mountain_soil": {
+      "name": "石质土 / 粗骨土",
+      "wrb": "Leptosols / Skeletic Regosols",
+      "mechanism": "高山陡坡→极强物理风化(冻融/冰劈)→碎石坡(岩屑锥)→几乎无细土→石质土(Leptosols)→基岩裸露"
+    },
+    "valley_soil": {
+      "name": "高山草甸土 / 泥炭土",
+      "wrb": "Mollic Gleysols / Histosols",
+      "mechanism": "高山宽谷(U形谷)→夏季融水汇集→湿草甸→有机质积累；排水不良处→泥炭化"
+    },
+    "rules": [
+      "IF 高山气候 AND 海拔在森林线以上至雪线以下 AND 草甸植被 THEN 高山草甸土→草毡层5-15cm, 有机质5-15%, 酸性(pH 5.0-6.0) 置信度=高",
+      "IF 高山气候 AND 海拔>雪线以下500m AND 无连续植被 THEN 高山荒漠土(寒漠土)→碎石覆盖>50%, 无有机质层 置信度=高",
+      "IF 高山气候 AND 海拔刚超过森林线 AND 灌丛植被 THEN 高山灌丛草甸土→有机质层较薄(3-8cm)",
+      "IF 高山区 AND 坡度>35° AND 冻融活跃 THEN 石质土/粗骨土→岩屑锥/石河→细土<20%",
+      "IF 高山宽谷 AND 夏季积水 THEN 湿草甸土→潜育化→向泥炭土过渡",
+      "IF 高山气候 AND 纬度=热带(如乞力马扎罗) THEN 垂直带谱: 砖红壤(Af山脚)→山地黄壤→山地棕壤→高山草甸土→高山荒漠土→冰雪",
+      "IF 高山气候 AND 纬度=温带 THEN 垂直带谱: 棕壤/栗钙土(山脚)→山地暗棕壤→高山草甸土→高山荒漠土→冰雪"
+    ]
+  }
+]
