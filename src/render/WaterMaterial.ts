@@ -40,9 +40,9 @@ const riverFragment = /* glsl */ `
     float spec = sin((pos.x + pos.y) * 2.0 - uTime * 1.5) * 0.5 + 0.5;
     spec = smoothstep(0.6, 0.9, spec) * 0.4;
 
-    // Base water color
-    vec3 deepBlue = vec3(0.08, 0.25, 0.48);
-    vec3 brightBlue = vec3(0.20, 0.50, 0.72);
+      // 标准水色 #8ABAE0 / 深湖蓝 #5983A6
+    vec3 deepBlue = vec3(0.349, 0.514, 0.651);
+    vec3 brightBlue = vec3(0.541, 0.729, 0.878);
     float brightness = 0.5 + flow * 0.3 + ripple + spec;
 
     vec3 color = mix(deepBlue, brightBlue, brightness);
@@ -75,8 +75,8 @@ const lakeFragment = /* glsl */ `
     // Shore shallow = lighter
     float shore = smoothstep(0.0, 0.5, dist) * 0.15;
 
-    vec3 deep = vec3(0.06, 0.18, 0.40);
-    vec3 shallow = vec3(0.12, 0.35, 0.58);
+    vec3 deep = vec3(0.349, 0.514, 0.651);    // #5983A6
+    vec3 shallow = vec3(0.541, 0.729, 0.878);  // #8ABAE0
     float mixVal = 0.4 + ripple + wave + wind + shore;
 
     vec3 color = mix(deep, shallow, clamp(mixVal, 0.0, 1.0));

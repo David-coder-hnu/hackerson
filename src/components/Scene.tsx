@@ -347,7 +347,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
           <Line
             key={`rv${pi}`}
             points={curvePts}
-            color="#3a8fd4"
+            color="#8ABAE0"
             lineWidth={1.5}
           />
         );
