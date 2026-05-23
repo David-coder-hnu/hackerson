@@ -1,0 +1,601 @@
+{
+  "meta": {
+    "name": "基础地理参数推断引擎",
+    "version": "1.0",
+    "description": "从地图OC可直接读取的6项基础参数出发，自动推断月均温、年降水、成土母质、排水条件等中间参数，串联所有下游引擎完成从地图到生态的完整推导。",
+    "design_principle": "用户只需要画地图——标记山脉、平原、海岸线、纬度——引擎自动完成剩下的全部推断。用户不需要知道'最冷月均温'或'母质类型'这些专业概念。"
+  },
+
+  "user_input_schema": {
+    "description": "用户制作地图OC时能直接提供/识别的基础数据。所有字段对非专业用户友好。",
+    "fields": {
+      "latitude": {
+        "type": "number",
+        "range": [-90, 90],
+        "unit": "度",
+        "description": "纬度。北半球为正，南半球为负。用户在地图上画一条纬度线即可获取。"
+      },
+      "altitude": {
+        "type": "number",
+        "range": [-500, 9000],
+        "unit": "m",
+        "description": "海拔高度。用户设定地形时自然产生（平原≈0-200m，高原≈2000-5000m等）。"
+      },
+      "slope": {
+        "type": "number",
+        "range": [0, 90],
+        "unit": "度",
+        "description": "坡度。从地形高程图自动计算。"
+      },
+      "aspect": {
+        "type": "string",
+        "enum": ["windward", "leeward", "neutral"],
+        "description": "坡向相对于当地盛行风向。由引擎根据气压带+海陆位置自动判定盛行风向后，再与坡向比较得出。"
+      },
+      "land_sea_position": {
+        "type": "string",
+        "enum": ["west_coast", "east_coast", "interior_near", "interior_far", "island"],
+        "description": "海陆位置。用户画完海陆轮廓后自然可知：西岸/东岸/近内陆(距海<500km)/远内陆(距海>500km)/岛屿。"
+      },
+      "pressure_belt": {
+        "type": "string",
+        "enum": ["ITCZ", "subtropical_high", "subpolar_low", "polar_high", "monsoon_alternating"],
+        "description": "气压带。可由纬度自动判定，但用户也可手动标记（如果其架空世界的大气环流与地球不同）。"
+      },
+      "terrain_type": {
+        "type": "string",
+        "enum": ["plain", "hill", "low_mountain", "high_mountain", "plateau", "basin", "floodplain", "coastal", "volcano"],
+        "description": "地形类型。用户画地形时直接确定。"
+      },
+      "ocean_current": {
+        "type": "string",
+        "enum": ["warm", "cold", "none"],
+        "description": "沿岸洋流类型（仅沿海地区需要）。用户可选填，默认由引擎根据纬度+海陆位置自动推断。"
+      }
+    }
+  },
+
+  "一、气压带自动判定": {
+    "description": "如果用户手动指定了气压带则跳过此步。否则由纬度+海陆位置自动判定。",
+    "rules": [
+      { "abs_lat_range": [0, 10], "default_belt": "ITCZ", "note": "赤道附近终年受ITCZ控制" },
+      { "abs_lat_range": [10, 25], "belt": "ITCZ_or_subtropical_high", "note": "过渡带：夏季ITCZ北/南移至此→雨季；冬季副高控制→干季。即热带干湿气候区(Aw/Am)。若位于大陆东岸+季风则判定为monsoon_alternating。" },
+      { "abs_lat_range": [25, 35], "belt": "subtropical_high", "note": "副热带高压主体位置。西岸终年副高控制(BWh)；东岸夏季副高+冬季可能有其他环流(Cfa/Cwa)。若land_sea_position=east_coast则判定为monsoon_alternating。" },
+      { "abs_lat_range": [35, 50], "belt_depends_on_position": {
+          "west_coast": "subtropical_high_summer + westerlies_winter → 地中海(Csa/Csb)",
+          "east_coast": "monsoon_alternating → 季风(Cfa/Dwa)",
+          "interior_near": "westerlies_or_monsoon → 大陆性(Dfa/Dfb/BSk)",
+          "interior_far": "westerlies_weak → 极端大陆性(BSk/BWk/Dfd)"
+        }
+      },
+      { "abs_lat_range": [50, 65], "belt": "subpolar_low", "note": "副极地低压带，多气旋活动。西岸受西风+暖流→Cfb/Cfc；东岸→Dfc/Dfd；内陆→极端大陆性。" },
+      { "abs_lat_range": [65, 75], "belt": "subpolar_low_to_polar_high", "note": "过渡带，短暂夏季+漫长冬季。ET苔原。" },
+      { "abs_lat_range": [75, 90], "belt": "polar_high", "note": "极地高压控制，终年干冷。ET/EF。" }
+    ]
+  },
+
+  "二、盛行风向自动判定": {
+    "description": "由纬度+气压带自动判定该地常年盛行什么风，用于后续判定坡向和水分来源。",
+    "rules": [
+      { "abs_lat_range": [0, 30], "wind": "trade_wind", "direction_nh": "NE→SW", "direction_sh": "SE→NW", "note": "信风带。大陆东岸=向岸风(湿润)；大陆西岸=离岸风(干燥)。" },
+      { "abs_lat_range": [30, 60], "wind": "westerlies", "direction_nh": "SW→NE", "direction_sh": "NW→SE", "note": "盛行西风带。大陆西岸=向岸风(湿润)；大陆东岸=离岸风或季风反转。" },
+      { "abs_lat_range": [60, 90], "wind": "polar_easterlies", "direction_nh": "NE→SW", "direction_sh": "SE→NW", "note": "极地东风带。所有海岸均为离岸风或冷风。" }
+    ],
+    "monsoon_override": "IF pressure_belt=monsoon_alternating THEN 夏半年风向=从海洋吹向陆地(向岸)，冬半年风向=从陆地吹向海洋(离岸)。具体风向取决于海洋在陆地的哪个方向。"
+  },
+
+  "三、年均温推断": {
+    "description": "由纬度推算海平面年均温基准值，再经海拔和大陆度修正。",
+
+    "3.1 海平面年均温基准": {
+      "formula": "T_sea_level = 27.5 - 32.5 × (|lat|/90)^1.5",
+      "explanation": "赤道海平面年均温≈27°C，极地≈-5°C(海平面)。注意这是海平面基准，实际温度还要叠加海拔修正。",
+      "lookup_table": [
+        { "abs_lat": 0, "T_sea_level": 27.5 },
+        { "abs_lat": 10, "T_sea_level": 26.5 },
+        { "abs_lat": 20, "T_sea_level": 24.0 },
+        { "abs_lat": 30, "T_sea_level": 20.0 },
+        { "abs_lat": 35, "T_sea_level": 17.0 },
+        { "abs_lat": 40, "T_sea_level": 14.0 },
+        { "abs_lat": 45, "T_sea_level": 11.0 },
+        { "abs_lat": 50, "T_sea_level": 7.0 },
+        { "abs_lat": 55, "T_sea_level": 3.5 },
+        { "abs_lat": 60, "T_sea_level": 0.0 },
+        { "abs_lat": 65, "T_sea_level": -4.0 },
+        { "abs_lat": 70, "T_sea_level": -8.0 },
+        { "abs_lat": 80, "T_sea_level": -13.0 },
+        { "abs_lat": 90, "T_sea_level": -18.0 }
+      ]
+    },
+
+    "3.2 海拔温度修正": {
+      "formula": "T = T_sea_level - altitude/100 × 0.65",
+      "note": "标准气温直减率 0.65°C/100m。高海拔大面积高原(>3000m, >10万km²)有附加热力效应：夏季实际温度比直减率预测高2-5°C(高原加热效应)。",
+      "plateau_heating_correction": "IF terrain_type=plateau AND altitude>3000 THEN T_summer += 3.0 (夏季高原感热加热)"
+    },
+
+    "3.3 年温差(最热月-最冷月)推断": {
+      "description": "年温差 = f(纬度, 大陆度)。大陆度由海陆位置决定。",
+      "continentality_factors": {
+        "island": { "continentality_index": 0.05, "description": "海洋性极强，年温差极小" },
+        "west_coast": { "continentality_index": 0.15, "description": "西风带向岸→海洋性(仅中高纬适用)；副热带西岸干燥另计" },
+        "east_coast": { "continentality_index": 0.40, "description": "季风/向岸信风→半海洋性" },
+        "interior_near": { "continentality_index": 0.60, "description": "距海<500km但已在大陆内部" },
+        "interior_far": { "continentality_index": 0.85, "description": "距海>500km，极端大陆性" }
+      },
+      "annual_range_formula": "ΔT_annual = 3 + 60 × continentality_index × (|lat|/90)^1.2",
+      "annual_range_examples": [
+        { "position": "赤道海岛(新加坡)", "ΔT": "~3°C" },
+        { "position": "中纬西岸(伦敦51°N)", "ΔT": "~13°C" },
+        { "position": "中纬东岸(北京40°N)", "ΔT": "~30°C" },
+        { "position": "中纬内陆(乌兰巴托48°N)", "ΔT": "~38°C" },
+        { "position": "高纬内陆(雅库茨克62°N)", "ΔT": "~62°C" }
+      ]
+    }
+  },
+
+  "四、12个月均温生成": {
+    "description": "由年均温+年温差+半球自动生成12个月均温数组。这是输入Holdridge系统和柯本判定的关键参数。",
+    "formula_nh": "T_month[m] = T_annual + (ΔT_annual/2) × cos(2π × (m - 7) / 12)",
+    "formula_sh": "T_month[m] = T_annual + (ΔT_annual/2) × cos(2π × (m - 1) / 12)",
+    "note": "m=1到12(1月到12月)。北半球7月最热、1月最冷；南半球1月最热、7月最冷。",
+    "ocean_current_correction": {
+      "warm_current_coast": "冬季月均温 +2~5°C，夏季基本不变（如北大西洋暖流使西欧1月升温10°C以上）。仅适用于中高纬度(>30°)西岸。",
+      "cold_current_coast": "夏季月均温 -2~4°C，冬季 -1~3°C，同时显著降低降水（形成逆温层抑制对流）。适用于副热带大陆西岸。",
+      "rule": "IF ocean_current=warm AND land_sea_position=west_coast AND |lat|>30 THEN T_winter_months += min(8, 25/(|lat|-25))"
+    }
+  },
+
+  "五、年降水推断": {
+    "description": "由气压带+海陆位置+盛行风向+地形综合推断年降水量。这是整个引擎最核心的部分。",
+
+    "5.1 降水基准(仅考虑气压带+海陆位置)": {
+      "rules": [
+        {
+          "condition": "pressure_belt=ITCZ AND 有充足海洋水汽来源",
+          "P_base": "1800-3500 mm",
+          "P_base_typical": 2500,
+          "note": "强烈上升气流+高温→空气可容纳巨量水汽→对流雨极旺盛。实际值取决于水汽来源充足度。"
+        },
+        {
+          "condition": "pressure_belt=ITCZ OR monsoon_alternating AND land_sea_position=east_coast AND 纬度<30",
+          "P_base": "1200-2500 mm",
+          "P_base_typical": 1800,
+          "note": "赤道低压+向岸信风/季风→全年或多半年有充沛水汽。"
+        },
+        {
+          "condition": "pressure_belt=monsoon_alternating AND land_sea_position=east_coast AND 纬度30-50",
+          "P_base": "600-1200 mm",
+          "P_base_typical": 900,
+          "note": "温带季风/亚热带季风：夏季多雨冬季干燥，年降水集中。"
+        },
+        {
+          "condition": "pressure_belt=subtropical_high AND land_sea_position=west_coast",
+          "P_base": "50-400 mm",
+          "P_base_typical": 200,
+          "note": "副高终年控制+离岸信风→极端干旱。叠加寒流则P<50mm(阿塔卡马/纳米布)。"
+        },
+        {
+          "condition": "pressure_belt=subtropical_high AND land_sea_position=east_coast AND 纬度<30",
+          "P_base": "700-1500 mm",
+          "P_base_typical": 1100,
+          "note": "副高西缘的向岸信风带来水汽(Cfa/Cwa)，比西岸湿润得多。"
+        },
+        {
+          "condition": "pressure_belt=subtropical_high_summer+westerlies_winter (地中海型)",
+          "P_base": "400-900 mm",
+          "P_base_typical": 650,
+          "note": "夏干冬湿。纬度越低越干，越高越湿。"
+        },
+        {
+          "condition": "pressure_belt=subpolar_low AND land_sea_position=west_coast",
+          "P_base": "800-2500 mm",
+          "P_base_typical": 1500,
+          "note": "西风终年从海洋带来水汽+气旋活动频繁→温带海洋性(Cfb)。具体值看是否有山脉截留。"
+        },
+        {
+          "condition": "pressure_belt=subpolar_low AND land_sea_position=interior_far",
+          "P_base": "250-500 mm",
+          "P_base_typical": 350,
+          "note": "虽在副极地低压带，但距海太远，水汽已耗尽(如西伯利亚内陆)。"
+        },
+        {
+          "condition": "pressure_belt=polar_high",
+          "P_base": "100-300 mm",
+          "P_base_typical": 200,
+          "note": "极地高压下沉+冷空气含水极少→降水量少但蒸发也少→仍可能为湿润苔原(ET)。"
+        }
+      ]
+    },
+
+    "5.2 距海距离对降水的衰减": {
+      "description": "越深入内陆，降水越少。衰减速率取决于有无山脉阻挡。",
+      "attenuation_rule": "IF 盛行风向=向岸风 AND 无明显山脉阻挡 THEN 每深入内陆100km, P衰减约8-12%。IF 有山脉阻挡(如北美西岸) THEN 山脉背风坡降水锐减至20-30%, 此后深入内陆不再显著衰减(已耗尽)。",
+      "attenuation_table": [
+        { "distance_from_coast_km": 0, "P_factor": 1.0 },
+        { "distance_from_coast_km": 100, "P_factor": 0.85 },
+        { "distance_from_coast_km": 300, "P_factor": 0.65 },
+        { "distance_from_coast_km": 500, "P_factor": 0.50 },
+        { "distance_from_coast_km": 1000, "P_factor": 0.30 },
+        { "distance_from_coast_km": 2000, "P_factor": 0.15 }
+      ]
+    },
+
+    "5.3 地形降水修正(迎风坡/背风坡)": {
+      "orographic_enhancement": [
+        { "condition": "aspect=windward AND slope>5° AND altitude>LCL", "P_multiplier": "1.5~3.0", "note": "LCL(抬升凝结高度)≈125×(T_surface-T_dew)。实际取经验值: 迎风坡降水增强1.5-2.5倍。" },
+        { "condition": "aspect=windward AND slope>15° AND 山脉高度>2000m", "P_multiplier": "2.0~4.0", "note": "高山迎风坡极端降水(如喜马拉雅南麓)。" },
+        { "condition": "aspect=leeward", "P_multiplier": "0.2~0.5", "note": "雨影效应。山脉越高，雨影越强。" },
+        { "condition": "aspect=leeward AND altitude_drop_from_ridge>1000m", "P_multiplier": "0.1~0.3", "note": "强焚风区，极度干燥(如巴塔哥尼亚)。" }
+      ]
+    },
+
+    "5.4 洋流修正": {
+      "rules": [
+        { "condition": "warm_current AND land_sea_position=west_coast AND |lat|>30", "P_modifier": "+20%~+40%", "note": "暖流增强蒸发→增加沿岸降水。尤其是在冬季。" },
+        { "condition": "cold_current AND land_sea_position=west_coast AND 纬度15-35", "P_modifier": "-40%~-80%", "note": "寒流+逆温层→极大抑制降水→副热带西岸沙漠的关键成因。" }
+      ]
+    },
+
+    "5.5 降水季节分配": {
+      "description": "将年降水分配到各月。不同气候类型的季节分配模式截然不同。",
+      "patterns": {
+        "uniform": { "description": "终年均匀(如Af, Cfb)", "monthly_factors": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] },
+        "summer_peak": { "description": "夏季集中(如季风气候Cwa/Dwa/Dfa)", "monthly_factors": [0.15, 0.2, 0.4, 0.7, 1.0, 1.5, 2.2, 2.0, 1.2, 0.7, 0.3, 0.15] },
+        "winter_peak": { "description": "冬季集中(如地中海Csa/Csb)", "monthly_factors": [2.2, 1.8, 1.3, 0.9, 0.5, 0.2, 0.1, 0.15, 0.4, 0.8, 1.5, 2.0] },
+        "dry_winter_summer_peak": { "description": "冬干夏雨+雨季极集中(如Am热带季风)", "monthly_factors": [0.05, 0.05, 0.1, 0.2, 0.5, 1.5, 3.0, 2.8, 2.0, 1.0, 0.2, 0.05] },
+        "bimodal_equatorial": { "description": "双峰型(赤道ITCZ两次经过，如部分Af)", "monthly_factors": [0.6, 0.5, 0.8, 1.3, 1.5, 0.7, 0.4, 0.5, 1.0, 1.6, 1.5, 1.0] }
+      },
+      "pattern_selection_logic": {
+        "rule": "根据柯本气候类型(由温度+降水已可判定)选择对应模式。判定与实际降水分配可能需要1-2轮迭代：先用基准模式生成月降水→判定柯本类型→如有不一致则调整模式→再判定。"
+      }
+    }
+  },
+
+  "六、成土母质推断": {
+    "description": "由地形类型+构造背景推断最可能的成土母质。用户无需了解地质学术语，只需画地形。",
+
+    "6.1 地形类型→母质推断规则": [
+      {
+        "terrain_type": "high_mountain",
+        "terrain_description": "高大山脉(>2500m)，尖峭山脊",
+        "tectonic_implication": "活跃造山带或近期抬升",
+        "primary_parent_material": ["变质岩(片麻岩/片岩/大理岩)", "花岗岩类(岩基)"],
+        "secondary_parent_material": ["沉积岩(褶皱的砂岩/页岩/石灰岩)"],
+        "confidence": 0.75,
+        "note": "造山带核部以变质岩+侵入花岗岩为主，翼部为褶皱沉积岩。"
+      },
+      {
+        "terrain_type": "low_mountain",
+        "terrain_description": "低山丘陵(500-2500m)，圆缓山脊",
+        "tectonic_implication": "古老造山带或稳定地块边缘",
+        "primary_parent_material": ["花岗岩类", "沉积岩(砂岩/页岩/石灰岩)", "变质岩(片麻岩)"],
+        "secondary_parent_material": ["砂岩", "石英岩"],
+        "confidence": 0.60,
+        "note": "低山范围广，母质多样。古老山脉核部仍可见变质岩+花岗岩，外缘以沉积岩为主。"
+      },
+      {
+        "terrain_type": "volcano",
+        "terrain_description": "火山锥/火山群/熔岩台地",
+        "tectonic_implication": "板块边界或热点",
+        "primary_parent_material": ["玄武岩", "安山岩", "火山灰/凝灰岩"],
+        "secondary_parent_material": ["浮石", "火山碎屑"],
+        "confidence": 0.95,
+        "note": "火山=火山岩母质，置信度极高。具体岩性取决于岩浆成分(板块俯冲带→安山岩；热点/裂谷→玄武岩)。"
+      },
+      {
+        "terrain_type": "plateau",
+        "terrain_description": "高海拔平坦面(>1000m)",
+        "tectonic_implication": "抬升的稳定地块或大规模熔岩流",
+        "primary_parent_material": ["玄武岩(溢流玄武岩高原)", "沉积岩(抬升的沉积盖层)", "变质岩(地盾抬升)"],
+        "secondary_parent_material": ["花岗岩类"],
+        "confidence": 0.55,
+        "note": "高原母质高度取决于地质背景。德干高原=玄武岩；科罗拉多高原=沉积岩；青藏高原=变质+沉积混杂。"
+      },
+      {
+        "terrain_type": "plain",
+        "terrain_description": "低海拔平坦面(<200m)",
+        "tectonic_implication": "稳定地台或沉积盆地",
+        "primary_parent_material": ["冲积物", "黄土(风成粉砂)", "沉积岩(水平砂岩/页岩/石灰岩)"],
+        "secondary_parent_material": ["冰碛物(高纬度)"],
+        "confidence": 0.70,
+        "note": "平原多为第四纪覆盖。深层母质取决于下方基岩。冲积物=河流附近；黄土=中纬度半干旱平原；冰碛物=曾经历冰川的高纬平原。"
+      },
+      {
+        "terrain_type": "basin",
+        "terrain_description": "四周被山环绕的低地",
+        "tectonic_implication": "构造盆地或断陷盆地",
+        "primary_parent_material": ["沉积岩(湖相/河流相砂岩/页岩)", "冲积物", "蒸发岩(干旱区)"],
+        "secondary_parent_material": ["黄土(风积)"],
+        "confidence": 0.80,
+        "note": "盆地=物质的聚集区。湿润盆地→厚层沉积岩+冲积物；干旱盆地→蒸发岩(盐/石膏)。"
+      },
+      {
+        "terrain_type": "hill",
+        "terrain_description": "起伏和缓的低矮丘陵(200-500m)",
+        "tectonic_implication": "古老侵蚀面或轻微抬升区",
+        "primary_parent_material": ["沉积岩(砂岩/页岩)", "花岗岩类(风化)"],
+        "secondary_parent_material": ["变质岩"],
+        "confidence": 0.55,
+        "note": "丘陵母质极为多样。热带丘陵常有深厚风化壳(花岗岩→高岭土)。"
+      },
+      {
+        "terrain_type": "floodplain",
+        "terrain_description": "河流泛滥平原/三角洲",
+        "tectonic_implication": "现代沉积区",
+        "primary_parent_material": ["冲积物(层状砂/粉砂/黏土)"],
+        "secondary_parent_material": ["有机沉积(泥炭/沼泽)"],
+        "confidence": 0.95,
+        "note": "冲积平原=最新、最松散的沉积物，层理明显，肥沃。"
+      },
+      {
+        "terrain_type": "coastal",
+        "terrain_description": "海岸带(沙滩/岩岸/红树林岸)",
+        "tectonic_implication": "海陆交界",
+        "primary_parent_material": ["滨海砂", "珊瑚砂(热带)", "石灰岩(抬升海岸)", "冲积物(河口)"],
+        "secondary_parent_material": ["盐渍沉积物(干旱海岸)"],
+        "confidence": 0.80,
+        "note": "海岸母质由波浪、潮汐和河流共同塑造。热带海岸常见珊瑚砂和红树林泥。"
+      }
+    ],
+
+    "6.2 气候对表层母质的二次改造": {
+      "description": "气候通过风化作用改造表层母质的矿物组成。对WRB土壤推断有重要意义。",
+      "rules": [
+        { "climate_koppen": ["Af", "Am"], "effect": "任何母质→强烈化学风化→形成厚层铁铝风化壳(>5m)。花岗岩→高岭土+石英砂+铁壳；玄武岩→铝土矿+铁壳。", "surface_override": "风化壳(铁铝质)" },
+        { "climate_koppen": ["Aw"], "effect": "季节性风化→干季铁氧化物脱水硬化→形成铁壳层(硬磐)。风化壳厚度次于Af区。", "surface_override": "铁壳/钙积风化壳" },
+        { "climate_koppen": ["Cfa", "Cwa"], "effect": "中等风化→花岗岩风化壳可厚达10-30m→高岭土发育。石灰岩区→喀斯特溶蚀残余黏土。", "surface_override": "高岭土风化壳/红色石灰土" },
+        { "climate_koppen": ["Cfb"], "effect": "较弱化学风化→母质影响大。花岗岩→砂质酸性土；石灰岩→棕壤；黄土→深厚壤质棕壤。", "surface_override": "弱风化残积层" },
+        { "climate_koppen": ["BSk", "BWk"], "effect": "物理风化为主+碳酸钙在剖面中积聚→钙积层。蒸发强烈区→盐渍化。", "surface_override": "钙积层/石膏层/盐壳" },
+        { "climate_koppen": ["ET"], "effect": "冻融物理风化→碎石遍布。有机质分解极慢→泥炭积累。", "surface_override": "冻融碎石/泥炭" }
+      ]
+    }
+  },
+
+  "七、排水条件推断": {
+    "description": "由地形+坡度+气候综合推断排水等级。排水条件直接影响土壤类型(Gleysols潜育化、Histosols泥炭化等)。",
+    "rules": [
+      { "terrain_type": ["high_mountain", "low_mountain"], "slope": ">15°", "drainage": "excessive", "note": "陡坡→排水极快→土壤薄→Leptosols" },
+      { "terrain_type": ["hill"], "slope": "5-15°", "drainage": "good", "note": "坡地→排水良好" },
+      { "terrain_type": ["plain", "plateau"], "slope": "<3°", "drainage": "moderate", "note": "平地→排水适中" },
+      { "terrain_type": ["basin"], "slope": "<2°", "drainage": "poor", "note": "盆地→水聚集→排水不良→潜育化风险" },
+      { "terrain_type": ["floodplain"], "slope": "<1°", "drainage": "poor_to_very_poor", "note": "河漫滩→地下水位高→强烈潜育化→Gleysols" },
+      { "terrain_type": ["coastal"], "slope": "<1°", "drainage": "moderate_to_poor", "note": "海岸平地→排水受潮汐和地下水位影响" },
+      { "climate_koppen": ["Af", "Am", "Cfb"], "effect": "年降水>1200mm + 排水moderate → 可能积水→排水等级下调一级" },
+      { "climate_koppen": ["BWh", "BWk", "BSk"], "effect": "年降水<400mm → 蒸发>降水 → 排水等级实际上调一级(因极少积水)" }
+    ]
+  },
+
+  "八、完整级联推导管线": {
+    "description": "从用户的地图OC到最终全部诊断输出的完整管线。每个步骤的输入=上一步的输出，用户无需手动填入任何中间参数。",
+
+    "pipeline": [
+      {
+        "step": 1,
+        "name": "基础参数采集",
+        "source": "用户地图OC",
+        "outputs": ["latitude", "altitude", "slope", "aspect", "land_sea_position", "terrain_type", "ocean_current?"],
+        "auto_flag": false
+      },
+      {
+        "step": 2,
+        "name": "气压带+盛行风向判定",
+        "engine": "本引擎(一、二节)",
+        "inputs": ["latitude", "land_sea_position"],
+        "outputs": ["pressure_belt", "prevailing_wind_direction", "wind_onshore_or_offshore"]
+      },
+      {
+        "step": 3,
+        "name": "年均温+年温差推断",
+        "engine": "本引擎(三节)",
+        "inputs": ["latitude", "altitude", "land_sea_position", "terrain_type"],
+        "outputs": ["T_annual_mean", "ΔT_annual"]
+      },
+      {
+        "step": 4,
+        "name": "12个月均温生成",
+        "engine": "本引擎(四节)",
+        "inputs": ["T_annual_mean", "ΔT_annual", "latitude(判定半球)", "ocean_current?"],
+        "outputs": ["monthly_temps[12]"]
+      },
+      {
+        "step": 5,
+        "name": "年降水+季节分配推断",
+        "engine": "本引擎(五节)",
+        "inputs": ["pressure_belt", "land_sea_position", "wind_onshore_or_offshore", "altitude", "slope", "aspect", "ocean_current?"],
+        "outputs": ["P_annual", "monthly_precip[12]", "precip_seasonality_pattern"]
+      },
+      {
+        "step": 6,
+        "name": "成土母质推断",
+        "engine": "本引擎(六节)",
+        "inputs": ["terrain_type", "climate_koppen(初步)"],
+        "outputs": ["parent_material", "surface_weathering_override"]
+      },
+      {
+        "step": 7,
+        "name": "排水条件推断",
+        "engine": "本引擎(七节)",
+        "inputs": ["terrain_type", "slope", "climate_koppen(初步)"],
+        "outputs": ["drainage_class"]
+      },
+      {
+        "step": 8,
+        "name": "柯本气候类型判定",
+        "engine": "柯本气候类型判定矩阵.md",
+        "inputs": ["monthly_temps[12]", "P_annual", "monthly_precip[12]"],
+        "outputs": ["koppen_type", "climate_name_zh", "koppen_subtype"]
+      },
+      {
+        "step": 9,
+        "name": "Holdridge生命带+潜在植被推断",
+        "engine": "生态-农业-土壤综合诊断系统.md(第一节)",
+        "inputs": ["monthly_temps[12]", "P_annual"],
+        "outputs": ["BT(biotemperature)", "PET", "PER", "latitudinal_belt", "humidity_province", "life_zone", "potential_vegetation"]
+      },
+      {
+        "step": 10,
+        "name": "【水文】径流生成",
+        "engine": "水文推断引擎.json(第一节)",
+        "inputs": ["P_annual", "monthly_precip[12]", "slope", "drainage_class", "life_zone", "permafrost"],
+        "outputs": ["C_runoff", "R_annual(runoff_depth)", "river_regime_type", "monthly_discharge_factors"]
+      },
+      {
+        "step": 11,
+        "name": "【水文】河流网络生成",
+        "engine": "水文推断引擎.json(第二节)",
+        "inputs": ["altitude(DEM)", "slope", "R_annual", "terrain_type", "koppen_type", "parent_material"],
+        "outputs": ["river_positions[strahler_order]", "river_widths", "channel_pattern", "perennial_or_seasonal", "drainage_density"]
+      },
+      {
+        "step": 12,
+        "name": "【水文】湖泊生成",
+        "engine": "水文推断引擎.json(第三节)",
+        "inputs": ["terrain_type", "altitude(DEM凹地)", "P_annual", "PET", "parent_material", "koppen_type"],
+        "outputs": ["lake_positions", "lake_type", "lake_area_km2", "lake_depth_m", "salinity_ppt", "pH"]
+      },
+      {
+        "step": 13,
+        "name": "【水文】母质/土壤修正",
+        "engine": "水文推断引擎.json(第四节+第六节overrides)",
+        "inputs": ["river_positions", "lake_positions", "parent_material", "koppen_type"],
+        "outputs": ["parent_material_override(河漫滩→冲积物等)", "soil_suggestion_local"]
+      },
+      {
+        "step": 14,
+        "name": "农作物适宜性推荐",
+        "engine": "生态-农业-土壤综合诊断系统.md(第二节, FAO AEZ)",
+        "inputs": ["koppen_type", "soil_texture(from_parent_override)", "growing_season_days", "P_annual", "altitude", "irrigation_potential(from_水文)"],
+        "outputs": ["S1_crops", "S2_crops", "S3_crops", "N_crops", "cash_crops"]
+      },
+      {
+        "step": 15,
+        "name": "土壤类型推断(含水文修正)",
+        "engine": "生态-农业-土壤综合诊断系统.md(第三节, WRB) + 水文推断引擎(第六节overrides)",
+        "inputs": ["koppen_type", "altitude", "slope", "drainage_class", "parent_material(已修正)", "potential_vegetation", "距河流距离", "距湖泊距离"],
+        "outputs": ["primary_soil_wrb", "zh_name", "confidence", "alternative_soils", "diagnostic_horizon"]
+      },
+      {
+        "step": 16,
+        "name": "野生动物推断",
+        "engine": "气候-野生动物属库.json",
+        "inputs": ["koppen_type"],
+        "outputs": ["animals[{genus, name_zh, body_size, diet, social_structure, activity_rhythm, special_adaptation, endemic}]"]
+      },
+      {
+        "step": 17,
+        "name": "原产植物推断",
+        "engine": "气候-原产植物库.json",
+        "inputs": ["koppen_type"],
+        "outputs": ["plants_by_habitat[{habitat, plants[{name, uses, rarity}]}]"]
+      },
+      {
+        "step": 18,
+        "name": "矿产推断(含砂矿+蒸发岩)",
+        "engine": "矿产分布规则库.json + 水文推断引擎(第六节mineral_overrides)",
+        "inputs": ["terrain_type", "parent_material(已修正)", "koppen_type", "river_positions", "lake_positions", "lake_salinity"],
+        "outputs": ["minerals[{name, deposit_type, confidence}]", "tech_path_recommendation"]
+      },
+      {
+        "step": 19,
+        "name": "【水文】文明选址评分",
+        "engine": "水文推断引擎.json(第五节)",
+        "inputs": ["river_positions", "river_widths", "river_slope", "lake_positions", "koppen_type", "terrain_type"],
+        "outputs": ["city_suitability_score(0-100)", "top_city_location_candidates", "navigability_class", "irrigation_potential", "flood_risk"]
+      },
+      {
+        "step": 20,
+        "name": "【城镇】发展潜力综合评估",
+        "engine": "城镇发展潜力评估引擎.json",
+        "inputs": ["koppen_type", "monthly_temps", "P_annual", "growing_season_days", "primary_soil_wrb", "S1_S2_S3_crops", "irrigation_potential", "river_positions+width+navigability", "lake_positions", "terrain_type", "slope", "land_sea_position", "parent_material", "mineral_list", "potential_vegetation", "flood_risk"],
+        "outputs": ["total_score(0-100)", "dimension_scores[7维]", "development_stage(0-5)", "population_estimate", "primary_specialization", "secondary_specializations", "key_buildings", "growth_forecast", "inter_city_relationships"]
+      }
+    ],
+
+    "iteration_note": "柯本判定(step8)需要月降水季节分配模式，而月降水季节分配(step5)又部分依赖柯本类型的预先判断→先用基准降水模式生成初步月降水→判定柯本→如有矛盾则用柯本类型修正降水→最多迭代2次收敛。水文推断(step10-13)在柯本和Holdridge确定后执行，因为径流系数依赖植被类型，河流类型依赖气候。母质修正(step13)的反灌到土壤推断(step15)。文明选址(step19)是管线的最后一个推断步骤——此时所有自然环境参数已知。"
+  },
+
+  "九、诊断报告JSON输出格式(完整版)": {
+    "description": "基于以上全部推断，为地图OC的每个格点/区域输出的综合诊断报告。",
+    "example_output": {
+      "location": { "latitude": 31.2, "longitude": 121.5, "altitude_m": 5 },
+      "inferred_parameters": {
+        "pressure_belt": "monsoon_alternating",
+        "prevailing_wind": "summer_SE_onshore / winter_NW_offshore",
+        "T_annual_mean": 16.5,
+        "ΔT_annual": 24.5,
+        "monthly_temps": [3.8, 5.5, 9.5, 15.0, 20.0, 24.0, 28.0, 27.5, 23.0, 17.5, 11.5, 6.0],
+        "P_annual": 1150,
+        "monthly_precip": [48, 58, 85, 92, 95, 165, 155, 140, 120, 65, 52, 38],
+        "parent_material": "冲积物(alluvium)",
+        "drainage_class": "moderate",
+        "continentality_index": 0.40
+      },
+      "koppen_classification": {
+        "primary": "Cfa",
+        "name_zh": "亚热带季风(湿润)",
+        "name_en": "Humid Subtropical"
+      },
+      "holdridge_life_zone": {
+        "BT": 16.3,
+        "PET": 961,
+        "PER": 0.84,
+        "latitudinal_belt": "暖温带",
+        "humidity_province": "亚湿润",
+        "life_zone": "暖温带湿润森林",
+        "potential_vegetation": "常绿阔叶林(壳斗科/樟科/山茶科)"
+      },
+      "crop_recommendations": {
+        "S1": ["水稻", "油菜", "甘薯"],
+        "S2": ["玉米", "小麦", "茶", "棉花"],
+        "S3": ["大豆"],
+        "N": ["甘蔗(冬季温度不足)", "油棕(温度不足)"],
+        "cash_crops": ["茶(S2)", "油菜(S1)", "棉花(S2)"]
+      },
+      "soil": {
+        "primary": "Luvisols(高活性淋溶土/红壤)",
+        "confidence": "75%",
+        "alternatives": ["Cambisols(雏形土, 20%)", "Anthrosols(水稻土, 若长期水耕)"]
+      },
+      "hydrology": {
+        "C_runoff": 0.45,
+        "R_annual_mm": 518,
+        "river_regime": "雨水型(季风型)",
+        "drainage_density": "中等(0.3 km/km²)",
+        "main_river": {
+          "strahler_order": 4,
+          "width_m": 150,
+          "channel_pattern": "曲流(meandering)",
+          "flow_type": "常流河(perennial)",
+          "navigability": "B级(良好航道)"
+        },
+        "lakes": [
+          { "type": "牛轭湖(oxbow)", "area_km2": 2.5, "salinity": "淡水" },
+          { "type": "泛滥平原浅水湖", "area_km2": 15, "salinity": "淡水" }
+        ]
+      },
+      "civilization_scores": {
+        "city_suitability": 78,
+        "top_candidates": ["河流交汇处(score:92)", "河漫滩肥沃农业带(score:85)"],
+        "navigability_class": "B",
+        "irrigation_potential": "中等(补充灌溉有益)",
+        "flood_risk": "季风洪水(夏季, 可预测)"
+      },
+      "animals": [
+        { "name_zh": "大熊猫属", "special": "特化食竹——伪拇指握竹" },
+        { "name_zh": "猕猴属", "special": "颊囊贮食——善用温泉" },
+        { "name_zh": "角雉属", "special": "求偶展开肉裙和角状羽" }
+      ],
+      "plants": [
+        { "name": "樟树", "habitat": "低地森林", "uses": ["建材", "药材", "香料"] },
+        { "name": "毛竹", "habitat": "低地森林", "uses": ["建材", "食物", "纤维"] },
+        { "name": "杉木", "habitat": "低地森林", "uses": ["建材"] }
+      ],
+      "minerals": [
+        { "mineral": "高岭土(风化残积型)", "confidence": 0.85 },
+        { "mineral": "砂金(冲积型, 河漫滩+阶地)", "confidence": 0.55 },
+        { "mineral": "煤矿(若古沼泽条件满足)", "confidence": 0.60 }
+      ]
+    }
+  }
+}

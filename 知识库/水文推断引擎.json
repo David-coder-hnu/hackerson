@@ -1,0 +1,523 @@
+{
+  "meta": {
+    "name": "水文推断引擎",
+    "version": "1.0",
+    "description": "从降水、地形、地质等已有参数自动生成河流网络与湖泊系统。输入全部来自上游引擎(基础地理参数推断+气候推断)的输出，用户无需额外提供水文数据。",
+    "input_source": {
+      "from_climate_engine": ["P_annual", "monthly_precip[12]", "monthly_temps[12]", "koppen_type"],
+      "from_terrain_engine": ["altitude", "slope", "terrain_type", "land_sea_position"],
+      "from_parent_material": ["parent_material", "drainage_class"],
+      "from_user_map": ["latitude"]
+    }
+  },
+
+  "一、径流生成": {
+    "description": "降水落到地面后，一部分下渗、一部分蒸发、剩余的形成地表径流——这是河流的'水源'。",
+
+    "1.1 径流系数推断": {
+      "formula": "R = P × C_runoff",
+      "where": {
+        "R": "年径流深 (mm)",
+        "P": "年降水量 (mm)",
+        "C_runoff": "径流系数 (0~1)"
+      },
+      "C_runoff_factors": {
+        "slope_factor": [
+          { "slope_range": [0, 2], "factor": 0.15, "desc": "平坦→下渗时间长→径流少" },
+          { "slope_range": [2, 5], "factor": 0.25, "desc": "缓坡" },
+          { "slope_range": [5, 15], "factor": 0.40, "desc": "中坡→径流明显增加" },
+          { "slope_range": [15, 30], "factor": 0.60, "desc": "陡坡→快速产流" },
+          { "slope_range": [30, 90], "factor": 0.80, "desc": "极陡坡→几乎全部产流" }
+        ],
+        "drainage_factor": [
+          { "drainage": "excessive", "factor": 0.80, "desc": "排水极快→但基岩裂隙可能增加下渗" },
+          { "drainage": "good", "factor": 0.45, "desc": "排水良好→适中" },
+          { "drainage": "moderate", "factor": 0.30, "desc": "排水适中→较多下渗" },
+          { "drainage": "poor", "factor": 0.40, "desc": "排水不良→土壤饱和后产流增加(饱和坡面流)" },
+          { "drainage": "very_poor", "factor": 0.50, "desc": "近饱和→大量饱和坡面流" }
+        ],
+        "vegetation_factor": [
+          { "holdridge_zone": ["热带雨林", "热带湿润森林"], "factor": 0.75, "desc": "森林截留+高蒸散→但降水极大→仍大量产流" },
+          { "holdridge_zone": ["温带湿润森林", "亚热带湿润森林"], "factor": 0.85, "desc": "森林截留中等" },
+          { "holdridge_zone": ["草原", "稀树草原"], "factor": 1.0, "desc": "草被截留少→基准不变" },
+          { "holdridge_zone": ["荒漠", "荒漠灌丛"], "factor": 1.3, "desc": "几乎无截留→但降水极少→绝对径流仍低" }
+        ],
+        "permafrost_factor": "IF permafrost=true THEN C_runoff += 0.25 (冻土不透水→夏季表层产流剧增)"
+      },
+      "C_runoff_composite": "C_runoff = CLAMP((slope_factor + drainage_factor + vegetation_factor) / 3 + permafrost_bonus, 0.05, 0.95)"
+    },
+
+    "1.2 径流的季节分配": {
+      "description": "河流流量季节变化=河川水文型(river regime)。由降水季节分配+冰雪融水贡献决定。",
+      "regime_types": [
+        {
+          "regime": "雨水型(季风型)",
+          "condition": "降水集中于夏季 + 无冰川融水",
+          "hydrograph": "夏洪冬枯，洪枯比>10:1",
+          "example_koppen": ["Cwa", "Dwa", "Am", "Aw"],
+          "monthly_discharge_factors": [0.15, 0.15, 0.25, 0.4, 0.65, 1.2, 2.2, 2.0, 1.3, 0.7, 0.3, 0.15]
+        },
+        {
+          "regime": "雨水型(均匀型)",
+          "condition": "降水终年均匀",
+          "hydrograph": "流量年变化平缓，洪枯比<3:1",
+          "example_koppen": ["Af", "Cfb"],
+          "monthly_discharge_factors": [0.95, 0.85, 0.9, 0.95, 1.0, 1.0, 1.05, 1.05, 0.95, 1.0, 1.0, 1.0]
+        },
+        {
+          "regime": "冰雪融水型",
+          "condition": "流域内有冰川/积雪 + 夏季融化",
+          "hydrograph": "春末夏初洪峰(融雪)+夏末冰川融水高峰",
+          "example": "阿尔卑斯山区河流(莱茵河上游)、喜马拉雅山区河流",
+          "monthly_discharge_factors": [0.2, 0.2, 0.25, 0.5, 1.0, 1.8, 2.5, 2.2, 1.2, 0.7, 0.4, 0.25]
+        },
+        {
+          "regime": "地中海型",
+          "condition": "冬雨夏干",
+          "hydrograph": "冬春丰水、夏季枯水甚至断流",
+          "example_koppen": ["Csa", "Csb"],
+          "monthly_discharge_factors": [1.8, 1.5, 1.2, 0.8, 0.4, 0.15, 0.08, 0.1, 0.3, 0.7, 1.3, 1.8]
+        },
+        {
+          "regime": "冰雪融水+季风雨水混合型",
+          "condition": "高山+季风(如喜马拉雅南坡河流)",
+          "hydrograph": "春季融雪+夏季季风雨→双峰或极宽洪峰",
+          "example": "恒河、雅鲁藏布江",
+          "monthly_discharge_factors": [0.15, 0.15, 0.2, 0.5, 1.0, 2.0, 3.0, 3.2, 2.5, 1.2, 0.5, 0.2]
+        }
+      ],
+      "meltwater_trigger": "IF terrain_type=high_mountain AND altitude>雪线 AND T_summer_max>0 THEN 流域有冰雪融水贡献"
+    }
+  },
+
+  "二、河流网络生成": {
+    "description": "由地形(DEM)确定流向→汇流累积→识别河道位置→Strahler分级。模拟真实水文过程。",
+
+    "2.1 河道判定阈值": {
+      "description": "汇流累积量超过阈值→出现河道。阈值与气候有关。",
+      "threshold_rules": [
+        { "climate_zone": "湿润区(Af/Am/Cfa/Cfb)", "threshold_low": "低阈值→河网密集，沟谷发育", "drainage_density": "高(0.5~2.0 km/km²)" },
+        { "climate_zone": "半湿润区(Cwa/Dfa/Dfb)", "threshold_low": "中等阈值→河网较密", "drainage_density": "中(0.2~0.8 km/km²)" },
+        { "climate_zone": "半干旱区(BSk/Aw干季)", "threshold_low": "高阈值→仅主要河谷有常流河", "drainage_density": "低(0.05~0.3 km/km²)" },
+        { "climate_zone": "干旱区(BWh/BWk)", "threshold_low": "极高阈值→绝大部分为干沟(时令河)", "drainage_density": "极低(<0.1 km/km²，多为内流)" }
+      ]
+    },
+
+    "2.2 河流分级(Strahler)": {
+      "description": "Strahler河流分级法：无支流的源头溪流=1级；两条同级河流汇合→级别+1；不同级汇合→取较高者。",
+      "level_rules": [
+        { "strahler_order": 1, "name_zh": "源头溪流/沟谷", "width_m": "1~5", "depth_m": "0.2~0.5", "typical_length_km": "0.5~5", "description": "山坡上的细小沟谷，部分为季节性" },
+        { "strahler_order": 2, "name_zh": "小溪", "width_m": "3~10", "depth_m": "0.3~1.0", "typical_length_km": "2~15", "description": "若干源头溪流汇合而成" },
+        { "strahler_order": 3, "name_zh": "支流/小河", "width_m": "8~40", "depth_m": "0.5~2.0", "typical_length_km": "10~80", "description": "可在小比例尺地图上显示" },
+        { "strahler_order": 4, "name_zh": "中等河流", "width_m": "30~150", "depth_m": "1.5~5.0", "typical_length_km": "50~300", "description": "可通航小船" },
+        { "strahler_order": 5, "name_zh": "大河", "width_m": "100~800", "depth_m": "3~15", "typical_length_km": "200~1500", "description": "重要航运通道" },
+        { "strahler_order": 6, "name_zh": "干流/巨川", "width_m": "500~3000+", "depth_m": "8~50+", "typical_length_km": "1000~6000+", "description": "大陆级河流(长江/亚马孙/尼罗河/密西西比)" }
+      ]
+    },
+
+    "2.3 河道形态分类": {
+      "description": "河流在平面上的形态取决于坡度、泥沙量和流量变率。",
+      "channel_patterns": [
+        {
+          "pattern": "曲流(meandering)",
+          "condition": "坡度<0.5% AND 泥沙以细粒(粉砂/黏土)为主 AND 流量变率<5:1",
+          "features": "单一蜿蜒河道，外侧侵蚀(凹岸)+内侧沉积(凸岸)→曲流颈→可能截弯取直→形成牛轭湖",
+          "sinuosity": ">1.5",
+          "typical_terrain": ["冲积平原", "宽谷盆地"],
+          "example": "密西西比河下游、长江荆江段"
+        },
+        {
+          "pattern": "辫状河(braided)",
+          "condition": "坡度>1.0% OR 泥沙供给极高(粗砂/砾) OR 流量变率极大(>20:1)",
+          "features": "多股交织的分汊河道，河道宽浅，心滩/江心洲密布，河道频繁改道",
+          "sinuosity": "<1.3",
+          "typical_terrain": ["山前冲积扇", "冰水扇", "干旱区山麓"],
+          "example": "布拉马普特拉河、黄河下游(历史上)"
+        },
+        {
+          "pattern": "顺直河(straight)",
+          "condition": "受构造控制(沿断层线)OR 坡度2~5%",
+          "features": "河道较直，通常沿断层线或节理发育",
+          "sinuosity": "<1.2",
+          "typical_terrain": ["构造谷地", "断层崖脚"],
+          "example": "莱茵河上游地堑段"
+        },
+        {
+          "pattern": " anastomosing(网状河)",
+          "condition": "极低坡度(<0.1%) + 黏质河岸 + 稳定流量",
+          "features": "多条稳定深窄河道交织，间以植被茂盛的湿地岛屿，河道长期稳定",
+          "sinuosity": "各支>1.5,整体多道",
+          "typical_terrain": ["三角洲平原", "大型冲积盆地"],
+          "example": "奥卡万戈三角洲、哥伦比亚河部分段"
+        }
+      ],
+      "pattern_selection_note": "同一河流不同河段可有不同形态。上游→辫状或顺直；中游→曲流；下游(近河口)→网状或曲流。"
+    },
+
+    "2.4 常流河 vs 时令河": {
+      "description": "河流是常年有水还是仅在雨季有水，由最干月降水量决定。",
+      "perennial_threshold": "IF driest_month_precip > 15mm AND annual_precip > 400mm THEN perennial(常流河)",
+      "intermittent_threshold": "IF driest_month_precip < 5mm OR annual_precip < 250mm THEN ephemeral(时令河/干沟)",
+      "seasonal_threshold": "IF dry_season_duration > 4month THEN seasonal(季节性河，干季断流)",
+      "groundwater_fed_exception": "IF parent_material∈[石灰岩,玄武岩(裂隙)] AND annual_precip>600 THEN 可能为常流河(基流补给)——即使旱季较长，地下含水层可维持基流。"
+    },
+
+    "2.5 河流纵剖面与裂点": {
+      "description": "河流从源头到河口的纵剖面通常为凹形。断裂点(裂点)出现在岩性突变或构造抬升处。",
+      "typical_profile": "上游陡(>5%)→中游缓(0.5-2%)→下游极缓(<0.1%)",
+      "knickpoints": [
+        { "cause": "岩性突变(软→硬岩)", "features": "瀑布/急流", "example": "尼亚加拉瀑布(硬白云岩覆软页岩)" },
+        { "cause": "构造抬升/断层崖", "features": "裂点带,多级瀑布", "example": "青藏高原边缘河流(金沙江虎跳峡)" },
+        { "cause": "冰川悬谷", "features": "冰川谷高于主谷→支谷以瀑布汇入→悬谷瀑布", "example": "约塞米蒂瀑布" }
+      ],
+      "waterfall_trigger": "IF terrain_type=high_mountain AND 河流流经断层崖 OR 岩性边界 THEN 标记裂点→生成瀑布"
+    }
+  },
+
+  "三、湖泊自动生成": {
+    "description": "湖泊由地形洼地+正水收支形成。规模从高山小湖到大陆级内陆海。",
+
+    "3.1 湖泊形成的水收支条件": {
+      "water_budget": "ΔV = (P_lake + R_inflow) - (E_lake + R_outflow + G_loss)",
+      "where": {
+        "P_lake": "湖面直接降水",
+        "R_inflow": "入湖河流径流",
+        "E_lake": "湖面蒸发(≈PET × 0.8, open water)",
+        "R_outflow": "出湖河流(如果有出口)",
+        "G_loss": "地下水渗漏(通常较小)"
+      },
+      "lake_forms_when": "ΔV > 0 AND 地形存在封闭或半封闭洼地",
+      "lake_level_stable_when": "ΔV ≈ 0 (长期平均)"
+    },
+
+    "3.2 湖泊生成三元判定": {
+      "triggers": [
+        {
+          "condition": "地形=盆地/洼地 AND 无河流出口 AND P_annual < PET",
+          "result": "咸水湖/盐湖",
+          "reason": "水只进不出→蒸发浓缩→盐分积累",
+          "salinity": ">3‰(微咸)~>300‰(超盐湖,如死海)",
+          "examples": ["死海", "大盐湖", "咸海", "里海(微咸)"]
+        },
+        {
+          "condition": "地形=盆地/洼地 AND 有河流出口 AND P_annual > PET × 0.5",
+          "result": "淡水湖",
+          "reason": "有水进出→盐分被水流带走→维持淡水",
+          "salinity": "<0.5‰",
+          "examples": ["苏必利尔湖", "贝加尔湖", "马拉维湖", "鄱阳湖"]
+        },
+        {
+          "condition": "地形=平原/河漫滩 AND 河曲发育",
+          "result": "牛轭湖(oxbow lake)",
+          "reason": "曲流截弯取直→废弃河道积水→形成新月形湖",
+          "lifespan": "数十年至数百年(最终淤平)",
+          "examples": ["密西西比河平原随处可见的牛轭湖"]
+        },
+        {
+          "condition": "地形=冲积平原 AND 地下水位<1m AND 排水=poor",
+          "result": "沼泽/浅水湖(swamp/lacustrine wetland)",
+          "reason": "地下水位接近地表→持续积水→湿地",
+          "note": "若有机质积累>40cm→转为泥炭沼泽(Histosols)"
+        },
+        {
+          "condition": "terrain_type=volcano AND volcano=recent AND 存在火山口",
+          "result": "火山口湖(crater lake)",
+          "reason": "火山口积水→通常圆形、深而陡岸",
+          "water_chemistry": "通常淡水；若仍有火山气体输入→酸性(pH<5)",
+          "examples": ["长白山天池", "Crater Lake(美国)", "多巴湖(印尼, 超级火山口)"]
+        },
+        {
+          "condition": "terrain_type=high_mountain AND altitude>雪线附近 AND 存在冰川侵蚀地形",
+          "result": "冰蚀湖(glacial lake)",
+          "reason": "冰川掘蚀形成洼地(冰斗/cirque)→冰川退缩后积水",
+          "subtypes": ["冰斗湖(山顶圆形小湖)", "槽谷湖(山谷中的长形深湖)", "冰碛堰塞湖(终碛堵塞河谷)"],
+          "examples": ["日内瓦湖", "太湖(可能)", "加拿大盾地的无数湖泊"]
+        },
+        {
+          "condition": "构造=裂谷/地堑 AND terrain_type=basin",
+          "result": "构造湖(tectonic/rift lake)",
+          "reason": "地壳拉张→地堑沉降→汇水成湖→通常极深、狭长",
+          "depth": "可达>1000m(如贝加尔湖1642m)",
+          "examples": ["贝加尔湖", "坦噶尼喀湖", "马拉维湖", "死海(转换断层拉分盆地)"]
+        },
+        {
+          "condition": "terrain_type=coastal AND 存在沙嘴/障壁岛",
+          "result": "潟湖(lagoon)",
+          "reason": "沿岸流搬运泥沙→沙嘴封闭海湾→形成半咸水潟湖",
+          "salinity": "变化大(0.5~40‰)，取决于淡水输入和潮汐交换",
+          "examples": ["威尼斯潟湖", "波罗的海(大型潟湖化海)"]
+        },
+        {
+          "condition": "河流被滑坡/熔岩流/冰碛堵塞",
+          "result": "堰塞湖(barrier lake)",
+          "reason": "外来物质堵塞河谷→上游积水",
+          "risk": "堰塞体可能溃决→下游洪水",
+          "subtypes": ["滑坡堰塞湖", "熔岩堰塞湖", "冰碛堰塞湖"],
+          "examples": ["四川叠溪海子(地震滑坡)", "黑龙江五大连池(熔岩堰塞)"]
+        }
+      ]
+    },
+
+    "3.3 湖泊规模推断": {
+      "description": "湖泊面积取决于汇水区面积×径流深 / (蒸发率 - 降水率)。粗略估算。",
+      "size_classes": [
+        { "class": "池塘(pond)", "area_km2": "<0.1", "typical_depth_m": "1~3", "eco_character": "可完全被水生植物覆盖→沼泽化" },
+        { "class": "小湖(small lake)", "area_km2": "0.1~10", "typical_depth_m": "2~15", "eco_character": "沿岸带发达，可能存在温跃层" },
+        { "class": "中湖(medium lake)", "area_km2": "10~500", "typical_depth_m": "10~100", "eco_character": "明显的湖沼学分层，波浪作用显著" },
+        { "class": "大湖(large lake)", "area_km2": "500~10000", "typical_depth_m": "50~500", "eco_character": "类似内陆海，有潮汐和风生流" },
+        { "class": "巨型湖/内陆海(mega-lake)", "area_km2": ">10000", "typical_depth_m": "100~1600+", "eco_character": "世界级大湖(里海37万km², 苏必利尔湖8.2万km²)" }
+      ],
+      "rough_estimate": "Lake_area ≈ (Basin_area × R_annual) / (E_lake - P_lake) × f_shape",
+      "note": "f_shape为湖盆形状系数(0.1~0.9), 陡岸深盆→小面积深水；平缓浅盆→大面积浅水"
+    },
+
+    "3.4 湖泊水化学": {
+      "salinity_triggers": [
+        { "condition": "有河流出口(exorheic)", "salinity": "<0.5‰", "type": "淡水湖", "ion_composition": "Ca²⁺/HCO₃⁻为主(若石灰岩区)；Na⁺/Cl⁻微量" },
+        { "condition": "无河流出口(endorheic) AND P_annual/PET > 0.6", "salinity": "0.5~3‰", "type": "微咸湖(oligohaline)", "note": "微弱盐分积累" },
+        { "condition": "无河流出口 AND P_annual/PET 0.2~0.6", "salinity": "3~20‰", "type": "中咸湖(mesohaline)", "note": "类似海水盐度或稍低" },
+        { "condition": "无河流出口 AND P_annual/PET 0.05~0.2", "salinity": "20~50‰", "type": "高咸湖(polyhaline)", "note": "高于海水" },
+        { "condition": "无河流出口 AND P_annual/PET < 0.05", "salinity": ">50‰(可达300+)", "type": "超咸湖/盐湖(hypersaline)", "note": "盐类开始沉淀: 碳酸盐→石膏→岩盐→钾盐(按溶解度顺序)", "examples": ["死海(~340‰)", "大盐湖(50~270‰)", "唐胡安池(>400‰, 南极)"] }
+      ],
+      "ph_triggers": [
+        { "condition": "parent_material∈[花岗岩,砂岩,变质岩(酸性)]", "pH": "4.5~6.5", "type": "酸性软水湖" },
+        { "condition": "parent_material∈[石灰岩,玄武岩]", "pH": "7.5~9.0", "type": "碱性硬水湖" },
+        { "condition": "terrain_type=volcano AND 火山气体输入", "pH": "2.0~5.0", "type": "火山酸性湖(极酸)", "example": "印尼Kawah Ijen(pH<0.5)" },
+        { "condition": "盐湖+高碳酸盐", "pH": "9.0~11.0", "type": "苏打湖/碱湖(soda lake)", "example": "肯尼亚马加迪湖" }
+      ]
+    }
+  },
+
+  "四、河流与湖泊的沉积效应": {
+    "description": "河流不仅塑造地形，还产生特定的沉积物和土壤。这些对下游的WRB土壤推断和矿产资源推断有修正作用。",
+
+    "4.1 河流沉积物类型": {
+      "alluvial_environments": [
+        {
+          "environment": "冲积扇(alluvial fan)",
+          "location": "山口/坡度骤减处",
+          "sediment": "砾石→粗砂(扇顶)→中细砂(扇中)→粉砂/黏土(扇缘)",
+          "sorting": "极差(泥石流沉积)至中等(片流沉积)",
+          "associated_soil": "Regosols(粗骨土) → Cambisols(扇缘)",
+          "mineral_potential": ["砂金(扇顶砾石层)", "砂锡", "地下水(扇缘富水带)"]
+        },
+        {
+          "environment": "河漫滩(floodplain)",
+          "location": "曲流河两岸",
+          "sediment": "粉砂+黏土(洪水越岸沉积) + 砂(决口扇)",
+          "sorting": "好(垂向加积)→极肥沃",
+          "associated_soil": "Fluvisols(冲积土)→若有潜育→Gleysols",
+          "agriculture": "最肥沃的天然土壤之一→古代文明发源地(尼罗河、两河、印度河、黄河)"
+        },
+        {
+          "environment": "天然堤(levee)",
+          "location": "紧邻河道两侧",
+          "sediment": "细砂+粗粉砂(洪水溢出后最先沉积)",
+          "sorting": "好",
+          "significance": "天然堤高于周围泛滥平原→河道两旁最先有人定居(避洪水)"
+        },
+        {
+          "environment": "三角洲(delta)",
+          "location": "河流入湖/入海口",
+          "sediment": "砂(分流河道)+粉砂/黏土(分流间湾)+有机质(沼泽)",
+          "sorting": "层理明显,三角洲前缘→前三角洲→底积层",
+          "associated_soil": "Fluvisols / Gleysols / Histosols(沼泽区)",
+          "mineral_potential": ["石油(三角洲烃源岩+储层)", "煤矿(三角洲平原沼泽)"]
+        }
+      ]
+    },
+
+    "4.2 湖泊沉积物类型": {
+      "lacustrine_environments": [
+        {
+          "environment": "湖滨带(littoral)",
+          "sediment": "砂/砾(波浪淘洗)",
+          "features": "滩脊、沙嘴, 可能有鲕粒(碳酸盐湖)"
+        },
+        {
+          "environment": "深湖区(profundal)",
+          "sediment": "极细粉砂+黏土+有机质(静水沉降)→纹泥(varve,年层)",
+          "features": "暗色富有机质层(冬季)+浅色富碳酸盐层(夏季)→可用于测年"
+        },
+        {
+          "environment": "盐湖(playa/salt pan)",
+          "sediment": "蒸发盐序列: 碳酸盐→硫酸盐(石膏)→氯化物(岩盐)→钾镁盐",
+          "features": "干季→盐壳/泥裂；湿季→浅卤水池",
+          "mineral_potential": ["岩盐", "钾盐", "石膏", "硼砂", "锂(盐湖卤水)", "天然碱"]
+        }
+      ]
+    }
+  },
+
+  "五、河流与文明的交互规则": {
+    "description": "河流是人类文明的动脉。以下规则用于推断地图上最可能出现定居点、城市、农业区的位置。",
+
+    "5.1 城市选址因子": {
+      "city_location_score": "Score = Σ(各因子权重 × 得分)",
+      "factors": [
+        {
+          "factor": "河流交汇处(confluence)",
+          "weight": 0.25,
+          "reason": "交通枢纽+防御+水源→大量历史名城位于两河交汇",
+          "examples": ["重庆(长江+嘉陵江)", "武汉(长江+汉江)", "圣路易斯(密西西比+密苏里)", "喀土穆(白尼罗+青尼罗)"]
+        },
+        {
+          "factor": "河流渡口/浅滩(ford/fordable reach)",
+          "weight": 0.20,
+          "reason": "陆路跨越河流的最浅最窄处→商路汇聚→城市兴起",
+          "examples": ["伦敦(泰晤士河最下游可涉渡处)", "巴黎(塞纳河岛屿渡口)", "法兰克福(美因河渡口)"]
+        },
+        {
+          "factor": "河口/三角洲顶端(head of delta)",
+          "weight": 0.20,
+          "reason": "海运与河运的转运点→货物必须在此换船→港口城市",
+          "examples": ["上海(长江口)", "新奥尔良(密西西比三角洲)", "加尔各答(恒河三角洲)"]
+        },
+        {
+          "factor": "通航起点(head of navigation/fall line)",
+          "weight": 0.15,
+          "reason": "上游瀑布/急流使船只无法继续上行→货物在此装卸→内陆港口→工业城市(早期水力)",
+          "examples": ["美国东岸所有主要城市均位于Fall Line(里士满、华盛顿、费城)"]
+        },
+        {
+          "factor": "泛滥平原(fertile floodplain)",
+          "weight": 0.10,
+          "reason": "冲积土壤极肥沃→支撑高人口密度农业→城市形成",
+          "examples": ["尼罗河谷城市带", "印度河-恒河平原城市带"]
+        },
+        {
+          "factor": "湖岸/湖口(lake outlet)",
+          "weight": 0.10,
+          "reason": "淡水湖出口=天然港口+渔业+航运起点",
+          "examples": ["芝加哥(密歇根湖口)", "日内瓦(日内瓦湖口)", "底特律(连接两大湖的河流)"]
+        }
+      ]
+    },
+
+    "5.2 航运适宜性": {
+      "navigability_factors": {
+        "min_width": "河道宽度>20m→可通小船；>80m→可通大船",
+        "max_slope": "河道比降<0.1%(<1m/km)→理想航运；0.1~0.3%→中等；>0.3%→上游航运困难(需闸坝)",
+        "min_depth": "枯水期水深>1.5m→全年通航；0.5~1.5m→季节性通航",
+        "obstacles": "瀑布/急流/峡谷→阻碍连续通航→形成'航运断点'",
+        "ice": "冬季结冰期>3月→航运中断(高纬度河流)"
+      },
+      "navigability_class": [
+        { "class": "A级(黄金水道)", "condition": "width>200m+depth>5m+slope<0.05%+无冰期>10月", "example": "长江、密西西比、莱茵河下游" },
+        { "class": "B级(良好航道)", "condition": "width>80m+depth>2m+slope<0.2%", "example": "波河、泰晤士河" },
+        { "class": "C级(季节性/小船)", "condition": "width>20m+depth>1m但有季节限制或有急流", "example": "大多数中型河流上游" },
+        { "class": "D级(不可通航)", "condition": "width<15m OR 有瀑布/峡谷 OR 时令河" }
+      ]
+    },
+
+    "5.3 灌溉适宜性": {
+      "irrigation_potential": {
+        "high": "河流流经干旱/半干旱区(BSk/BWk/BSh/BWh)+流量稳定→灌溉农业可支撑高密度人口",
+        "medium": "半湿润区+季节性缺水→补充灌溉有益",
+        "low": "湿润区→天然降水已足够, 灌溉非必需",
+        "flood_irrigation": "河流有显著洪水脉冲(如尼罗河)→天然漫灌→古代文明的基础"
+      },
+      "irrigation_tech_thresholds": [
+        { "min_tech": "简单引水渠(重力)", "requires": "slope>0.3%, 河流高于周边农田", "era": "青铜时代即可" },
+        { "min_tech": "大型灌溉网(运河)", "requires": "中央集权组织+测量技术", "era": "古典文明", "example": "中国都江堰、斯里兰卡古代水库网" },
+        { "min_tech": "提水灌溉(水车/水泵)", "requires": "河流低于农田→需提水", "era": "中世纪~近代" }
+      ]
+    },
+
+    "5.4 洪水风险": {
+      "flood_risk_factors": [
+        { "factor": "降水集中度", "high_risk": "季风区→集中暴雨→洪水频发", "low_risk": "降水均匀区" },
+        { "factor": "流域形状", "high_risk": "扇形流域→洪水快速汇聚", "low_risk": "狭长流域→洪峰分散" },
+        { "factor": "地形", "high_risk": "峡谷出口(束水→突然展宽)→洪水泛滥", "low_risk": "上游有天然调蓄湖泊" },
+        { "factor": "融雪", "high_risk": "春季快速升温+冬季厚积雪→融雪洪水", "low_risk": "无积雪区" }
+      ],
+      "flood_regime": [
+        { "type": "季风洪水", "timing": "夏季", "affected_koppen": ["Am","Aw","Cwa","Dwa"], "note": "可预测→古代文明适应了洪水脉冲(如埃及尼罗河洪水)" },
+        { "type": "融雪洪水", "timing": "春季", "affected_region": "中高纬+高山周边", "note": "叠加暴雨则成特大洪水" },
+        { "type": "暴雨洪水/山洪", "timing": "任何季节", "affected_terrain": ["陡坡", "小流域"], "note": "不可预测→危害最大" },
+        { "type": "冰凌洪水", "timing": "春季开河", "affected_region": "高纬度自南向北流的河(如黄河内蒙古段、叶尼塞河)", "note": "上游先开河→冰坝堵塞→水位暴涨" }
+      ]
+    }
+  },
+
+  "六、水文推断输出整合到总管线": {
+    "description": "水文推断引擎插入到总管线中土壤推断之前(因为河流冲积物影响土壤类型)、矿产推断之前(因为砂矿和盐湖与水文直接相关)。",
+
+    "pipeline_position": {
+      "insert_after_step": "基础地理参数推断(step 7: 排水条件推断)",
+      "insert_before": "WRB土壤推断",
+      "new_steps": [
+        {
+          "step": "7a",
+          "name": "径流生成",
+          "inputs": ["P_annual", "monthly_precip", "slope", "drainage_class", "holdridge_zone", "permafrost"],
+          "outputs": ["C_runoff", "R_annual", "monthly_discharge_factors", "river_regime_type"]
+        },
+        {
+          "step": "7b",
+          "name": "河流网络生成",
+          "inputs": ["altitude(DEM)", "slope", "R_annual", "terrain_type", "koppen_type"],
+          "outputs": ["river_positions(strahler_order)", "river_widths", "channel_pattern", "perennial_or_seasonal"]
+        },
+        {
+          "step": "7c",
+          "name": "湖泊生成",
+          "inputs": ["terrain_type", "altitude(DEM凹地检测)", "P_annual", "PET", "parent_material"],
+          "outputs": ["lake_positions", "lake_type", "lake_area", "lake_depth", "salinity", "pH"]
+        },
+        {
+          "step": "7d",
+          "name": "冲积/湖积修正",
+          "inputs": ["river_positions", "lake_positions", "parent_material"],
+          "outputs": ["parent_material_override(河谷→alluvium, 三角洲→delta_sediments)", "new_soil_suggestion(冲积土/潜育土/盐土)"]
+        },
+        {
+          "step": "7e",
+          "name": "文明选址评分",
+          "inputs": ["river_positions", "river_widths", "slope", "lake_positions", "koppen_type"],
+          "outputs": ["city_suitability_score", "navigability_class", "irrigation_potential", "flood_risk"]
+        }
+      ]
+    },
+
+    "soil_override_rules": {
+      "description": "水文推断可推翻或精炼基于气候-地形的土壤推断。",
+      "overrides": [
+        { "condition": "位于河漫滩(距河流<宽度×5) AND strahler_order≥3", "soil_override": "Fluvisols(冲积土)", "reason": "定期洪水沉积覆盖了气候成因土壤" },
+        { "condition": "位于三角洲", "soil_override": "Fluvisols + Gleysols + Histosols(沼泽)", "reason": "三角洲沉积物覆盖一切原有土壤" },
+        { "condition": "位于冲积扇扇顶", "soil_override": "Regosols(粗骨土)", "reason": "粗砾石为主" },
+        { "condition": "位于冲积扇扇缘", "soil_override": "Cambisols(雏形土)→可耕作", "reason": "细粒沉积物+地下水接近地表" },
+        { "condition": "位于盐湖周边(距湖岸<5km, salinity>50‰)", "soil_override": "Solonchaks(盐土)", "reason": "强烈蒸发→盐分在土壤中积聚" },
+        { "condition": "位于淡水湖周边+排水poor", "soil_override": "Gleysols(潜育土)或Histosols(有机土)", "reason": "高地下水位+有机质积累" }
+      ]
+    },
+
+    "mineral_override_rules": {
+      "description": "河流和湖泊的位置直接影响冲积矿产和蒸发岩矿产的推断。",
+      "overrides": [
+        { "condition": "河流(strahler≥3)流经金矿源岩区", "mineral_add": "砂金矿(冲积型, 河漫滩+阶地)", "confidence": 0.65 },
+        { "condition": "河流流经花岗岩区(含锡)", "mineral_add": "砂锡矿(冲积型)", "confidence": 0.55 },
+        { "condition": "内流盐湖(salinity>50‰,面积>10km²)", "mineral_add": ["岩盐(>90%)", "石膏(>80%)", "如有火山活动→硼砂(70%)", "如有富锂源岩→锂盐(50%)"], "confidence": 0.85 },
+        { "condition": "三角洲+古沼泽条件", "mineral_add": "煤矿/油气(三角洲沉积)", "confidence": 0.60 },
+        { "condition": "河漫滩+阶地+干旱气候(BSk/BWk)", "mineral_add": "砂岩型铀矿(氧化还原界面)", "confidence": 0.50 }
+      ]
+    },
+
+    "waterbird_ecology_triggers": {
+      "description": "由水文特征自动触发候鸟与水鸟。叠加在气候型动物群之上。参见 气候-野生动物属库.json 的 WETLAND 条目。",
+      "trigger_logic": [
+        { "condition": "strahler≥4大河 + 河漫滩/泛滥平原存在", "bird_groups": ["riverine_waterbirds", "migratory_riparian"] },
+        { "condition": "淡水湖(>10km²)存在", "bird_groups": ["lake_waterbirds", "migratory_stopover"] },
+        { "condition": "咸水湖/盐湖(>10km²)存在", "bird_groups": ["saline_lake_birds", "migratory_stopover_arid"] },
+        { "condition": "沿海滩涂/潟湖/河口地形", "bird_groups": ["coastal_shorebirds", "migratory_coastal"] },
+        { "condition": "任何水面 + koppen∈[BSk,BWk,BSh,BWh]", "bird_groups": ["migratory_oasis_refuge"], "note": "干旱区水域=候鸟绿岛效应。鸟类密度可达湿润区同类水面的数十倍——因为方圆数百公里可能无其他水源，所有候鸟集中于此。" }
+      ],
+      "migratory_timing": {
+        "|lat|>40": "春秋过境(3-5月北迁, 9-11月南迁)。夏季部分在此繁殖。冬季若水面结冰→候鸟南迁; 若不冻→部分越冬。",
+        "|lat|30-40": "春秋过境+冬季越冬(10月至次年3月——北方候鸟来此过冬)",
+        "|lat|<30": "主要为越冬地(11月至次年2月)+部分为留鸟全年可见",
+        "arid_note": "干旱区水域的迁徙季出现'集中降落效应'——长途候鸟脱水饥饿后集中降落在遇到的第一片水面→短时间鸟类密度极高"
+      }
+    }
+  }
+}

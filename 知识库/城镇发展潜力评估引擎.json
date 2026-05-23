@@ -1,0 +1,187 @@
+{
+  "meta": {
+    "name": "城镇发展潜力评估引擎",
+    "version": "2.0",
+    "description": "综合自然地理、水文、农业、矿产、交通等维度，输出发展潜力指数与适宜发展的产业方向。",
+    "output": "指数(0-100) + 适宜产业列表"
+  },
+
+  "一、发展潜力指数": {
+    "description": "7维度加权评分，总分100。",
+
+    "dimensions": {
+      "water_security": { "weight": 0.22, "name": "水资源" },
+      "agricultural_base": { "weight": 0.20, "name": "农业基础" },
+      "trade_transport": { "weight": 0.18, "name": "贸易交通" },
+      "resource_access": { "weight": 0.15, "name": "资源可达" },
+      "terrain_suitability": { "weight": 0.13, "name": "地形适宜" },
+      "climate_comfort": { "weight": 0.07, "name": "气候宜居" },
+      "hazard_penalty": { "weight": 0.05, "name": "灾害扣分", "is_deduction": true }
+    },
+
+    "scoring_rules": {
+      "water_security": [
+        { "condition": "主要河流strahler≥4 AND 常流河", "score": 95 },
+        { "condition": "河流strahler≥3 AND 常流河", "score": 75 },
+        { "condition": "有大湖(>100km²淡水)在10km内", "score": 85 },
+        { "condition": "有河流但季节性 OR 仅靠降水(>800mm)", "score": 45 },
+        { "condition": "时令河 OR 降水<300mm且无地表水", "score": 10 },
+        { "condition": "湖口位置(湖泊入海处)", "score": "+10(叠加在河流/湖泊分上)" }
+      ],
+      "agricultural_base": [
+        { "condition": "土壤=Chernozems/Phaeozems/Fluvisols", "score_boost": "+20" },
+        { "condition": "土壤=Luvisols/Cambisols", "score_boost": "+10" },
+        { "condition": "土壤=Podzols/Acrisols/Ferralsols", "score_boost": "-10(酸性贫瘠)" },
+        { "condition": "S1作物≥3种", "score_boost": "+15" },
+        { "condition": "生长季>240天", "score_boost": "+10" },
+        { "condition": "生长季150-240天", "base": 55, "score_boost": "0" },
+        { "condition": "生长季<150天", "score_boost": "-20" },
+        { "condition": "有灌溉潜力(河流近旁或洪水脉冲)", "score_boost": "+10" }
+      ],
+      "trade_transport": [
+        { "condition": "A级航道(黄金水道)流经", "score": 90 },
+        { "condition": "B级航道+河流交汇处", "score": 85 },
+        { "condition": "天然深水良港(海湾/河口湾)", "score": 95 },
+        { "condition": "湖口位置(湖→海转运点)", "score": 95 },
+        { "condition": "两河交汇(strahler均≥3)", "score": 90 },
+        { "condition": "重要山口/关隘(山脉最低鞍部)", "score": 75 },
+        { "condition": "B级航道(单一河流)", "score": 60 },
+        { "condition": "无通航河流+内陆", "score": 15 }
+      ],
+      "resource_access": [
+        { "condition": "建材(木+石+黏土≥2项)在20km内", "score": 75 },
+        { "condition": "煤矿在50km内", "score_boost": "+20" },
+        { "condition": "铁矿在50km内", "score_boost": "+15" },
+        { "condition": "铜+锡均在50km内", "score_boost": "+15(青铜)" },
+        { "condition": "盐(岩盐/盐湖/海水盐场)在50km内", "score_boost": "+10" },
+        { "condition": "金/银矿在50km内", "score_boost": "+5(财富非工业)" },
+        { "condition": "无煤+无金属矿", "base": 30, "note": "仅建材和木柴→前工业时代够用, 工业时代受限" }
+      ],
+      "terrain_suitability": [
+        { "condition": "平原/冲积平原+坡度<3°", "score": 85 },
+        { "condition": "盆地/宽谷+坡度<5°", "score": 75 },
+        { "condition": "丘陵+坡度5-15°", "score": 50 },
+        { "condition": "湖口群岛/河流半岛(天然防御)", "score_boost": "+10" },
+        { "condition": "山顶/丘陵顶(卫城型防御)", "score_boost": "+15(防御), -10(平地有限)" }
+      ],
+      "climate_comfort": [
+        { "condition": "年均温12-22°C", "score": 90 },
+        { "condition": "年均温8-12°C或22-28°C", "score": 65 },
+        { "condition": "年均温0-8°C", "score": 40 },
+        { "condition": "年均温<0°C或>32°C", "score": 15 },
+        { "condition": "年温差>40°C", "score_boost": "-15(极端大陆性)" }
+      ],
+      "hazard_penalty": [
+        { "condition": "火山(距活火山<10km)", "deduction": -50 },
+        { "condition": "洪水风险(不可预测型)", "deduction": -25 },
+        { "condition": "活动板块边界地震带", "deduction": -20 },
+        { "condition": "无显著灾害", "deduction": 0 }
+      ]
+    }
+  },
+
+  "二、指数分级": {
+    "stages": [
+      { "score_range": [0, 12], "label": "不宜居", "suitable_industries": ["无"] },
+      { "score_range": [12, 28], "label": "小聚落", "suitable_industries": ["自给农业", "渔猎采集"] },
+      { "score_range": [28, 45], "label": "村庄", "suitable_industries": ["农业", "基础手工业", "定期集市"] },
+      { "score_range": [45, 62], "label": "镇", "suitable_industries": ["区域贸易", "手工业集群", "初级加工"] },
+      { "score_range": [62, 78], "label": "城市", "suitable_industries": ["长途贸易", "专业制造", "行政/文化中心"] },
+      { "score_range": [78, 100], "label": "大都市", "suitable_industries": ["金融中心", "知识/创新", "国际/洲际贸易枢纽"] }
+    ]
+  },
+
+  "三、产业适宜性判定": {
+    "description": "根据各维度得分和资源组合，自动判定适宜发展的产业方向。一个位置可以有1个主导产业+0~2个次要产业。",
+
+    "industries": [
+      {
+        "industry": "农业种植",
+        "trigger": "agricultural_base ≥ 70",
+        "sub_branches": ["粮食种植(S1作物≥3)", "经济作物(油菜/甜菜/茶/棉等)", "乳业/畜牧业(冷凉气候+牧草)"]
+      },
+      {
+        "industry": "内河航运与贸易",
+        "trigger": "trade_transport ≥ 75 AND main_river_strahler ≥ 3",
+        "sub_branches": ["货物转运(河流交汇/湖口/河口)", "造船/修船", "仓储/货栈"]
+      },
+      {
+        "industry": "海运与港口贸易",
+        "trigger": "land_sea_position ∈ [coastal/island] AND trade_transport ≥ 70",
+        "sub_branches": ["远洋贸易", "船舶制造", "海关/转口", "渔业(冷水海域)"]
+      },
+      {
+        "industry": "采矿与冶金",
+        "trigger": "resource_access ≥ 55 AND (铁矿 OR 铜矿 OR 煤矿 在50km内)",
+        "sub_branches": ["铁器冶炼(铁+煤/木炭)", "青铜铸造(铜+锡)", "贵金属开采(金/银)"],
+        "note": "仅采矿(无冶炼所需燃料)→产值低; 采矿+冶炼(有煤/木炭/水力)→产值高"
+      },
+      {
+        "industry": "制造业与手工业",
+        "trigger": "resource_access ≥ 50 AND (建材丰富 OR 金属可达 OR 黏土丰富)",
+        "sub_branches": ["陶瓷/砖瓦(黏土)", "石材加工(花岗岩/大理石)", "木材加工/造纸(森林丰富)", "纺织(羊毛/亚麻/棉)"]
+      },
+      {
+        "industry": "军事/防御",
+        "trigger": "terrain天然防御≥15(岛屿/半岛/山顶/关隘)",
+        "sub_branches": ["要塞驻军", "军械制造", "战略物资储备"]
+      },
+      {
+        "industry": "行政与文化",
+        "trigger": "总分≥65 AND climate_comfort ≥ 45",
+        "sub_branches": ["行政中心(区域首府/首都)", "宗教圣地(特殊自然景观)", "教育/学术(和平环境+文化积淀)"]
+      },
+      {
+        "industry": "盐业",
+        "trigger": "盐矿/盐湖/可晒盐海岸在50km内",
+        "sub_branches": ["盐开采", "盐贸易(前工业时代最重要的大宗贸易品之一)", "食物腌制保存"]
+      },
+      {
+        "industry": "能源产业",
+        "trigger": "煤矿在50km内 OR 大型河流可筑坝(水力)",
+        "sub_branches": ["煤矿开采", "水力磨坊/水力工厂(工业时代前)", "火电/水电(工业时代后)"]
+      },
+      {
+        "industry": "林业",
+        "trigger": "potential_vegetation ∈ [针叶林, 针阔混交林, 落叶阔叶林]",
+        "sub_branches": ["木材采伐", "木炭烧制(冶铁燃料)", "树脂/松节油(针叶林)", "纸浆/造纸(现代)"]
+      },
+      {
+        "industry": "渔业",
+        "trigger": "(沿海 OR 大湖在10km内) AND water_security ≥ 50",
+        "sub_branches": ["海洋渔业", "淡水渔业(湖泊/河流)", "水产养殖"]
+      }
+    ],
+
+    "industry_combination_effects": {
+      "description": "特定产业组合产生协同效应，提升整体发展潜力。",
+      "combos": [
+        { "combo": "铁矿+煤矿+水力(河流)", "effect": "工业革命摇篮——钢铁+机械制造", "score_boost": 10 },
+        { "combo": "港口+内河航运", "effect": "海陆转运枢纽——腹地越大,港口越富", "score_boost": 8 },
+        { "combo": "盐+贸易通道", "effect": "盐路节点——古代最重要的贸易垄断之一", "score_boost": 6 },
+        { "combo": "农业+水运", "effect": "粮食可出口→农业商业化→经济剩余→城市发展", "score_boost": 5 },
+        { "combo": "森林+水力+矿产", "effect": "木炭冶铁(无煤替代路径)——森林为冶铁提供燃料", "score_boost": 5 }
+      ]
+    }
+  },
+
+  "四、输出格式": {
+    "example": {
+      "development_index": 66,
+      "grade": "城市",
+      "dimension_scores": {
+        "water_security": 97,
+        "agricultural_base": 48,
+        "trade_transport": 97,
+        "resource_access": 48,
+        "terrain_suitability": 62,
+        "climate_comfort": 38,
+        "hazard_penalty": -3
+      },
+      "primary_industry": "海运与港口贸易",
+      "secondary_industries": ["内河航运与贸易", "军事/防御"],
+      "supporting_industries": ["林业(木材+木炭)", "渔业(湖+海)", "制造业(木材加工/造船)"],
+      "constraints": ["农业基础薄弱→粮食需进口", "气候寒冷→冬季航运中断风险", "无煤→工业时代能源依赖进口或水力替代"]
+    }
+  }
+}

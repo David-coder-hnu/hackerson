@@ -1,0 +1,225 @@
+[
+  {
+    "climate": "热带雨林",
+    "koppen": "Af",
+    "description": "终年高温多雨，垂直分层复杂，物种多样性最高",
+    "animals": [
+      { "genus": "Bradypus", "name_zh": "树懒属（三趾树懒）", "body_size": "中", "diet": "植食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "极慢代谢——毛发内共生绿藻提供伪装，每周仅下树一次排便", "endemic": true },
+      { "genus": "Panthera", "name_zh": "豹属（美洲豹/虎）", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "善游泳和攀爬——可在洪泛森林中涉水捕猎龟和鳄", "endemic": false },
+      { "genus": "Ateles", "name_zh": "蛛猴属", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "可完全用尾悬挂取食——尾末无毛带指纹脊，具触觉", "endemic": true },
+      { "genus": "Ramphastos", "name_zh": "巨嘴鸟属", "body_size": "中", "diet": "杂食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "巨喙表面密布血管——通过调节血流散热(热带高效的辐射散热器)", "endemic": true },
+      { "genus": "Dendrobates", "name_zh": "箭毒蛙属", "body_size": "小", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "皮肤分泌剧毒生物碱——鲜艳警戒色(aposematism)——毒性来自食用蚁类和螨", "endemic": true },
+      { "genus": "Pongo", "name_zh": "猩猩属", "body_size": "巨", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "树栖生活——双臂展可达2.4m——制作树叶工具取食蜂蜜和种子", "endemic": true },
+      { "genus": "Morpho", "name_zh": "闪蝶属", "body_size": "小", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "翅面微观鳞片干涉产生金属蓝——飞行时忽蓝忽棕扰乱捕食者追踪", "endemic": true },
+      { "genus": "Harpia", "name_zh": "角雕属", "body_size": "巨", "diet": "肉食", "social_structure": "成对", "activity_rhythm": "昼行", "special_adaptation": "后爪长约7cm——可抓取树懒和吼猴——冠羽随情绪竖立辅助林间无声飞行", "endemic": true },
+      { "genus": "Eunectes", "name_zh": "水蚺属", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "半水栖——鼻孔和眼位于头顶——可在水下潜伏超过10分钟伏击凯门鳄", "endemic": true },
+      { "genus": "Cacajao", "name_zh": "秃猴属", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "强健下颌咀嚼硬质未熟果实——避开与成熟果食者竞争——适应季节性果荒", "endemic": true }
+    ]
+  },
+  {
+    "climate": "热带季风",
+    "koppen": "Am",
+    "description": "终年高温，降水极集中于夏季，有短干季，季节性变化显著",
+    "animals": [
+      { "genus": "Elephas", "name_zh": "亚洲象属", "body_size": "巨", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "长鼻含>4万块肌肉——可精准取食指甲大的果实——雨季迁徙至高地避开洪水", "endemic": false },
+      { "genus": "Panthera", "name_zh": "豹属（孟加拉虎）", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "条纹在干季高草中构成完美伪装——善游泳，雨季猎物集中于高地", "endemic": false },
+      { "genus": "Rhinoceros", "name_zh": "独角犀属", "body_size": "巨", "diet": "植食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "皮肤厚达4cm呈铠甲状——泥浴降温防虫——雨季喜浸入洪泛区池塘", "endemic": false },
+      { "genus": "Bos", "name_zh": "野牛属（白肢野牛）", "body_size": "巨", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "肩高>2m——干季利用长舌取食高草和灌木叶——短干季耐受粗饲料", "endemic": false },
+      { "genus": "Pavo", "name_zh": "孔雀属", "body_size": "中", "diet": "杂食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "雄鸟干季后羽换新——雨季初展屏求偶与降雨同步以确保雏鸟有充足食物", "endemic": true },
+      { "genus": "Buceros", "name_zh": "犀鸟属", "body_size": "大", "diet": "杂食", "social_structure": "成对", "activity_rhythm": "昼行", "special_adaptation": "雌鸟用泥封堵树洞口孵卵仅留小缝——雄鸟全程喂食——完美防蛇巢", "endemic": false },
+      { "genus": "Python", "name_zh": "蟒属", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "红外感热唇窝探测温血猎物——干季潜伏洞穴减少水分蒸发", "endemic": false },
+      { "genus": "Cuon", "name_zh": "豺属（亚洲豺犬）", "body_size": "中", "diet": "肉食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "群体协作围猎体型数十倍于己的猎物——通过哨声协调森林中散开的群体", "endemic": false },
+      { "genus": "Melursus", "name_zh": "懒熊属", "body_size": "大", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "专门取食白蚁和蜂巢——嘴唇可伸缩成管状吸食——爪长弯曲善掘", "endemic": true }
+    ]
+  },
+  {
+    "climate": "热带稀树草原",
+    "koppen": "Aw",
+    "description": "终年高温，明显干湿季，开阔草原+散生乔木",
+    "animals": [
+      { "genus": "Panthera", "name_zh": "豹属（狮子）", "body_size": "巨", "diet": "肉食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "唯一群居猫科——狮群协作围猎大型植食动物——适应开阔草原的集体战术", "endemic": false },
+      { "genus": "Loxodonta", "name_zh": "非洲象属", "body_size": "巨", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "以次声波(14-35Hz)跨数公里通讯——干季按雌性族长的记忆迁徙寻找水源", "endemic": true },
+      { "genus": "Giraffa", "name_zh": "长颈鹿属", "body_size": "巨", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "取食层>5m——与其他植食动物无竞争——特化血压系统避免低头饮水时脑溢血", "endemic": true },
+      { "genus": "Crocuta", "name_zh": "斑鬣狗属", "body_size": "大", "diet": "肉食", "social_structure": "大群", "activity_rhythm": "夜行", "special_adaptation": "咬合力超过狮子可碎骨——消化骨骼吸收钙质——排出白色高钙粪便", "endemic": true },
+      { "genus": "Connochaetes", "name_zh": "角马属", "body_size": "大", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "年度迁徙>2000km追踪降雨和鲜草——出生3分钟内站立、7分钟奔跑", "endemic": true },
+      { "genus": "Struthio", "name_zh": "鸵鸟属", "body_size": "巨", "diet": "杂食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "最高陆地速度>70km/h——眼球比脑大——干季耐受体温升高4°C减少蒸发", "endemic": false },
+      { "genus": "Acinonyx", "name_zh": "猎豹属", "body_size": "大", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "0-100km/h仅3秒——半伸缩爪如钉鞋——白天避开狮子和鬣狗竞争", "endemic": false },
+      { "genus": "Hippopotamus", "name_zh": "河马属", "body_size": "巨", "diet": "植食", "social_structure": "大群", "activity_rhythm": "夜行", "special_adaptation": "日间浸水降温+防晒——夜间上岸食草——皮肤分泌红色抗菌防晒黏液", "endemic": true },
+      { "genus": "Varanus", "name_zh": "巨蜥属（尼罗巨蜥）", "body_size": "大", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "高效代谢可长时间活动——善挖掘掠夺鳄巢卵——干季沿河岸集中觅食", "endemic": false }
+    ]
+  },
+  {
+    "climate": "温带海洋性",
+    "koppen": "Cfb",
+    "description": "冬暖夏凉终年湿润，落叶阔叶林为主",
+    "animals": [
+      { "genus": "Cervus", "name_zh": "鹿属（马鹿）", "body_size": "大", "diet": "植食", "social_structure": "小群", "activity_rhythm": "晨昏", "special_adaptation": "秋季发情期雄鹿吼声可传数公里——鹿茸年换新——适应温和无雪的冬季", "endemic": false },
+      { "genus": "Meles", "name_zh": "獾属", "body_size": "中", "diet": "杂食", "social_structure": "小群", "activity_rhythm": "夜行", "special_adaptation": "挖掘四通八达的永久洞穴(可传承数代)——冬季半冬眠依赖秋季储存脂肪", "endemic": false },
+      { "genus": "Vulpes", "name_zh": "狐属（赤狐）", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "高度可塑性食谱(鼠/兔/浆果/昆虫)——冬季仅依赖听觉在雪下精准捕鼠", "endemic": false },
+      { "genus": "Buteo", "name_zh": "鵟属", "body_size": "中", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "常在树缘和草甸交界悬停——利用开阔林地+邻近草地的边缘生境狩猎", "endemic": false },
+      { "genus": "Erinaceus", "name_zh": "猬属", "body_size": "小", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "约5000根刺——遇险卷缩成球——冬季真正冬眠体温降至5°C, 心率降至20次/分", "endemic": false },
+      { "genus": "Sciurus", "name_zh": "松鼠属（欧亚红松鼠）", "body_size": "小", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "秋季分散埋藏>3000颗坚果——空间记忆精准回收率>70%——不冬眠依赖储粮", "endemic": false },
+      { "genus": "Lutra", "name_zh": "水獭属", "body_size": "中", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "皮毛密度>50000根/cm²——水下闭气>4分钟——善在碎石河床翻滚取食甲壳类", "endemic": false },
+      { "genus": "Strix", "name_zh": "林鸮属（灰林鸮）", "body_size": "中", "diet": "肉食", "social_structure": "成对", "activity_rhythm": "夜行", "special_adaptation": "飞羽前缘锯齿消音——完全无声飞行——耳孔左右不对称可三维声学定位", "endemic": false }
+    ]
+  },
+  {
+    "climate": "地中海式",
+    "koppen": "Csa/Csb",
+    "description": "夏干冬湿，硬叶灌丛和矮林为主",
+    "animals": [
+      { "genus": "Lynx", "name_zh": "猞猁属（伊比利亚猞猁）", "body_size": "中", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "专食穴兔(占食谱80-99%)——耳尖黑毛簇增强高频声源辨位——濒危因兔瘟", "endemic": true },
+      { "genus": "Genetta", "name_zh": "獛属（小斑獛）", "body_size": "小", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "半树栖半地栖——灵活手腕可旋转>180°——适应橄榄林和灌丛的立体生境", "endemic": false },
+      { "genus": "Ovis", "name_zh": "盘羊属（欧洲盘羊）", "body_size": "中", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "特化取食干燥灌丛禾草——夏季耐脱水——螺旋角用于秋季激烈顶角争夺", "endemic": false },
+      { "genus": "Aquila", "name_zh": "雕属（金雕）", "body_size": "大", "diet": "肉食", "social_structure": "成对", "activity_rhythm": "昼行", "special_adaptation": "利用夏季上升热气流在山区高空盘旋搜索——翼展>2m——最大猎物可至幼羚羊", "endemic": false },
+      { "genus": "Testudo", "name_zh": "陆龟属", "body_size": "中", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "夏季高温时夏眠(Aestivation)躲入石缝——可数月不食不饮——寿命>100年", "endemic": false },
+      { "genus": "Timon", "name_zh": "蓝斑蜥蜴属（眼斑蜥）", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "体侧醒目的蓝眼斑恐吓捕食者——善在石墙裂隙中穿梭——可自截尾再长", "endemic": false },
+      { "genus": "Caprimulgus", "name_zh": "夜鹰属", "body_size": "小", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "完美伪装——日间静卧地面羽色与落叶枯枝无异——夏夜捕飞虫补充干旱期水分", "endemic": false },
+      { "genus": "Sus", "name_zh": "野猪属（地中海野猪）", "body_size": "大", "diet": "杂食", "social_structure": "小群", "activity_rhythm": "晨昏", "special_adaptation": "用鼻拱掘栎林橡子——秋季大量取食橡实储备脂肪应对冬季食物减少", "endemic": false }
+    ]
+  },
+  {
+    "climate": "温带大陆性湿润",
+    "koppen": "Dfa/Dfb",
+    "description": "夏暖冬寒，降水集中在夏季，落叶阔叶林与混交林",
+    "animals": [
+      { "genus": "Ursus", "name_zh": "熊属（美洲黑熊）", "body_size": "巨", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "秋季超食(Hyperphagia)每日摄入>20000千卡——冬眠5-7月不排废物——母熊冬眠中分娩", "endemic": false },
+      { "genus": "Canis", "name_zh": "犬属（灰狼）", "body_size": "大", "diet": "肉食", "social_structure": "大群", "activity_rhythm": "晨昏", "special_adaptation": "围猎大型有蹄类——雪地长途追踪耐力极强——群体协作+嚎叫远距离通讯", "endemic": false },
+      { "genus": "Alces", "name_zh": "驼鹿属", "body_size": "巨", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "长腿适应冬季深雪——可涉水吃水生植物——鼻部可完全闭合水下取食", "endemic": false },
+      { "genus": "Castor", "name_zh": "河狸属", "body_size": "中", "diet": "植食", "social_structure": "小群", "activity_rhythm": "夜行", "special_adaptation": "筑坝改变水文创造湿地生境——冬季水下储食树枝——啃木门齿含铁呈橙色", "endemic": false },
+      { "genus": "Bison", "name_zh": "野牛属（美洲野牛）", "body_size": "巨", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "冬季用头颈拨开深雪取食——厚皮毛+驼峰蓄能——历史上群规模数百万", "endemic": false },
+      { "genus": "Odocoileus", "name_zh": "白尾鹿属", "body_size": "大", "diet": "植食", "social_structure": "小群", "activity_rhythm": "晨昏", "special_adaptation": "受惊时尾部竖立露出白色底面——示警同群——善在林-草原交错带活动", "endemic": false },
+      { "genus": "Procyon", "name_zh": "浣熊属", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "极度灵活的前爪可比拟人手——将食物在水中'搓洗'(触觉感知增强)——冬季半冬眠", "endemic": false },
+      { "genus": "Meleagris", "name_zh": "火鸡属（野生火鸡）", "body_size": "大", "diet": "杂食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "快速短距飞行上树夜栖——地面善奔跑——雄鸟展尾+鼓气+咕噜声多雌交配", "endemic": true }
+    ]
+  },
+  {
+    "climate": "温带大陆性干旱/半干旱",
+    "koppen": "BSk/BWk",
+    "description": "年降水150-400mm，年温差极大，以短草草原、荒漠草原和荒漠为主",
+    "animals": [
+      { "genus": "Equus", "name_zh": "马属（普氏野马）", "body_size": "大", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "可耐受-40至+40°C——冬季用蹄掘雪取草——极少饮水可从雪和草中获得水分", "endemic": false },
+      { "genus": "Saiga", "name_zh": "高鼻羚羊属", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "膨大的鼻腔——冬季加热吸入空气+夏季过滤草原粉尘——迁徙速度>80km/h", "endemic": false },
+      { "genus": "Camelus", "name_zh": "骆驼属（双峰驼）", "body_size": "巨", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "驼峰贮脂非水——可耐受脱水达体重的30%——鼻黏膜回收呼出水分——可饮用咸水", "endemic": false },
+      { "genus": "Marmota", "name_zh": "旱獭属", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "挖掘复杂洞穴系统——冬眠长达7-8月体温降至5°C——哨兵瞭望发出尖锐警报", "endemic": false },
+      { "genus": "Vulpes", "name_zh": "狐属（沙狐）", "body_size": "小", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "超大耳郭散热+定位地下啮齿类——不饮水完全从猎物中获取水分——耐55°C地表温", "endemic": false },
+      { "genus": "Gazella", "name_zh": "瞪羚属（鹅喉羚）", "body_size": "中", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "可从植物中获取全部水分永不饮水——收缩肝脏和心脏以减少代谢水耗——时速>60km/h", "endemic": false },
+      { "genus": "Aquila", "name_zh": "雕属（草原雕）", "body_size": "大", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "利用草原上升热气流高空滑翔大范围巡视——主要捕食旱獭和鼠兔", "endemic": false },
+      { "genus": "Buteo", "name_zh": "鵟属（大鵟）", "body_size": "中", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "常在啮齿类洞口上方悬停——可感知鼠类尿液反射的紫外线找到猎物", "endemic": false }
+    ]
+  },
+  {
+    "climate": "亚热带季风",
+    "koppen": "Cfa/Cwa",
+    "description": "夏热冬温，降水集中夏季，常绿阔叶林，物种丰富",
+    "animals": [
+      { "genus": "Ailuropoda", "name_zh": "大熊猫属", "body_size": "大", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "特化食竹——腕骨特化'伪拇指'握竹——每日进食12-16小时取食>12kg竹", "endemic": true },
+      { "genus": "Panthera", "name_zh": "豹属（华南虎）", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "在常绿阔叶密林中条纹比其它虎亚种更密——适应亚热带密林光线斑驳环境", "endemic": true },
+      { "genus": "Macaca", "name_zh": "猕猴属", "body_size": "中", "diet": "杂食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "颊囊贮存食物快速采集后在安全处咀嚼——善利用温泉越冬——适应人类改造生境", "endemic": false },
+      { "genus": "Andrias", "name_zh": "大鲵属（中国大鲵）", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "世界最大两栖动物(>1.8m)——皮呼吸褶皱增表面积——洁净溪流洞穴栖——声如婴啼", "endemic": true },
+      { "genus": "Tragopan", "name_zh": "角雉属", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "雄鸟求偶展开肉裙和角状羽——色彩极其鲜艳——高海拔森林地面营巢——善隐匿", "endemic": true },
+      { "genus": "Elaphodus", "name_zh": "毛冠鹿属", "body_size": "中", "diet": "植食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "头顶黑色冠毛+短小无分枝角——雄鹿上犬齿外露似獠牙——特化取食亚热带林下灌草", "endemic": true },
+      { "genus": "Chrysolophus", "name_zh": "锦鸡属（红腹锦鸡）", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "雄鸟金属光泽红金色羽毛——以闪光迷惑捕食者——善在林下快速奔跑穿行", "endemic": true },
+      { "genus": "Paguma", "name_zh": "花面狸属（果子狸）", "body_size": "中", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "夜行", "special_adaptation": "善攀援常绿阔叶林取食果实——消化道可分解部分植物毒素——适应多样化的果食季节", "endemic": false }
+    ]
+  },
+  {
+    "climate": "寒带苔原",
+    "koppen": "ET",
+    "description": "最热月0-10°C，永久冻土，生长季极短，无乔木",
+    "animals": [
+      { "genus": "Rangifer", "name_zh": "驯鹿属", "body_size": "大", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "唯一雌雄均长角鹿科——蹄宽大如雪鞋——蹄缘蹄底冬季角质收缩露出锋利边缘破冰取食——年迁徙>5000km", "endemic": false },
+      { "genus": "Vulpes", "name_zh": "狐属（北极狐）", "body_size": "小", "diet": "杂食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "毛皮绝热性为所有哺乳动物之最——冬季纯白伪装——腿和吻极短减少散热面积——耐-50°C", "endemic": false },
+      { "genus": "Ursus", "name_zh": "熊属（北极熊）", "body_size": "巨", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "皮肤黑色毛透明——透明毛管传导紫外线至黑皮吸热——半水栖可连续游泳>100km", "endemic": false },
+      { "genus": "Ovibos", "name_zh": "麝牛属", "body_size": "大", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "双层皮毛(qiviut底绒保暖性为羊毛8倍)——遇狼群围成圆阵角向外护幼", "endemic": false },
+      { "genus": "Bubo", "name_zh": "雕鸮属（雪鸮）", "body_size": "大", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "极地夏半年全昼——适应在阳光下捕猎旅鼠——羽足保暖至爪——静飞攻击", "endemic": false },
+      { "genus": "Lagopus", "name_zh": "雷鸟属", "body_size": "小", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "一年换羽三次(白→斑驳→褐→白)与极地环境颜色同步——趾被羽如雪靴——雪中挖洞御寒", "endemic": false },
+      { "genus": "Lemmus", "name_zh": "旅鼠属", "body_size": "小", "diet": "植食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "雪下掘隧道网络取食苔藓——种群4年爆发周期驱动整个苔原食物网——不冬眠", "endemic": false },
+      { "genus": "Gavia", "name_zh": "潜鸟属", "body_size": "中", "diet": "肉食", "social_structure": "成对", "activity_rhythm": "昼行", "special_adaptation": "腿极度后位(划水效率极高)——但陆地无法行走——骨密度高可深潜>60m捕鱼", "endemic": false }
+    ]
+  },
+  {
+    "climate": "高山气候",
+    "koppen": "H",
+    "description": "温度随海拔骤降，紫外线强，低氧，生长季短，动物呈垂直带谱分布",
+    "animals": [
+      { "genus": "Panthera", "name_zh": "豹属（雪豹）", "body_size": "大", "diet": "肉食", "social_structure": "独居", "activity_rhythm": "晨昏", "special_adaptation": "尾粗>体长75%(平衡+裹脸御寒)——鼻腔扩大加温空气——足垫被毛如雪靴——血红蛋白氧亲和力增强", "endemic": false },
+      { "genus": "Capra", "name_zh": "山羊属（羱羊/北山羊）", "body_size": "大", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "蹄分叉+硬锐蹄缘+柔软蹄心——攀爬近乎垂直岩壁——取食其他动物无法触及的高山植物", "endemic": false },
+      { "genus": "Pseudois", "name_zh": "岩羊属", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "蓝灰色毛与高山裸岩完美伪装——沿陡峭碎石坡季节性垂直迁徙——耐低氧至>5000m", "endemic": true },
+      { "genus": "Gypaetus", "name_zh": "胡兀鹫属", "body_size": "巨", "diet": "腐食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "特化食骨——将大骨从高空抛落岩石砸碎——胃酸pH<1可溶解骨片——翼展>2.8m利用山风滑翔", "endemic": false },
+      { "genus": "Marmota", "name_zh": "旱獭属（喜马拉雅旱獭）", "body_size": "中", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "高山草甸挖穴——冬眠长达8月——夏季超食积累体脂——哨兵站立瞭望鹰和雪豹", "endemic": false },
+      { "genus": "Ochotona", "name_zh": "鼠兔属（高原鼠兔）", "body_size": "小", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "夏季晒干草堆越冬——冬季不冬眠在雪下隧道活动——是青藏高原食物网基石物种", "endemic": false },
+      { "genus": "Pyrrhocorax", "name_zh": "山鸦属", "body_size": "中", "diet": "杂食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "红色弯喙+红腿——善利用上升气流在高山悬崖间翻滚飞行——冬季集群向下迁徙至谷地", "endemic": false },
+      { "genus": "Tetraogallus", "name_zh": "雪鸡属", "body_size": "大", "diet": "植食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "羽毛蓬松含气层隔冷——腿被羽至趾——上坡跑极快——下坡可滑翔——冬季下移海拔", "endemic": false }
+    ]
+  },
+
+  {
+    "climate": "湿地与水域(水文触发——非气候型限定)",
+    "koppen": "WETLAND",
+    "description": "候鸟与水鸟不受气候类型限制。只要有河流、湖泊、沼泽、滨海滩涂等水域，就会出现。此条目由水文推断引擎触发，叠加在气候型动物群之上。",
+    "trigger_rules": {
+      "description": "满足以下任一水文条件时触发对应水鸟亚群。可叠加在气候型动物之上。",
+      "rules": [
+        { "condition": "strahler≥4大河 + 河漫滩/泛滥平原", "trigger": ["riverine_waterbirds", "migratory_riparian"] },
+        { "condition": "淡水湖(>10km²)", "trigger": ["lake_waterbirds", "migratory_stopover"] },
+        { "condition": "咸水湖/盐湖(>10km²)", "trigger": ["saline_lake_birds", "migratory_stopover_arid"] },
+        { "condition": "沿海滩涂/潟湖/河口", "trigger": ["coastal_shorebirds", "migratory_coastal"] },
+        { "condition": "任何水域 + 位于干旱/半干旱区(BSk/BWk/BSh/BWh)", "trigger": ["migratory_oasis_refuge"], "note": "干旱区的水域=候鸟的救命补给站→鸟类密度极高→生态意义远超湿润区同等面积水域" }
+      ]
+    },
+
+    "waterbird_groups": {
+      "riverine_waterbirds": {
+        "description": "大河及河漫滩的水鸟",
+        "animals": [
+          { "genus": "Ardea", "name_zh": "鹭属(苍鹭/大白鹭)", "body_size": "中-大", "diet": "鱼食", "social_structure": "群居", "activity_rhythm": "昼行", "special_adaptation": "长腿涉水——S形长颈弹射捕鱼——常立于浅水或河岸不动如山", "migratory": true },
+          { "genus": "Ciconia", "name_zh": "鹳属(白鹳/黑鹳)", "body_size": "大", "diet": "鱼食/杂食", "social_structure": "成对/小群", "activity_rhythm": "昼行", "special_adaptation": "利用上升热气流高空翱翔迁徙——翼展>2m——常在屋顶或高树筑巨大巢", "migratory": true },
+          { "genus": "Alcedo", "name_zh": "翠鸟属(普通翠鸟)", "body_size": "小", "diet": "鱼食", "social_structure": "独居", "activity_rhythm": "昼行", "special_adaptation": "悬停后俯冲入水——喙如匕首——在河岸土壁掘洞筑巢——金属蓝背羽+橙腹", "migratory": false }
+        ]
+      },
+      "lake_waterbirds": {
+        "description": "淡水湖泊的水鸟",
+        "animals": [
+          { "genus": "Anas", "name_zh": "鸭属(绿头鸭/赤麻鸭)", "body_size": "中", "diet": "杂食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "滤食喙缘——倒立水中取食水生植物和底栖生物——迁徙集群可达数千", "migratory": true },
+          { "genus": "Anser", "name_zh": "雁属(鸿雁/豆雁)", "body_size": "大", "diet": "植食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "V形编队飞行节省能量——在湖泊和农田取食——春秋迁徙季形成壮观的'雁阵'", "migratory": true },
+          { "genus": "Grus", "name_zh": "鹤属(灰鹤/丹顶鹤)", "body_size": "巨", "diet": "杂食", "social_structure": "成对/小群", "activity_rhythm": "昼行", "special_adaptation": "复杂求偶舞蹈——终生配对——迁徙在固定停歇点集结成数百只大群——是湿地生态的旗舰物种", "migratory": true },
+          { "genus": "Pelecanus", "name_zh": "鹈鹕属", "body_size": "巨", "diet": "鱼食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "喉囊如渔网兜鱼——群体协作围鱼至浅水——翼展>3m善利用水面上升气流滑翔", "migratory": true },
+          { "genus": "Phalacrocorax", "name_zh": "鸬鹚属", "body_size": "大", "diet": "鱼食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "羽毛不防水——潜水后需展翅晾干——善深潜追鱼——渔民驯化用于捕鱼", "migratory": true },
+          { "genus": "Fulica", "name_zh": "骨顶鸡属(白骨顶)", "body_size": "中", "diet": "杂食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "趾具瓣蹼——水面跑动起飞——冬季集群可达数万——湖泊结冰后向南迁徙", "migratory": true }
+        ]
+      },
+      "saline_lake_birds": {
+        "description": "咸水湖/盐湖特有鸟类——耐盐生境",
+        "animals": [
+          { "genus": "Phoenicopterus", "name_zh": "红鹳属(火烈鸟)", "body_size": "大", "diet": "滤食(藻类/卤虫)", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "喙倒置滤食——从盐湖卤水中过滤藻类和卤虫——粉红色来自食物中的类胡萝卜素——碱湖/盐湖的指示物种", "migratory": true },
+          { "genus": "Recurvirostra", "name_zh": "反嘴鹬属", "body_size": "中", "diet": "肉食(水生昆虫/甲壳)", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "细长上弯喙在浅盐水中扫荡——长腿在盐壳上行走——耐高盐碱环境", "migratory": true }
+        ]
+      },
+      "coastal_shorebirds": {
+        "description": "滨海滩涂、河口、潟湖的鸻鹬类",
+        "animals": [
+          { "genus": "Calidris", "name_zh": "滨鹬属(黑腹滨鹬/红颈滨鹬)", "body_size": "小", "diet": "肉食(底栖无脊椎动物)", "social_structure": "大群", "activity_rhythm": "昼行(潮汐节律)", "special_adaptation": "喙端密布触觉感受器(Herbst corpuscles)——可在泥中凭触觉定位猎物——迁徙从北极繁殖地至热带越冬→单程>10000km", "migratory": true },
+          { "genus": "Charadrius", "name_zh": "鸻属(环颈鸻/金眶鸻)", "body_size": "小", "diet": "肉食", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "在泥沙中快速跑动-停顿-啄食——巢直接在地面——卵和雏有极佳伪装色", "migratory": true },
+          { "genus": "Numenius", "name_zh": "杓鹬属(白腰杓鹬)", "body_size": "大", "diet": "肉食(蟹/蠕虫)", "social_structure": "小群", "activity_rhythm": "昼行", "special_adaptation": "长而下弯的喙——可探入泥滩深处取食蟹和蠕虫——喙长为鸻鹬类之最——迁徙距离极长", "migratory": true }
+        ]
+      },
+      "migratory_oasis_refuge": {
+        "description": "干旱区水域的候鸟避难所效应",
+        "note": "在干旱/半干旱区(BSk/BWk/BSh/BWh), 任何水面都是候鸟的关键补给站。鸟类密度远高于湿润区同类水面——因为周边数百公里内可能无其他水源。",
+        "animals": [
+          { "genus": "Tadorna", "name_zh": "麻鸭属(赤麻鸭/翘鼻麻鸭)", "body_size": "大", "diet": "杂食", "social_structure": "成对/小群", "activity_rhythm": "昼行", "special_adaptation": "在干旱区河流和湖泊繁殖——树洞或土洞筑巢——耐盐碱水体——冬季向南迁徙但可在不冻水域越冬", "migratory": true },
+          { "genus": "Himantopus", "name_zh": "长脚鹬属(黑翅长脚鹬)", "body_size": "中", "diet": "肉食", "social_structure": "大群", "activity_rhythm": "昼行", "special_adaptation": "极长的红腿——可在较深水中涉行——在盐碱滩和浅湖繁殖——干旱区灌溉农田也利用", "migratory": true }
+        ]
+      }
+    },
+
+    "migratory_seasonality": {
+      "description": "候鸟出现的时间规律，纬度决定。",
+      "north_of_40N": "春秋过境(3-5月北迁, 9-11月南迁)——夏季部分在此繁殖——冬季水面若结冰→候鸟南迁; 若不冻→部分越冬",
+      "between_30N_40N": "春秋过境+冬季越冬地——10月至次年3月为高峰期(北方候鸟来此越冬)",
+      "south_of_30N": "主要为越冬地——11月至次年2月高峰期——部分为留鸟(全年可见)",
+      "arid_zone_special": "干旱区的水域在迁徙季出现' fallout效应'——长途飞行的候鸟因脱水饥饿而集中降落在遇到的第一片水面→短时间内鸟类密度可达到湿润区的数十倍"
+    }
+  }
+]

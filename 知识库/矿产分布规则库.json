@@ -1,0 +1,749 @@
+
+{
+  "meta": {
+    "name": "矿产分布规则库",
+    "version": "1.0",
+    "description": "基于地形、岩石、构造、气候、水文的多因素矿产推断引擎",
+    "input_parameters": [
+      "地形类型: plain/hill/low_mountain/high_mountain/basin/plateau",
+      "岩石类型: sedimentary/granitic/basaltic/limestone/metamorphic/ultramafic/volcanic_ash/alluvium",
+      "火山标记: boolean + volcano_age(recent/ancient)",
+      "河流/古河道: boolean + channel_type(active/paleo)",
+      "湖泊/海洋: boolean + water_body_type(lake/inland_sea/ocean)",
+      "断裂带/板块边界: boolean + fault_type(normal/reverse/strike_slip/plate_boundary)",
+      "气候类型: Köppen 代码 (Af/Am/Aw/Cfa/Cfb/Csa/Dfa/Dfb/BSk/BWk/ET/H)"
+    ]
+  },
+
+  "一、主要矿种与成矿环境对应表": [
+    {
+      "mineral": "铁矿 (Fe)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "沉积变质型 (BIF 条带状铁建造)",
+          "terrain": ["高原", "低山"],
+          "rock": ["变质岩", "沉积岩"],
+          "structure": ["古老克拉通", "稳定地台区"],
+          "climate": "无关",
+          "rule": "IF 岩石=变质岩 AND 地形=高原/地台 AND 地质年代=前寒武 THEN BIF型铁矿 权重=0.85",
+          "associated": ["锰矿", "石英岩"]
+        },
+        {
+          "type": "矽卡岩型 (接触交代型)",
+          "terrain": ["低山", "丘陵"],
+          "rock": ["花岗岩类", "石灰岩"],
+          "structure": ["侵入接触带", "断裂带"],
+          "climate": "无关",
+          "rule": "IF 岩石=花岗岩 AND 相邻岩石=石灰岩 AND 断裂带=真 THEN 矽卡岩型铁矿 权重=0.75",
+          "associated": ["铜矿", "铅锌矿", "钨矿"]
+        },
+        {
+          "type": "岩浆型 (钒钛磁铁矿)",
+          "terrain": ["低山", "高原"],
+          "rock": ["玄武岩类", "辉长岩类"],
+          "structure": ["深大断裂", "地幔柱"],
+          "climate": "无关",
+          "rule": "IF 岩石=玄武岩类 AND 构造=深大断裂 AND 地形≠盆地 THEN 岩浆型Fe-Ti-V矿 权重=0.70",
+          "associated": ["钛铁矿", "钒矿"]
+        },
+        {
+          "type": "风化壳型 (红土型铁矿)",
+          "terrain": ["高原", "丘陵"],
+          "rock": ["玄武岩类", "超基性岩"],
+          "climate": "Af/Am/Aw (热带)",
+          "rule": "IF 气候=热带(Af/Am/Aw) AND 岩石=玄武岩类 AND 地形=高原/丘陵 THEN 红土型铁矿 权重=0.80",
+          "associated": ["铝土矿", "镍矿", "钴矿"]
+        }
+      ]
+    },
+    {
+      "mineral": "铜矿 (Cu)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "斑岩型铜矿",
+          "terrain": ["低山", "高山"],
+          "rock": ["花岗岩类(中酸性斑岩)"],
+          "structure": ["板块俯冲带", "断裂带密集区"],
+          "climate": "无关",
+          "rule": "IF 岩石=花岗岩类 AND 构造=板块边界 AND 火山=真 AND 地形∈[低山,高山] THEN 斑岩铜矿 权重=0.90",
+          "associated": ["金矿", "银矿", "钼矿"]
+        },
+        {
+          "type": "砂页岩型铜矿 (沉积层控)",
+          "terrain": ["盆地", "丘陵"],
+          "rock": ["沉积岩(砂岩/页岩)"],
+          "structure": ["沉积盆地", "古河道"],
+          "climate": "干旱-半干旱 (BSk/BWk)",
+          "rule": "IF 岩石=沉积岩 AND 地形=盆地 AND 古河道=真 AND 气候∈[BSk,BWk] THEN 砂页岩型铜矿 权重=0.75",
+          "associated": ["银矿", "钴矿"]
+        },
+        {
+          "type": "火山块状硫化物型 (VMS)",
+          "terrain": ["低山", "丘陵"],
+          "rock": ["玄武岩类", "火山碎屑岩"],
+          "structure": ["海底火山弧", "裂谷"],
+          "climate": "无关",
+          "rule": "IF 岩石=玄武岩类 AND 火山=真 AND 海洋=真(古) THEN VMS铜锌矿 权重=0.80",
+          "associated": ["锌矿", "铅矿", "金矿", "银矿"]
+        }
+      ]
+    },
+    {
+      "mineral": "金矿 (Au)",
+      "rarity": "稀有",
+      "deposit_types": [
+        {
+          "type": "造山型金矿 (绿岩带型)",
+          "terrain": ["低山", "丘陵"],
+          "rock": ["变质岩(绿片岩相)"],
+          "structure": ["深大断裂带", "剪切带"],
+          "climate": "无关",
+          "rule": "IF 岩石=变质岩 AND 断裂带=真 AND 构造活动=古 THEN 造山型金矿 权重=0.80",
+          "associated": ["银矿", "毒砂"]
+        },
+        {
+          "type": "浅成低温热液型",
+          "terrain": ["低山", "丘陵"],
+          "rock": ["花岗岩类", "火山岩"],
+          "structure": ["火山口", "环状断裂"],
+          "climate": "无关",
+          "rule": "IF 火山=真(recent) AND 断裂带=真 AND 岩石∈[花岗岩类,火山岩] THEN 浅成低温金矿 权重=0.85",
+          "associated": ["银矿", "汞矿"]
+        },
+        {
+          "type": "砂金矿 (冲积型)",
+          "terrain": ["河谷", "丘陵", "平原"],
+          "rock": ["冲积物", "砂砾层"],
+          "structure": ["河流/古河道"],
+          "climate": "温带-亚热带(C类/D类)",
+          "rule": "IF 河流=真 AND 岩石=冲积物 AND 上游有金矿源岩 THEN 砂金矿 权重=0.75",
+          "associated": ["锡石(砂锡)", "锆石", "独居石"]
+        }
+      ]
+    },
+    {
+      "mineral": "银矿 (Ag)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "浅成低温热液型银矿",
+          "terrain": ["低山", "丘陵"],
+          "rock": ["花岗岩类", "火山岩"],
+          "structure": ["火山弧", "裂谷带"],
+          "climate": "无关",
+          "rule": "IF 火山=真 AND 岩石∈[花岗岩类,火山岩] AND 断裂带=真 THEN 热液银矿 权重=0.80",
+          "associated": ["金矿", "铅锌矿"]
+        },
+        {
+          "type": "铅锌伴生银",
+          "terrain": ["盆地", "丘陵"],
+          "rock": ["石灰岩", "沉积岩"],
+          "structure": ["盆地边缘断裂"],
+          "climate": "无关",
+          "rule": "IF 铅锌矿条件满足 THEN 伴生银矿 权重=0.90",
+          "associated": ["铅矿", "锌矿", "重晶石"]
+        }
+      ]
+    },
+    {
+      "mineral": "锡矿 (Sn)",
+      "rarity": "稀有",
+      "deposit_types": [
+        {
+          "type": "花岗岩热液型锡钨矿",
+          "terrain": ["低山", "高山"],
+          "rock": ["花岗岩类(S型)"],
+          "structure": ["侵入接触带", "断裂带"],
+          "climate": "无关",
+          "rule": "IF 岩石=花岗岩类 AND 断裂带=真 AND 地形∈[低山,高山] THEN 热液锡钨矿 权重=0.70",
+          "associated": ["钨矿", "铋矿", "萤石"]
+        },
+        {
+          "type": "砂锡矿 (冲积/滨海)",
+          "terrain": ["河谷", "海岸", "丘陵"],
+          "rock": ["冲积物", "滨海砂"],
+          "structure": ["河流", "古河道", "海岸线"],
+          "climate": "Cfb/Cfa (温带-亚热带湿润)",
+          "rule": "IF 河流=真 AND 气候∈[Cfa,Cfb,Cwa] AND 上游有花岗岩类 THEN 砂锡矿 权重=0.75",
+          "associated": ["砂金", "锆石", "钛铁矿"]
+        }
+      ]
+    },
+    {
+      "mineral": "煤矿 (Coal)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "内陆沼泽型煤",
+          "terrain": ["盆地", "平原", "丘陵"],
+          "rock": ["沉积岩(砂页岩互层)"],
+          "structure": ["沉积盆地", "古沼泽"],
+          "climate": "温带-亚热带湿润(Cfb/Cfa/Dfa)",
+          "rule": "IF 地形=盆地/平原 AND 岩石=沉积岩 AND 气候=温带/亚热带湿润 AND 沼泽=古 THEN 煤矿 权重=0.85",
+          "associated": ["油页岩", "高岭土(夹层)"]
+        },
+        {
+          "type": "近海三角洲型煤",
+          "terrain": ["平原", "海岸"],
+          "rock": ["沉积岩(含海相夹层)"],
+          "structure": ["三角洲", "滨海平原"],
+          "climate": "Cfa/Cfb (温暖湿润)",
+          "rule": "IF 地形=沿海平原 AND 岩石=沉积岩 AND 海洋=真(古) AND 河流三角洲=真 THEN 近海型煤 权重=0.80",
+          "associated": ["天然气(煤层气)"]
+        }
+      ]
+    },
+    {
+      "mineral": "石油 (Oil)",
+      "rarity": "稀有",
+      "deposit_types": [
+        {
+          "type": "常规油气藏",
+          "terrain": ["盆地", "平原", "浅海"],
+          "rock": ["沉积岩(烃源岩+储层+盖层)"],
+          "structure": ["背斜构造", "断层圈闭", "盐丘"],
+          "climate": "无关(古气候为温暖浅海)",
+          "rule": "IF 地形=沉积盆地 AND 岩石=沉积岩 AND (背斜=真 OR 断层圈闭=真 OR 盐丘=真) THEN 石油 权重=0.60 (需进一步勘探确认)",
+          "associated": ["天然气", "油页岩"]
+        }
+      ]
+    },
+    {
+      "mineral": "天然气 (Natural Gas)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "常规天然气",
+          "terrain": ["盆地", "平原"],
+          "rock": ["沉积岩"],
+          "structure": ["背斜", "地层圈闭"],
+          "rule": "IF 石油条件满足 THEN 伴生天然气 权重=0.90",
+          "associated": ["石油"]
+        },
+        {
+          "type": "页岩气",
+          "terrain": ["盆地", "高原"],
+          "rock": ["沉积岩(富有机质页岩)"],
+          "structure": ["稳定沉积盆地"],
+          "rule": "IF 岩石=页岩(富有机质) AND 地形=盆地 AND 构造=稳定 THEN 页岩气 权重=0.65",
+          "associated": ["石油(页岩油)"]
+        }
+      ]
+    },
+    {
+      "mineral": "铝土矿 (Bauxite)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "红土型铝土矿",
+          "terrain": ["高原", "丘陵", "台地"],
+          "rock": ["玄武岩类", "花岗岩类", "石灰岩"],
+          "structure": ["稳定地台", "古风化壳"],
+          "climate": "Af/Am (热带雨林/季风)",
+          "rule": "IF 气候∈[Af,Am] AND 岩石∈[玄武岩,花岗岩] AND 地形=高原/台地 AND 侵蚀基准面稳定 THEN 红土型铝土矿 权重=0.85",
+          "associated": ["铁矿(红土)", "镍矿", "钴矿"]
+        },
+        {
+          "type": "喀斯特型铝土矿",
+          "terrain": ["高原", "丘陵"],
+          "rock": ["石灰岩"],
+          "structure": ["喀斯特溶蚀面"],
+          "climate": "Cfa/Cwa (亚热带)",
+          "rule": "IF 岩石=石灰岩 AND 气候∈[Cfa,Cwa] AND 喀斯特=发育 THEN 喀斯特型铝土矿 权重=0.75",
+          "associated": ["高岭土"]
+        }
+      ]
+    },
+    {
+      "mineral": "铅锌矿 (Pb-Zn)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "密西西比河谷型 (MVT)",
+          "terrain": ["盆地", "丘陵"],
+          "rock": ["石灰岩/白云岩"],
+          "structure": ["盆地边缘", "不整合面"],
+          "climate": "无关",
+          "rule": "IF 岩石=石灰岩 AND 地形=盆地边缘 AND 断裂带=真 THEN MVT铅锌矿 权重=0.75",
+          "associated": ["银矿", "重晶石", "萤石"]
+        },
+        {
+          "type": "喷流沉积型 (Sedex)",
+          "terrain": ["盆地"],
+          "rock": ["沉积岩(页岩/粉砂岩)"],
+          "structure": ["裂谷盆地", "同生断裂"],
+          "rule": "IF 岩石=沉积岩 AND 构造=裂谷盆地 AND 同生断裂=真 THEN Sedex铅锌矿 权重=0.70",
+          "associated": ["银矿", "铜矿"]
+        }
+      ]
+    },
+    {
+      "mineral": "盐矿 (岩盐/钾盐)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "蒸发岩型盐矿",
+          "terrain": ["盆地", "高原"],
+          "rock": ["沉积岩(蒸发岩)"],
+          "structure": ["封闭盆地", "内流区"],
+          "climate": "BWk/BSk (干旱/半干旱)",
+          "rule": "IF 气候∈[BWk,BSk] AND 地形=封闭盆地 AND 湖泊=真(古/今) AND 蒸发/降水>5 THEN 蒸发盐矿 权重=0.90",
+          "associated": ["石膏", "硼砂", "钾盐"]
+        },
+        {
+          "type": "盐丘型 (底辟构造)",
+          "terrain": ["平原", "丘陵"],
+          "rock": ["沉积岩(含盐层)"],
+          "structure": ["盐底辟/盐丘"],
+          "rule": "IF 构造=盐丘/底辟 THEN 盐丘型盐矿 权重=0.85",
+          "associated": ["石油(盐丘圈闭)", "石膏"]
+        }
+      ]
+    },
+    {
+      "mineral": "宝石 (钻石/祖母绿/刚玉)",
+      "rarity": "传奇",
+      "deposit_types": [
+        {
+          "type": "钻石 — 金伯利岩型",
+          "terrain": ["高原", "低山"],
+          "rock": ["金伯利岩(超基性)"],
+          "structure": ["克拉通深大断裂", "地幔柱通道"],
+          "climate": "无关",
+          "rule": "IF 岩石=超基性岩 AND 构造=克拉通深断裂 AND 地形=古老地台 THEN 钻石(金伯利岩筒) 权重=0.30 (传奇概率)",
+          "associated": ["石榴子石", "铬铁矿"]
+        },
+        {
+          "type": "祖母绿 — 伟晶岩+超基性岩接触带",
+          "terrain": ["高山", "低山"],
+          "rock": ["花岗伟晶岩", "超基性岩"],
+          "structure": ["碰撞造山带", "缝合带"],
+          "climate": "无关",
+          "rule": "IF 岩石=花岗伟晶岩 AND 相邻岩石=超基性岩 AND 构造=缝合带 THEN 祖母绿 权重=0.25",
+          "associated": ["金绿宝石", "碧玺"]
+        },
+        {
+          "type": "刚玉(红/蓝宝石) — 变质型",
+          "terrain": ["高山", "低山"],
+          "rock": ["变质岩(大理岩/角闪岩)"],
+          "structure": ["造山带", "变质核杂岩"],
+          "climate": "无关",
+          "rule": "IF 岩石=变质岩(大理岩) AND 构造=造山带 THEN 红宝石/蓝宝石 权重=0.25",
+          "associated": ["尖晶石", "石榴子石"]
+        },
+        {
+          "type": "砂矿型宝石 (冲积/滨海)",
+          "terrain": ["河谷", "海岸"],
+          "rock": ["冲积砾石层", "滨海砂"],
+          "structure": ["河流/古河道"],
+          "climate": "温带-热带",
+          "rule": "IF 河流=真 AND 上游有宝石源岩 THEN 砂矿宝石 权重=0.35",
+          "associated": ["砂金", "锡石", "锆石"]
+        }
+      ]
+    },
+    {
+      "mineral": "稀土 (REE)",
+      "rarity": "稀有",
+      "deposit_types": [
+        {
+          "type": "碳酸岩型稀土",
+          "terrain": ["高原", "低山"],
+          "rock": ["碳酸岩", "碱性杂岩"],
+          "structure": ["裂谷带", "克拉通边缘深断裂"],
+          "climate": "无关",
+          "rule": "IF 岩石=碳酸岩/碱性岩 AND 构造=裂谷带 THEN 碳酸岩型稀土 权重=0.70",
+          "associated": ["铌矿", "钽矿", "萤石"]
+        },
+        {
+          "type": "离子吸附型稀土 (风化壳型)",
+          "terrain": ["丘陵", "高原地"],
+          "rock": ["花岗岩类"],
+          "structure": ["稳定地台", "古风化壳"],
+          "climate": "Cfa/Cwa (亚热带湿润)",
+          "rule": "IF 气候∈[Cfa,Cwa] AND 岩石=花岗岩类 AND 风化壳厚>5m THEN 离子吸附型稀土 权重=0.80",
+          "associated": ["高岭土"]
+        }
+      ]
+    },
+    {
+      "mineral": "铀矿 (U)",
+      "rarity": "稀有",
+      "deposit_types": [
+        {
+          "type": "砂岩型铀矿 (地浸型)",
+          "terrain": ["盆地", "平原"],
+          "rock": ["沉积岩(砂岩/煤系)"],
+          "structure": ["沉积盆地", "氧化还原界面"],
+          "climate": "BSk/BWk (干旱)",
+          "rule": "IF 气候∈[BSk,BWk] AND 岩石=砂岩 AND 地形=盆地 AND 古河道=真 THEN 砂岩型铀矿 权重=0.60",
+          "associated": ["钒矿", "硒矿"]
+        },
+        {
+          "type": "不整合面型铀矿",
+          "terrain": ["高原", "低山"],
+          "rock": ["变质岩+上覆沉积岩"],
+          "structure": ["不整合面", "断裂带"],
+          "climate": "无关",
+          "rule": "IF 存在不整合面 AND 断裂带=真 AND 变质岩基底+沉积岩盖层 THEN 不整合面型铀矿 权重=0.55",
+          "associated": ["镍矿", "钴矿"]
+        }
+      ]
+    },
+    {
+      "mineral": "磷矿 (P)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "沉积磷块岩型",
+          "terrain": ["盆地", "平原"],
+          "rock": ["沉积岩(磷块岩/硅质岩)"],
+          "structure": ["大陆架", "上升流区"],
+          "climate": "无关(古海洋上升流)",
+          "rule": "IF 岩石=沉积岩 AND 古海洋=真 AND 上升流=间接推断 THEN 沉积磷矿 权重=0.65",
+          "associated": ["铀矿", "钒矿"]
+        },
+        {
+          "type": "鸟粪型磷矿",
+          "terrain": ["海岸", "岛屿"],
+          "rock": ["石灰岩(上覆鸟粪层)"],
+          "structure": ["海岛/海岸"],
+          "climate": "干燥海岸(BWh/BSk)",
+          "rule": "IF 地形=海岛/海岸 AND 气候=干燥 AND 海鸟栖息地=真 THEN 鸟粪磷矿 权重=0.60",
+          "associated": ["硝酸盐"]
+        }
+      ]
+    },
+    {
+      "mineral": "硫磺 (S)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "火山型自然硫",
+          "terrain": ["高山", "低山"],
+          "rock": ["火山岩"],
+          "structure": ["活火山口/喷气孔"],
+          "climate": "无关",
+          "rule": "IF 火山=真(recent) AND 火山口/喷气孔=真 THEN 自然硫 权重=0.90",
+          "associated": ["石膏"]
+        },
+        {
+          "type": "蒸发岩伴生硫",
+          "terrain": ["盆地"],
+          "rock": ["蒸发岩", "石灰岩(含石膏层)"],
+          "structure": ["封闭盆地"],
+          "climate": "BWk/BSk",
+          "rule": "IF 闭塞盆地+蒸发岩+石膏层 THEN 伴生硫磺 权重=0.70",
+          "associated": ["岩盐", "石膏"]
+        }
+      ]
+    },
+    {
+      "mineral": "粘土矿 (高岭土/膨润土)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "风化残积型高岭土",
+          "terrain": ["丘陵", "高原"],
+          "rock": ["花岗岩类", "长石砂岩"],
+          "structure": ["古风化壳", "准平原"],
+          "climate": "Af/Am/Cfa (热带-亚热带湿润)",
+          "rule": "IF 气候∈[Af,Am,Cfa,Cwa] AND 岩石∈[花岗岩类,长石砂岩] AND 侵蚀面平缓 THEN 高岭土 权重=0.90",
+          "associated": ["石英砂", "云母"]
+        },
+        {
+          "type": "沉积型粘土 (黏土层)",
+          "terrain": ["盆地", "平原", "湖泊"],
+          "rock": ["沉积岩(黏土层)"],
+          "structure": ["湖泊/泻湖/浅海"],
+          "climate": "任何(需要有水体沉积环境)",
+          "rule": "IF 地形=盆地/平原 AND 湖泊=真(古) AND 岩石=沉积岩 THEN 沉积粘土 权重=0.85",
+          "associated": ["褐煤", "泥炭"]
+        }
+      ]
+    },
+    {
+      "mineral": "石灰石 (Limestone)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "海相沉积石灰岩",
+          "terrain": ["高原", "丘陵", "低山"],
+          "rock": ["石灰岩"],
+          "structure": ["古浅海台地"],
+          "climate": "无关(古气候温暖浅海)",
+          "rule": "IF 岩石=石灰岩 AND 地层厚度>50m THEN 优质石灰石 权重=0.95",
+          "associated": ["白云岩", "大理岩(变质)"]
+        }
+      ]
+    },
+    {
+      "mineral": "大理石 (Marble)",
+      "rarity": "中等",
+      "deposit_types": [
+        {
+          "type": "接触变质/区域变质大理岩",
+          "terrain": ["低山", "高山"],
+          "rock": ["变质岩(大理岩)", "石灰岩+花岗岩接触"],
+          "structure": ["造山带", "侵入接触带"],
+          "climate": "无关",
+          "rule": "IF 岩石=石灰岩 AND 相邻岩石=花岗岩类 AND 变质=接触变质 THEN 大理岩 权重=0.85",
+          "associated": ["矽卡岩矿床"]
+        }
+      ]
+    },
+    {
+      "mineral": "花岗岩(建材) (Granite)",
+      "rarity": "常见",
+      "deposit_types": [
+        {
+          "type": "花岗岩岩基/岩株",
+          "terrain": ["高山", "低山", "丘陵"],
+          "rock": ["花岗岩类"],
+          "structure": ["侵入岩体", "造山带核部"],
+          "climate": "无关",
+          "rule": "IF 岩石=花岗岩类 AND 岩体规模>10km² AND 节理不发育 THEN 优质建筑花岗岩 权重=0.80",
+          "associated": ["长石", "石英"]
+        }
+      ]
+    }
+  ],
+
+  "二、气候/地形驱动的表层矿产推断": {
+    "description": "有些矿产受现代或近代表生风化、沉积、蒸发过程控制，与气候类型直接关联。",
+    "rules": [
+      {
+        "climate": "热带雨林/季风 (Af/Am)",
+        "surficial_minerals": [
+          { "mineral": "红土型铝土矿", "confidence": 0.90, "mechanism": "强烈化学风化→硅淋失→铝铁氧化物残留富集" },
+          { "mineral": "红土型镍钴矿", "confidence": 0.70, "mechanism": "超基性岩在热带风化→镍钴富集于红土层" },
+          { "mineral": "高岭土", "confidence": 0.85, "mechanism": "花岗岩长石在湿热酸性条件下→水解为高岭石" },
+          { "mineral": "锰矿结壳", "confidence": 0.65, "mechanism": "强烈风化→锰氧化物在风化壳底部积淀" },
+          { "mineral": "红土型铁矿", "confidence": 0.80, "mechanism": "玄武岩风化→铁氧化物硬壳(铁壳层)" },
+          { "mineral": "离子吸附型稀土", "confidence": 0.70, "mechanism": "花岗岩风化→黏土矿物吸附稀土离子(仅Cfa过渡带)" }
+        ]
+      },
+      {
+        "climate": "热带稀树草原 (Aw)",
+        "surficial_minerals": [
+          { "mineral": "铝土矿(低品级)", "confidence": 0.65, "mechanism": "干季脱水使铁铝氧化物硬化形成铁壳/铝壳层" },
+          { "mineral": "锰矿(硬锰矿)", "confidence": 0.55, "mechanism": "季节性氧化还原→锰氧化物在潜水面附近沉淀" },
+          { "mineral": "钙积层/钙质壳", "confidence": 0.80, "mechanism": "蒸发>降水→碳酸钙在浅层土壤中积聚" }
+        ]
+      },
+      {
+        "climate": "亚热带季风 (Cfa/Cwa)",
+        "surficial_minerals": [
+          { "mineral": "红壤型高岭土", "confidence": 0.90, "mechanism": "亚热带花岗岩风化壳广泛发育→瓷土级高岭土" },
+          { "mineral": "离子吸附型稀土", "confidence": 0.85, "mechanism": "花岗岩风化壳+适当pH→REE被黏土吸附→中国南方型" },
+          { "mineral": "砂金(冲积型)", "confidence": 0.55, "mechanism": "丰富的河流网络→金粒在水流缓慢处沉积富集" },
+          { "mineral": "砂锡(冲积型)", "confidence": 0.60, "mechanism": "花岗岩源区+河流搬运→锡石在河砂中富集" },
+          { "mineral": "煤矿(内陆沼泽型)", "confidence": 0.70, "mechanism": "湿润气候+盆地沼泽→泥炭→煤(古)" }
+        ]
+      },
+      {
+        "climate": "温带海洋性 (Cfb)",
+        "surficial_minerals": [
+          { "mineral": "泥炭", "confidence": 0.80, "mechanism": "凉爽湿润+排水不良→有机质分解慢→泥炭积累" },
+          { "mineral": "砂金(冲积型)", "confidence": 0.50, "mechanism": "常年水流搬运→河流沉积物中的砂金" },
+          { "mineral": "石灰华/钙华", "confidence": 0.60, "mechanism": "石灰岩区泉水→碳酸钙沉淀形成钙华" }
+        ]
+      },
+      {
+        "climate": "地中海式 (Csa/Csb)",
+        "surficial_minerals": [
+          { "mineral": "铝土矿(喀斯特型)", "confidence": 0.80, "mechanism": "石灰岩+冬雨→碳酸盐淋溶→铝铁残留→红色石灰土型铝土矿" },
+          { "mineral": "红色石灰土(Terra Rossa)", "confidence": 0.90, "mechanism": "石灰岩不溶残积+季节性湿→铁氧化→红色黏土" },
+          { "mineral": "钙华", "confidence": 0.65, "mechanism": "夏干使泉水碳酸钙过饱和→大量沉淀" }
+        ]
+      },
+      {
+        "climate": "温带大陆性湿润 (Dfa/Dfb)",
+        "surficial_minerals": [
+          { "mineral": "煤矿(内陆沼泽型)", "confidence": 0.75, "mechanism": "温带湿润+盆地沼泽→厚层泥炭→煤" },
+          { "mineral": "砂金(冰水沉积型)", "confidence": 0.45, "mechanism": "冰川融水+河流→砂金在冰水扇中富集" },
+          { "mineral": "高岭土(夹层)", "confidence": 0.60, "mechanism": "煤系地层中的沉积高岭土夹层" }
+        ]
+      },
+      {
+        "climate": "温带干旱/半干旱 (BSk/BWk)",
+        "surficial_minerals": [
+          { "mineral": "盐湖矿产(岩盐/钾盐)", "confidence": 0.90, "mechanism": "封闭盆地+蒸发>降水→盐类矿物依次沉淀: 碳酸盐→石膏→岩盐→钾盐" },
+          { "mineral": "硼砂/硼酸盐", "confidence": 0.70, "mechanism": "火山活动+干旱蒸发→硼在盐湖中富集" },
+          { "mineral": "石膏", "confidence": 0.90, "mechanism": "蒸发岩序列早期产物→广泛分布于盐湖边缘" },
+          { "mineral": "风成石英砂(玻璃砂)", "confidence": 0.85, "mechanism": "风力分选→纯石英砂富集→适合玻璃/铸造" },
+          { "mineral": "硝石/硝酸盐", "confidence": 0.55, "mechanism": "极旱+生物残骸氧化→硝酸盐在荒漠土壤中积累" },
+          { "mineral": "砂岩型铀矿", "confidence": 0.60, "mechanism": "干旱+氧化还原界面→铀在砂岩中沉淀富集" }
+        ]
+      },
+      {
+        "climate": "寒带苔原 (ET)",
+        "surficial_minerals": [
+          { "mineral": "泥炭", "confidence": 0.85, "mechanism": "低温+渍水→有机质分解极慢→厚层泥炭积累" },
+          { "mineral": "冰碛砂矿", "confidence": 0.40, "mechanism": "冰川搬运+选择性磨蚀→重矿物在冰碛物局部富集" }
+        ]
+      },
+      {
+        "climate": "高山气候 (H)",
+        "surficial_minerals": [
+          { "mineral": "冰碛砂矿(金/锡石)", "confidence": 0.40, "mechanism": "冰川搬运→汇入谷地冰碛物中→局部重矿物富集" },
+          { "mineral": "冰川漂砾型玉石(软玉)", "confidence": 0.35, "mechanism": "蛇纹岩/超基性岩在高山冰川→碎裂搬运→冲积扇富集玉石卵石" },
+          { "mineral": "冰水沉积砂金", "confidence": 0.45, "mechanism": "冰川融水淘洗冰碛物→砂金在冰水扇中富集" }
+        ]
+      },
+      {
+        "climate": "海岸带 (任何气候的海岸线)",
+        "surficial_minerals": [
+          { "mineral": "滨海砂矿—钛铁矿", "confidence": 0.70, "mechanism": "波浪淘洗+密度分选→重矿物在黑沙带中富集" },
+          { "mineral": "滨海砂矿—独居石(含钍/稀土)", "confidence": 0.55, "mechanism": "花岗岩源区+河流搬运至海岸→独居石在滨海砂中富集" },
+          { "mineral": "滨海砂矿—锆石", "confidence": 0.65, "mechanism": "高化学稳定性+高密度→与钛铁矿共生滨海砂" },
+          { "mineral": "滨海砂矿—金红石", "confidence": 0.60, "mechanism": "变质岩源区→金红石在滨海砂中富集" },
+          { "mineral": "石英砂(高纯)", "confidence": 0.80, "mechanism": "海岸波浪淘洗→石英富集→玻璃级硅砂" },
+          { "mineral": "磷矿(鸟粪型)", "confidence": 0.50, "mechanism": "干燥海岸海岛+海鸟栖息→鸟粪层→磷矿" }
+        ]
+      }
+    ]
+  },
+
+  "三、矿产与文明技术联动规则": {
+    "description": "矿产资源的组合决定当地文明可达到的技术阶段和产业特征。以下规则描述了矿产组合与文明技术特征的因果关系。",
+    "rules": [
+      {
+        "mineral_combination": ["煤矿", "铁矿"],
+        "tech_effect": "煤铁复合体 → 冶铁工业",
+        "detail": "有煤+有铁是一个文明进入铁器时代产业化的核心条件。煤提供还原剂和热源，铁提供材料基础。",
+        "civilization_level": "铁器时代 → 工业革命前提",
+        "example": "英国(煤铁丰富)→第一次工业革命发源地",
+        "game_implication": "解锁钢铁生产、重工业建筑、铁路"
+      },
+      {
+        "mineral_combination": ["铜矿", "锡矿"],
+        "tech_effect": "青铜冶炼 → 青铜时代",
+        "detail": "铜+锡=青铜，是最早的合金文明。铜矿常见但锡矿稀有，控制锡源=控制青铜时代。",
+        "civilization_level": "青铜时代",
+        "example": "地中海(塞浦路斯铜+康沃尔锡); 中国中原(铜+华南锡)",
+        "game_implication": "解锁青铜工具/武器、货币铸造"
+      },
+      {
+        "mineral_combination": ["煤矿", "铁矿", "石灰石"],
+        "tech_effect": "现代钢铁工业三要素",
+        "detail": "铁矿(原料)+煤(燃料/还原剂)+石灰石(助熔剂)=高炉炼钢的完整链条。",
+        "civilization_level": "工业时代",
+        "game_implication": "解锁高炉、钢产量提升"
+      },
+      {
+        "mineral_combination": ["盐矿", "岩盐", "盐湖"],
+        "tech_effect": "盐业 → 贸易中心/食物保存",
+        "detail": "盐是人类历史上最重要的贸易商品之一。有丰富盐源→人口聚集→贸易枢纽→早期城市文明。",
+        "civilization_level": "任何时代(基础资源)",
+        "example": "四川自贡(井盐); 丝绸之路盐运; 罗马盐路(Via Salaria)",
+        "game_implication": "解锁食物腌制保存、贸易路线、增加人口承载力"
+      },
+      {
+        "mineral_combination": ["高岭土", "长石", "石英"],
+        "tech_effect": "陶瓷工业(瓷器三要素)",
+        "detail": "高岭土(瓷土)+长石(助熔)+石英(骨架)=硬质瓷器。中国因高岭土丰富成为瓷器发源地。",
+        "civilization_level": "古典文明 → 工业时代",
+        "example": "景德镇(优质高岭土)→千年瓷都",
+        "game_implication": "解锁陶瓷生产、奢侈品贸易、卫生管道"
+      },
+      {
+        "mineral_combination": ["金矿", "银矿"],
+        "tech_effect": "贵金属货币体系 → 贸易帝国",
+        "detail": "金和银是天然货币金属。有丰富金银→建立货币体系→金融中心→贸易霸权。",
+        "civilization_level": "古典文明 → 殖民时代",
+        "example": "西班牙(美洲白银)→全球贸易帝国; 南非(Witwatersrand金矿)→约翰内斯堡",
+        "game_implication": "解锁货币铸造、国际贸易、通货膨胀/紧缩"
+      },
+      {
+        "mineral_combination": ["硫磺", "硝石"],
+        "tech_effect": "火药 → 军事革命",
+        "detail": "硫磺+硝石+木炭=黑火药。控制硫磺和硝石矿源的文明获得军事优势。",
+        "civilization_level": "中世纪 → 近代",
+        "example": "智利硝石→19世纪全球火药原料供应",
+        "game_implication": "解锁火器部队、攻城能力"
+      },
+      {
+        "mineral_combination": ["石油", "天然气"],
+        "tech_effect": "石油工业 → 现代文明",
+        "detail": "石油是工业血液。有石油→能源独立→石化工业→塑料/化肥/合成纤维→现代生活方式。",
+        "civilization_level": "工业-信息时代",
+        "example": "中东(石油)→现代地缘政治核心; 美国(宾州/得州石油)→20世纪霸权",
+        "game_implication": "解锁汽车/飞机、塑料、化肥(农业革命)"
+      },
+      {
+        "mineral_combination": ["铀矿"],
+        "tech_effect": "核能/核武器 → 原子时代",
+        "detail": "铀是核能的唯一天然原料。控制铀=控制核能→能源独立+核威慑。",
+        "civilization_level": "信息-原子时代",
+        "game_implication": "解锁核电站、核武器、放射性医疗"
+      },
+      {
+        "mineral_combination": ["稀土 (REE)"],
+        "tech_effect": "高科技材料 → 信息时代关键矿产",
+        "detail": "稀土是永磁体、激光、LED、智能手机、风力发电、电动车和军工的核心材料。",
+        "civilization_level": "信息时代",
+        "example": "中国(全球>60%稀土产量)→高科技制造供应链优势",
+        "game_implication": "解锁电子产品、清洁能源、精密武器"
+      },
+      {
+        "mineral_combination": ["粘土", "石灰石"],
+        "tech_effect": "建筑材料 → 城市化",
+        "detail": "粘土(砖瓦)+石灰石(石灰/水泥)=建筑基础材料。丰富的建材支撑快速城市扩张。",
+        "civilization_level": "任何时代",
+        "game_implication": "解锁砖石建筑、城墙、水泥/混凝土"
+      },
+      {
+        "mineral_combination": ["大理石", "花岗岩(建材)"],
+        "tech_effect": "纪念性建筑 → 文化影响力",
+        "detail": "便于开采的优质石材(大理石/花岗岩)支持建造宏伟的纪念性建筑(神庙、金字塔、宫殿)。",
+        "civilization_level": "古典文明",
+        "example": "希腊(潘特利克大理石→帕特农神庙); 埃及(阿斯旺花岗岩→方尖碑)",
+        "game_implication": "解锁纪念建筑、奇观、文化声望"
+      },
+      {
+        "mineral_combination": ["宝石(钻石/祖母绿/刚玉)"],
+        "tech_effect": "奢侈品 → 贸易吸引 + 文化声望",
+        "detail": "宝石是终极奢侈品。宝石产地在贸易网络中占据特殊地位→吸引商人、工匠和艺术家。",
+        "civilization_level": "任何时代",
+        "example": "印度(钻石)→古代世界钻石唯一来源; 哥伦比亚(祖母绿)→西班牙帝国的宝石财富",
+        "game_implication": "解锁珠宝加工、奢侈品贸易路线、皇室声望"
+      },
+      {
+        "mineral_combination": ["磷矿"],
+        "tech_effect": "肥料 → 农业革命/人口爆炸",
+        "detail": "磷是植物必需大量元素。大规模磷矿开采→化肥→粮食产量翻倍→人口快速增长。",
+        "civilization_level": "工业时代",
+        "example": "摩洛哥(全球>70%磷矿储量)→'磷酸盐王国'; 瑙鲁(鸟粪磷矿)→一度人均最富",
+        "game_implication": "解锁化肥厂、农业产量倍增"
+      },
+      {
+        "mineral_combination": ["无煤矿", "无铁矿"],
+        "tech_effect": "矿产资源匮乏 → 贸易依赖/技术替代路径",
+        "detail": "缺乏煤铁资源迫使文明走向不同的技术发展路径：依赖贸易进口金属→航海/商业文明；或发展非金属材料(石器、骨器、贝壳)。",
+        "civilization_level": "新石器时代瓶颈",
+        "example": "波利尼西亚(无金属矿石)→贝壳/石制工具高度发展; 日本(铁矿贫乏)→依赖进口/砂铁",
+        "game_implication": "迫使玩家选择贸易路线或寻找替代技术"
+      }
+    ],
+    "comprehensive_tech_tree_trigger": {
+      "description": "基于矿产组合推荐文明技术路线",
+      "triggers": [
+        { "condition": "煤+铁+石灰石 都存在", "tech_path": "重工业路线(钢铁→铁路→工业革命)", "score": 95 },
+        { "condition": "铜+锡 都存在", "tech_path": "古典冶金路线(青铜→武器→货币)", "score": 85 },
+        { "condition": "高岭土+长石 存在", "tech_path": "陶瓷/文化路线(瓷器→贸易→文化声望)", "score": 75 },
+        { "condition": "金+银 存在", "tech_path": "金融/贸易路线(货币→银行→贸易帝国)", "score": 80 },
+        { "condition": "石油 存在", "tech_path": "工业加速路线(石化→汽车→全球化)", "score": 90 },
+        { "condition": "稀土 存在", "tech_path": "高科技路线(电子→清洁能源→信息时代)", "score": 70 },
+        { "condition": "宝石(≥2种) 存在", "tech_path": "奢侈品/文化路线(珠宝→艺术→旅游)", "score": 60 },
+        { "condition": "磷矿 存在", "tech_path": "农业路线(化肥→粮食→人口爆炸)", "score": 75 },
+        { "condition": "盐矿/岩盐 存在", "tech_path": "贸易枢纽路线(盐路→城市→帝国)", "score": 65 },
+        { "condition": "铀矿 存在", "tech_path": "核能/军事路线(核电→核武→威慑)", "score": 50 },
+        { "condition": "煤+铁均缺失", "tech_path": "贸易依赖/海洋路线(进口金属→航海→商业)", "score": 60 },
+        { "condition": "所有建材(粘土+石灰石+花岗岩)存在", "tech_path": "城市化路线(建筑→大都市→奇观)", "score": 70 }
+      ]
+    }
+  }
+}

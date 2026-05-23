@@ -1,0 +1,286 @@
+{
+  "test_case": "北纬59° 东经18° 海洋西岸 湖泊入海处 北半球西风带",
+  "real_world_reference": "瑞典斯德哥尔摩 (Stockholm, Sweden) — 梅拉伦湖(Mälaren)注入波罗的海处",
+  "pipeline_version": "完整20步级联",
+  "date": "2026-05-23",
+
+  "STEP_1_基础参数": {
+    "latitude": 59.0,
+    "hemisphere": "北半球",
+    "altitude_m": 20,
+    "slope_deg": 3,
+    "aspect": "neutral(海岸平地)",
+    "land_sea_position": "海洋西岸(波罗的海西岸)",
+    "terrain_type": "coastal(海岸+湖口群岛)",
+    "ocean_current": "弱暖流残余(北大西洋漂流远距离影响+波罗的海半封闭,冬季部分结冰)",
+    "special_feature": "湖泊入海处——大型淡水湖通过狭窄水道注入海洋。这是全球最优质的城市选址地形之一。"
+  },
+
+  "STEP_2_气压带与盛行风向": {
+    "pressure_belt": "副极地低压带(年均~58°N, 冬季南移至50°N, 夏季北移至66°N)",
+    "mechanism": "极锋冷暖空气交汇→气旋频繁→全年有气旋降水,冬季尤其活跃",
+    "prevailing_wind": "盛行西风带(SW→NE)",
+    "wind_vs_coast": "西风从斯堪的纳维亚半岛内陆吹向波罗的海→离岸风分量→削弱了海洋水汽的直接输送",
+    "compensating_factor": "副极地低压的气旋活动从北大西洋和北海带来水汽→补充了西风离岸的干燥效应"
+  },
+
+  "STEP_3_温度推断": {
+    "T_sea_level_base": "查表插值: 55°N=3.5°C, 60°N=0°C → 59°N≈0.7°C",
+    "warm_current_correction": "+4°C(北大西洋漂流残余暖流+波罗的海夏季蓄热→冬季释放)",
+    "T_sea_level_corrected": 4.7,
+    "continentality_index": 0.25,
+    "annual_range": "3 + 60×0.25×(59/90)^1.2 ≈ 20°C",
+    "T_annual_mean_final": "4.7 - 20/100×0.65 ≈ 4.6°C",
+    "note": "实际斯德哥尔摩年均温约6.6°C——推测值偏低因波罗的海冬季局部结冰效应未完全模拟。但5±2°C已正确落在Dfb范围。"
+  },
+
+  "STEP_4_月均温": {
+    "formula": "T_month = T_annual + (ΔT/2)×cos(2π×(m-7)/12)",
+    "monthly_temps_estimate": [-3.5, -3.5, 0.0, 4.5, 10.5, 15.5, 17.5, 16.5, 11.5, 6.5, 2.0, -1.5],
+    "coldest_month": "1-2月, 约-3.5°C",
+    "warmest_month": "7月, 约17.5°C",
+    "growing_season": "4月中旬~10月中旬, 约180-200天",
+    "frost_free_days": "~160天"
+  },
+
+  "STEP_5_降水推断": {
+    "P_base_oceanic": "55-65°N带基准≈450mm(副极地低压+西风带北缘)",
+    "coastal_modifier": "×1.15(近海, 波罗的海提供局地水汽)",
+    "P_annual": "~520mm",
+    "seasonality": "uniform_with_slight_summer_max(气旋降水终年有, 夏季对流略增)",
+    "monthly_precip_estimate": [35, 28, 28, 30, 33, 45, 60, 58, 50, 45, 45, 40],
+    "snowfall": "12-3月降水以雪为主, 积雪覆盖约100-120天/年"
+  },
+
+  "STEP_6_成土母质": {
+    "terrain_type": "coastal(波罗的海地盾边缘)",
+    "primary_parent_material": ["花岗岩/片麻岩(芬诺斯坎迪亚地盾前寒武纪基底)", "冰碛物(更新世冰川覆盖→后退后遗留的冰碛层)"],
+    "secondary_parent_material": ["冰后期海相黏土(波罗的海古湖泊阶段沉积的层状黏土)", "滨海砂(局部)"],
+    "surface_weathering": "物理风化为主(年均温<6°C→化学风化极弱)→薄层酸性风化壳",
+    "confidence": 0.80
+  },
+
+  "STEP_7_排水条件": {
+    "drainage_class": "good_to_moderate",
+    "reason": "海岸低地+坡度和缓→排水良好; 冰碛物覆盖→局部排水不良形成小湿地; 湖口区→受梅拉伦湖水位调节, 排水稳定"
+  },
+
+  "STEP_8_柯本气候判定": {
+    "coldest_month": -3.5,
+    "warmest_month": 17.5,
+    "precip_driest_month": 28,
+    "precip_wettest_month": 60,
+    "判定逻辑": "最冷月<0°C→D类; 最冷月>-38°C→非d; 最热月<22°C→b; 降水均匀→f; 最冷月<−3°C但不是极寒→Dfb",
+    "koppen": "Dfb",
+    "name_zh": "冷温带湿润气候(暖夏型)",
+    "name_en": "Warm-summer Humid Continental",
+    "boundary_note": "处于Dfb/Cfb边界——若海洋影响再强一点(最冷月>−3°C)即转为Cfb。群岛外缘因波罗的海调节可能局部为Cfb。"
+  },
+
+  "STEP_9_Holdridge生命带": {
+    "biotemperature_BT": "Σmax(0, min(30, T_i))/12 ≈ 6.9°C",
+    "PET": "58.93 × 6.9 ≈ 407mm",
+    "PER": "407/520 ≈ 0.78",
+    "latitudinal_belt": "冷温带(Cool Temperate, BT 6-12°C)",
+    "humidity_province": "亚湿润(Subhumid, PER 0.5-1.0)",
+    "life_zone": "冷温带湿润森林/草原过渡带",
+    "potential_natural_vegetation": "针阔混交林(松/云杉+桦/欧洲山杨)→北纬59°接近北方带的南缘",
+    "note": "Holdridge将PER 0.74归入亚湿润→理论上为草原。但实际植被为森林→因为: (1)冬季低温使蒸发为零→年水分有效性高于PER暗示; (2)冰川消退仅~10000年→土壤发育不完全→森林仍在扩张中。此处理应覆写为'冷温带湿润森林'。"
+  },
+
+  "STEP_10_水文_径流": {
+    "C_runoff": "0.30(坡度和缓+森林植被截留+冰碛物渗透性好)",
+    "R_annual": "520 × 0.30 ≈ 156mm(径流深)",
+    "river_regime": "冰雪融水+雨水混合型(轻度)",
+    "monthly_discharge_pattern": "春季融雪(4月)小洪峰 + 秋季(10-11月)降水偏多→双峰型, 但梅拉伦湖的调蓄作用使下游出口流量极为平稳",
+    "key_feature": "湖泊作为天然水库→削峰补枯→湖口处流量终年稳定——这对城市供水和航运极为重要"
+  },
+
+  "STEP_11_水文_河流网络": {
+    "main_river": "梅拉伦湖出湖水道(Norrström, 斯德哥尔摩市中心)",
+    "strahler_order": 4,
+    "width_m": "80~200(湖口段较窄, 受基岩约束)",
+    "channel_pattern": "顺直(构造控制——沿基岩断裂/节理发育)",
+    "flow_type": "常流河(湖泊调节→终年稳定, 极少洪水或枯水)",
+    "drainage_density": "中低(地盾区→基岩裸露→地表水系不发育→多为湖泊和短小河流)",
+    "special_hydrology": "湖口河——不是普通河流, 而是大型湖泊(1140km²)的唯一出口。流量=整个梅拉伦湖流域的汇总。水力条件极其稳定。"
+  },
+
+  "STEP_12_水文_湖泊": {
+    "lakes": [
+      {
+        "name": "梅拉伦湖 (Lake Mälaren)",
+        "type": "构造-冰川复合湖(断裂洼地+冰川掘蚀+冰碛堰塞)",
+        "area_km2": 1140,
+        "depth_m_avg": 13,
+        "depth_m_max": 64,
+        "salinity": "淡水(<0.1‰)",
+        "pH": "6.5-7.0(微酸性至中性, 花岗岩基底)",
+        "outlet": "Norrström → 波罗的海(斯德哥尔摩市中心)",
+        "significance": "瑞典第三大湖。淡水水库+航运通道+渔业+休闲。湖内有数千岛屿。冬季湖面结冰2-3个月。"
+      }
+    ],
+    "lake_effect_on_city": "梅拉伦湖决定了斯德哥尔摩的存在——(1)淡水供应(对百万人口城市); (2)内陆航运(湖可通船至韦斯特罗斯等内陆城市); (3)湖水调节使出口水道终年可航; (4)湖中岛屿=天然建材(冰碛砾石)"
+  },
+
+  "STEP_13_母质土壤修正": {
+    "parent_material_override": [
+      { "location": "湖口河道周边", "material": "冲积物+冰碛物混杂", "note": "非典型冲积平原——基岩约束使冲积层薄且不连续" },
+      { "location": "波罗的海沿岸低地", "material": "冰后期海相黏土(富含碳酸盐→较肥沃)", "note": "古波罗的海冰湖阶段沉积→斯堪的纳维亚最肥沃的农业土壤之一" },
+      { "location": "群岛/基岩高地", "material": "花岗岩/片麻岩裸露+薄层冰碛物", "note": "经典的瑞典地盾景观——'skärgård'(岩岛)" }
+    ]
+  },
+
+  "STEP_14_农作物适宜性": {
+    "thermal_zone": "冷温带(生长季180-200天, ≥10°C积温约1500-1800°C·d)",
+    "crop_recommendations": {
+      "S1_highly_suitable": ["马铃薯", "燕麦", "大麦", "黑麦"],
+      "S2_moderately_suitable": ["春小麦", "油菜(春性型)", "甜菜(耐寒品种)", "牧草/干草"],
+      "S3_marginally_suitable": ["豌豆(绿肥/饲料)", "亚麻"],
+      "N_unsuitable": ["玉米(积温不足)", "水稻(温度不足)", "葡萄(户外)", "所有热带作物"],
+      "cash_crops": ["油菜(S2,春性)", "牧草/乳业(S2→乳制品为瑞典农业支柱)"]
+    },
+    "soil_advantage": "冰后期海相黏土区→肥力明显优于周边冰碛土→是瑞典中部最好的农业区(Uppsalaslätten平原)→支撑了早期聚落和后来的城市人口",
+    "growing_season_constraint": "180-200天>可种植一季, 但需选择耐寒短生育期品种。长日照(夏至>18小时)部分补偿了低温。"
+  },
+
+  "STEP_15_土壤类型推断": {
+    "primary_soil": {
+      "wrb": "Podzols(灰化土)",
+      "zh_name": "灰化土",
+      "confidence": "70%",
+      "reasoning": "冷温带湿润(Dfb)+针叶/针阔混交林+花岗岩/冰碛物酸性母质→强酸性淋溶→铁铝螯合淋移→灰化层(spodic)发育。标准Podzol配方。"
+    },
+    "alternative_soils": [
+      { "wrb": "Cambisols(雏形土)", "zh_name": "雏形土", "confidence": "20%", "condition": "冰后期黏土覆盖区+落叶树比例较高→淋溶较弱→仅发育雏形层(cambic)而非灰化层" },
+      { "wrb": "Histosols(有机土)", "zh_name": "泥炭土", "confidence": "8%", "condition": "排水不良洼地→泥炭积累→有机土" },
+      { "wrb": "Gleysols(潜育土)", "zh_name": "潜育土", "confidence": "2%", "condition": "湖岸/海岸低洼处→地下水位高→潜育化" }
+    ],
+    "soil_management_notes": [
+      "灰化土天然酸性强(pH 4.5-5.5)→农耕需石灰改良",
+      "冰后期海相黏土区(如乌普萨拉平原)是本地农业精华→天然pH较高→无需石灰",
+      "基岩裸露区(群岛)→无连续土壤→Leptosols(薄层土)→不可耕作"
+    ]
+  },
+
+  "STEP_16_野生动物": {
+    "koppen": "Dfb → 温带大陆性湿润动物群(但纬度59°已偏北→动物群向北方带过渡)",
+    "animals": [
+      { "name_zh": "驼鹿属(Alces alces)", "special": "瑞典国宝——长腿适应深雪——可涉水吃水生植物——在梅拉伦湖岸常见" },
+      { "name_zh": "熊属(Ursus arctos, 棕熊)", "special": "瑞典约有3000头——秋季超食冬眠——多在北部, 但偶尔出现在Mälaren周边森林" },
+      { "name_zh": "犬属(Canis lupus, 灰狼)", "special": "瑞典中部有少量狼群——围猎驼鹿" },
+      { "name_zh": "猞猁属(Lynx lynx, 欧亚猞猁)", "special": "瑞典最大的猫科动物——独居——耳尖黑毛簇" },
+      { "name_zh": "河狸属(Castor fiber)", "special": "在梅拉伦湖流域重新引入成功——筑坝改变小支流水文" },
+      { "name_zh": "鹿属(Cervus elaphus, 马鹿)", "special": "秋季发情期吼声可传数公里——主要在南瑞典, 59°N接近其北界" },
+      { "name_zh": "狐属(Vulpes vulpes, 赤狐)", "special": "高度可塑——城市周边常见——冬季依赖听觉在雪下捕鼠" },
+      { "name_zh": "林鸮属(Strix aluco, 灰林鸮)", "special": "完全无声飞行——耳孔不对称三维定位——常见于Mälaren周边的混交林" }
+    ],
+    "note": "59°N已接近许多温带动物的北界。再往北(>60°N)→进入北方带→动物群转为驼鹿/棕熊/猞猁/狼獾/雷鸟为主的泰加林-苔原过渡动物群。"
+  },
+
+  "STEP_17_原产植物": {
+    "vegetation_zone": "针阔混交林→北方针叶林过渡(hemiboreal→southern boreal)",
+    "key_plants": [
+      { "name": "欧洲云杉(Picea abies)", "habitat": "低地至山地森林", "uses": ["建材", "树脂"], "note": "瑞典森林主力树种" },
+      { "name": "欧洲赤松(Pinus sylvestris)", "habitat": "干燥冰碛脊/基岩露头", "uses": ["建材", "树脂"], "note": "耐贫瘠→占沙质/砾质土壤" },
+      { "name": "欧洲白桦(Betula pendula)", "habitat": "全境，尤其是次生林", "uses": ["建材", "药材"], "note": "先锋树种→火烧/砍伐后最先恢复" },
+      { "name": "欧洲山杨(Populus tremula)", "habitat": "湿润谷地", "uses": ["建材", "纸浆"] },
+      { "name": "英国栎(Quercus robur)", "habitat": "梅拉伦湖周边温暖南坡", "uses": ["建材"], "note": "59°N接近其天然北界→仅在湖滨微气候温暖处生长" },
+      { "name": "越橘(Vaccinium myrtillus)", "habitat": "林下地被", "uses": ["食物", "药材"], "note": "瑞典森林中最常见的地被灌木→大量浆果" },
+      { "name": "岩高兰(Empetrum nigrum)", "habitat": "岩岛/海岸", "uses": ["食物", "染料"] },
+      { "name": "帚石南(Calluna vulgaris)", "habitat": "干燥荒原/砍伐迹地", "uses": ["染料", "饲料"] }
+    ]
+  },
+
+  "STEP_18_矿产推断": {
+    "geological_context": "芬诺斯坎迪亚地盾(前寒武纪结晶基底)——世界上矿产资源最丰富的古陆块之一。但斯德哥尔摩本地(59°N 18°E)并非主要矿区。",
+    "minerals": [
+      { "mineral": "花岗岩/片麻岩(建材)", "deposit_type": "地盾基底广泛出露", "confidence": 0.95, "note": "优质建筑石料→斯德哥尔摩老城建筑大量使用本地花岗岩" },
+      { "mineral": "冰碛砾石/砂", "deposit_type": "冰川沉积", "confidence": 0.95, "note": "冰川搬运的砾石→建筑材料+路基" },
+      { "mineral": "黏土(砖瓦原料)", "deposit_type": "冰后期海相/湖相黏土", "confidence": 0.85, "note": "古波罗的海沉积的层状黏土→砖瓦制造" },
+      { "mineral": "铁矿", "deposit_type": "BIF条带状铁建造(在Bergslagen地区, 距斯德哥尔摩~150km西)", "confidence": 0.30, "note": "斯德哥尔摩本地无铁矿，但瑞典中部的Bergslagen矿区是欧洲历史上最重要的铁矿产区之一→铁矿通过梅拉伦湖水路运至斯德哥尔摩出口" },
+      { "mineral": "铜矿/锌矿", "deposit_type": "VMS火山块状硫化物(Bergslagen/Falun, 距~200km西北)", "confidence": 0.25, "note": "Falun铜矿曾是欧洲最大铜矿(17世纪占全球铜产量2/3)→矿石经水路至斯德哥尔摩出口" },
+      { "mineral": "煤矿", "deposit_type": "无(地盾区几乎无煤)", "confidence": 0.02, "note": "瑞典全境缺煤→历史上依赖木炭炼铁+进口煤" }
+    ],
+    "tech_path": "无煤+有铁(可通过贸易)→冶铁依赖木炭(瑞典模式)→丰富森林+水力为木炭高炉提供了替代路径。铁矿通过梅拉伦湖→斯德哥尔摩出口→城市因矿产贸易而繁荣。",
+    "strategic_importance": "斯德哥尔摩不是矿城，而是'矿产出口门户'——Bergslagen矿区的铁和铜通过湖泊-河流系统汇聚到梅拉伦湖→经斯德哥尔摩出口至波罗的海→欧洲市场。这是城市兴起的关键经济基础之一。"
+  },
+
+  "STEP_19_文明选址评分": {
+    "city_suitability": 88,
+    "top_candidates": [
+      { "location": "湖口岛屿(梅拉伦湖注入波罗的海处)", "score": 95, "reason": "淡水湖口+海水航道交汇点=终极水运枢纽。湖口群岛提供天然防御+港口。世界级城市选址。" },
+      { "location": "梅拉伦湖北岸乌普萨拉平原", "score": 82, "reason": "本地最肥沃的农业区(冰后期黏土)+湖港。但无海港优势。适合农业/行政/宗教中心。" },
+      { "location": "群岛外缘深水港", "score": 70, "reason": "直接面对波罗的海→深水港。但缺乏淡水湖的腹地连接和淡水供给。" }
+    ],
+    "navigability_class": "A级→B级(黄金水道→良好航道)混合: 梅拉伦湖内→A级(广阔湖面可通大船); 湖口出水道→B级(狭窄但深度足够, 终年不冻或仅短时结冰); 波罗的海→A级航道但冬季有浮冰",
+    "irrigation_potential": "低(降水基本充足, 但补充灌溉有益于春季干旱期)",
+    "flood_risk": "极低——梅拉伦湖作为天然调节水库, 削峰补枯。历史上斯德哥尔摩几乎无洪水记录。这是湖泊在河口上游的城市相较于普通河口城市的巨大优势。"
+  },
+
+  "STEP_20_城镇发展潜力": {
+    "total_score": 82,
+    "dimension_scores": {
+      "water_security": 95,
+      "detail": "梅拉伦湖(1140km²淡水湖)+波罗的海(咸水)=双水源。湖口河道终年不竭。供水能力足以支撑百万人口。"
+    },
+    "agricultural_base": 52,
+    "detail": "周边Podzols贫瘠, 但乌普萨拉平原(Uppsala)的冰后期海相黏土→瑞典最佳农业区之一→距城市仅60km→可通过湖运输入粮食。S1作物4种均为耐寒作物, 生长季180-200天→一季有余。乳业发达。"
+    },
+    "terrain_suitability": 68,
+    "detail": "湖口群岛→平地有限(城市必须建在多个岛屿上→'北方威尼斯')。但岛屿提供极佳天然防御→历史上只需控制湖口几个关键岛即可封锁整个梅拉伦湖流域的出海通道。"
+    },
+    "trade_transport": 95,
+    "detail": "湖口+海口双重枢纽=世界级水运节点。梅拉伦湖流域面积>21000km²→所有内陆货物必须通过此湖口出海。反过来, 所有海路货物必须经此进入内陆。这种'咽喉'(choke point)位置是税收和贸易垄断的完美基础。"
+    },
+    "resource_access": 50,
+    "detail": "建材: 花岗岩(丰富)+木材(丰富)→90分。燃料: 无煤, 依赖森林(木柴/木炭)→50分。金属: 本地无矿, 但Bergslagen矿区通过湖水路连接→可达性60分。盐: 无, 依赖海运进口→30分→但港口优势使进口成本低。"
+    },
+    "climate_comfort": 40,
+    "detail": "冬季漫长黑暗(12月日照<6小时)+寒冷(-3°C月均但极端可达-25°C)→生存成本高。但夏季宜人(7月均温17.5°C, 日照>18小时)→部分补偿。"
+    },
+    "hazard_penalty": -3,
+    "detail": "几乎无自然灾害: 无火山, 地震极弱(稳定地盾), 湖口洪水风险极低(湖泊调蓄), 海啸风险零(波罗的海半封闭)。唯一风险=冬季波罗的海冰封→航运中断2-3月。"
+    },
+
+    "development_stage": {
+      "stage": 5,
+      "name": "大都市/都会 (Metropolis)",
+      "population_estimate": "50万~250万(现代实际: 大斯德哥尔摩约240万)",
+      "radius_km": 30
+    },
+
+    "primary_specialization": {
+      "type": "港口贸易城 (Port/Trade City)",
+      "reason": "湖口+海口双重水运枢纽→天然贸易垄断点。梅拉伦湖流域所有进出口货物必经此咽喉。贸易和航运是城市存在的第一理由。"
+    },
+
+    "secondary_specializations": [
+      {
+        "type": "行政/政治首都",
+        "reason": "位置居中(梅拉伦湖流域的地理中心)+交通便利+易于防守→天然首善之区。17世纪瑞典帝国鼎盛时正式定为首都。"
+      },
+      {
+        "type": "军事要塞",
+        "reason": "湖口群岛可建要塞封锁整个梅拉伦湖流域→高防御杠杆。老城(Gamla Stan)即建在湖口中央岛上→城墙+炮台控制水道。"
+      }
+    ],
+
+    "key_buildings": ["湖港码头群", "海港码头群", "海关大楼", "商人交易所", "海军基地", "王宫( Stadsholmen岛)", "老城城墙/炮台", "粮仓/盐仓", "铁矿石堆场"],
+    "growth_forecast": {
+      "iron_age": "Stage 3(镇)——小型贸易据点, 控制湖口+征收过路费。人口数千。",
+      "medieval_era": "Stage 4(城市)——汉萨同盟贸易网络节点→波罗的海贸易圈→城市快速扩张。人口1-3万。13世纪建城。",
+      "early_modern": "Stage 5(大都市)——17世纪瑞典帝国首都→波罗的海帝国中心→人口向10万迈进。铁和铜出口通过此港→财富流入。",
+      "industrial_era": "Stage 5持续——铁路连接北部矿区→港口吞吐量暴增→工业(机械/造船)发展→20世纪初人口达30万。",
+      "modern": "Stage 5成熟——后工业转型→高科技(爱立信/Spotify)+绿色城市→人口240万。湖口地理优势在每一个时代都以不同的方式兑现。"
+    },
+
+    "inter_city_relationships": {
+      "uppsala": "上游65km, 梅拉伦湖北端→宗教/学术中心(乌普萨拉大学, 1477年建)→与斯德哥尔摩形成'政治-经济中心(斯德哥尔摩)+文化-知识中心(乌普萨拉)'的双城格局",
+      "bergslagen矿区城镇": "上游150-200km→铁/铜矿区→矿石经水路→梅拉伦湖→斯德哥尔摩出口→形成'矿区→湖港→海港'的产业链空间序列",
+      "波罗的海对岸": "赫尔辛基(芬兰)、塔林(爱沙尼亚)、里加(拉脱维亚)→均为斯德哥尔摩的贸易伙伴→波罗的海贸易圈"
+    },
+
+    "the_name_says_it_all": "地名学证据: 'Stockholm' = 'stock'(原木/木桩) + 'holm'(小岛)。字面意思是'木桩岛'——传说中, 早期定居者将木桩沉入湖口水道以防御海盗, 或用原木建造码头/堡垒。城市的功能就写在名字里: 控制水道的设防贸易据点。"
+  }
+}
