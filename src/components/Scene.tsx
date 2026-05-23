@@ -221,18 +221,23 @@ function SceneControls() {
 
     // Arrow key panning (camera mode only)
     if (brushType === "camera") {
-      const panSpeed = dist * 0.015;
-      const fwd = cam.position.clone().sub(target).normalize();
-      const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 0, 1)).normalize();
+      const panSpeed = dist * 0.02;
+      const fwd = new THREE.Vector3().copy(cam.position).sub(target).normalize();
+      const worldUp = new THREE.Vector3(0, 0, 1);
+      const right = new THREE.Vector3().crossVectors(fwd, worldUp).normalize();
       const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
 
-      if (keysDown.current.has("ArrowUp"))    target.add(up.multiplyScalar(panSpeed));
-      if (keysDown.current.has("ArrowDown"))  target.add(up.clone().multiplyScalar(-panSpeed));
-      if (keysDown.current.has("ArrowLeft"))  target.add(right.clone().multiplyScalar(-panSpeed));
-      if (keysDown.current.has("ArrowRight")) target.add(right.multiplyScalar(panSpeed));
+      let dx = 0, dy = 0;
+      if (keysDown.current.has("ArrowUp"))    dy += panSpeed;
+      if (keysDown.current.has("ArrowDown"))  dy -= panSpeed;
+      if (keysDown.current.has("ArrowLeft"))  dx -= panSpeed;
+      if (keysDown.current.has("ArrowRight")) dx += panSpeed;
 
-      controlsRef.current.target = target;
-      controlsRef.current.update();
+      if (dx !== 0 || dy !== 0) {
+        target.x += right.x * dx + up.x * dy;
+        target.y += right.y * dx + up.y * dy;
+        target.z += right.z * dx + up.z * dy;
+      }
     }
   });
 
