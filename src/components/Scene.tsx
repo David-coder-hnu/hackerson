@@ -236,7 +236,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
-          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2;
+          const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 4;
           const [px, py] = toWorld(m.x, m.y, 0);
           const hasAnalysis = !!m.analysis;
           const color = hasAnalysis ? "#4ae0a0" : "#e8945a";
@@ -263,7 +263,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {/* Custom pins (worldbuilding) */}
       {customPins.length > 0 && heightmap &&
         customPins.map((cp) => {
-          const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 2;
+          const h = heightmap[cp.y * HEIGHTMAP_SIZE + cp.x] * 4;
           const [px, py] = toWorld(cp.x, cp.y, 0);
           return (
             <group
@@ -299,7 +299,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
             let err = dx - dy;
             while (true) {
               const idx = y0 * HEIGHTMAP_SIZE + x0;
-              const h = heightmap[idx] * 2 + 0.06;
+              const h = heightmap[idx] * 4 + 0.06;
               const [px, py] = toWorld(x0, y0, 0);
               sampled.push(new THREE.Vector3(px, py, h));
               if (x0 === b.x && y0 === b.y) break;
@@ -314,7 +314,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
               {(() => {
                 const cx = cr.points.reduce((s, p) => s + p.x, 0) / cr.points.length;
                 const cy = cr.points.reduce((s, p) => s + p.y, 0) / cr.points.length;
-                const ch = heightmap[Math.round(cy) * HEIGHTMAP_SIZE + Math.round(cx)] * 2 + 0.15;
+                const ch = heightmap[Math.round(cy) * HEIGHTMAP_SIZE + Math.round(cx)] * 4 + 0.15;
                 const [cpx, cpy] = toWorld(Math.round(cx), Math.round(cy), 0);
                 return (
                   <Text
@@ -336,7 +336,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {/* River lines */}
       {showWater && riverPaths && heightmap && riverPaths.map((path, pi) => {
         const points = path.map(([x, y]) => {
-          const h = heightmap[y * HEIGHTMAP_SIZE + x] * 2 + 0.025;
+          const h = heightmap[y * HEIGHTMAP_SIZE + x] * 4 + 0.025;
           const [px, py] = toWorld(x, y, 0);
           return new THREE.Vector3(px, py, h);
         });
@@ -355,7 +355,7 @@ function TerrainOverlays({ onPinHover, onCustomPinHover }: { onPinHover: (i: num
       {/* Lake regions as filled shapes */}
       {showWater && lakeRegions && heightmap && lakeRegions.map((region, ri) => {
         if (region.length < 5) return null;
-        const avgH = region.reduce((s, [x, y]) => s + heightmap[y * HEIGHTMAP_SIZE + x] * 2, 0) / region.length + 0.015;
+        const avgH = region.reduce((s, [x, y]) => s + heightmap[y * HEIGHTMAP_SIZE + x] * 4, 0) / region.length + 0.015;
 
         // Create shape from convex hull of region points
         const worldPts = region.map(([x, y]) => {

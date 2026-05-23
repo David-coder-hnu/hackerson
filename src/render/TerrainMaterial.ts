@@ -305,7 +305,7 @@ export function createTerrainMaterial(heightmapData: Float32Array): {
     fragmentShader,
     uniforms: {
       uHeightmap: { value: texture },
-      uHeightScale: { value: 2.0 },
+      uHeightScale: { value: 4.0 },
       uResolution: { value: HEIGHTMAP_SIZE },
       uContourInterval: { value: 0.04 },
       uContourWidth: { value: 0.3 },
