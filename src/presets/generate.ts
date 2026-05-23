@@ -47,8 +47,7 @@ export function generatePreset(key: PresetName): Float32Array {
         case "volcanic-island": {
           const peak = Math.exp(-dist * 3) * 0.85;
           const ridge = noise * 0.2;
-          // Ocean deepens away from island center
-          const oceanDepth = 0.02 + dist * 0.06;
+          const oceanDepth = 0.02 + dist * 0.05;
           h = oceanDepth + peak + ridge;
           break;
         }
@@ -56,13 +55,15 @@ export function generatePreset(key: PresetName): Float32Array {
           const dx = Math.abs(x - cx) / cx;
           const ridgeVal = Math.exp(-dx * 1.5) * 0.7;
           const sideVal = Math.exp(-dx * 4) * 0.3;
-          h = 0.1 + ridgeVal + sideVal + noise * 0.25;
+          const landMass = ridgeVal + sideVal;
+          h = 0.04 + landMass + noise * 0.2;
           break;
         }
         case "crater-lake": {
           const rim = Math.exp(-Math.abs(dist - 0.2) * 15) * 0.6;
           const inner = Math.exp(-dist * 5) * 0.15;
-          h = 0.15 + rim + inner + noise * 0.1;
+          const landMass = rim + inner;
+          h = 0.04 + landMass + noise * 0.1;
           break;
         }
         case "archipelago": {
@@ -70,9 +71,8 @@ export function generatePreset(key: PresetName): Float32Array {
           const island2 = Math.exp(-(((x - cx * 1.5) ** 2 + (y - cy * 1.3) ** 2) / 3000)) * 0.6;
           const island3 = Math.exp(-(((x - cx * 0.8) ** 2 + (y - cy * 1.6) ** 2) / 3500)) * 0.45;
           const landMass = island1 + island2 + island3;
-          // Ocean depth: deeper where far from any island
-          const oceanDepth = 0.04 - landMass * 0.03;
-          h = oceanDepth + landMass + noise * 0.12;
+          const oceanDepth = 0.02 - landMass * 0.02;
+          h = oceanDepth + landMass + noise * 0.10;
           break;
         }
       }
@@ -84,12 +84,12 @@ export function generatePreset(key: PresetName): Float32Array {
   return hm;
 }
 
-// Default flat terrain with slight noise
+// Default: shallow ocean canvas
 export function createDefaultHeightmap(): Float32Array {
   const hm = new Float32Array(HEIGHTMAP_SIZE * HEIGHTMAP_SIZE);
   for (let y = 0; y < HEIGHTMAP_SIZE; y++) {
     for (let x = 0; x < HEIGHTMAP_SIZE; x++) {
-      hm[y * HEIGHTMAP_SIZE + x] = 0.15 + 0.05;
+      hm[y * HEIGHTMAP_SIZE + x] = 0.08;
     }
   }
   return hm;

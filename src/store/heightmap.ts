@@ -5,9 +5,8 @@ import { HEIGHTMAP_SIZE, MAX_UNDO } from "../types";
 function createEmptyHeightmap(): Float32Array {
   const size = HEIGHTMAP_SIZE * HEIGHTMAP_SIZE;
   const data = new Float32Array(size);
-  const seaLevel = 0.15;
   for (let i = 0; i < size; i++) {
-    data[i] = seaLevel + 0.05;
+    data[i] = 0.08; // shallow ocean
   }
   return data;
 }
@@ -132,7 +131,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mode: "edit",
   viewMode: "3d",
   heightmap: null,
-  brush: { radius: 20, strength: 0.117, type: "camera" },
+  brush: { radius: 25, strength: 0.05, type: "camera" },
   simProgress: null,
   archive: null,
   undoStack: [],
