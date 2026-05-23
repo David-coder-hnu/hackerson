@@ -84,18 +84,9 @@ export function generatePreset(key: PresetName): Float32Array {
   return hm;
 }
 
-// Default: shallow ocean with depth variation
+// Default: perfectly flat shallow ocean
 export function createDefaultHeightmap(): Float32Array {
   const hm = new Float32Array(HEIGHTMAP_SIZE * HEIGHTMAP_SIZE);
-  for (let y = 0; y < HEIGHTMAP_SIZE; y++) {
-    for (let x = 0; x < HEIGHTMAP_SIZE; x++) {
-      const nx = x / HEIGHTMAP_SIZE;
-      const ny = y / HEIGHTMAP_SIZE;
-      // Large-scale depth variation: deeper toward edges, some ridges
-      const dist = Math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2);
-      const depth = 0.02 + dist * 0.05 + noise2D(nx * 3, ny * 3, 77) * 0.02;
-      hm[y * HEIGHTMAP_SIZE + x] = Math.max(0, Math.min(1, depth));
-    }
-  }
+  hm.fill(0.08);
   return hm;
 }
