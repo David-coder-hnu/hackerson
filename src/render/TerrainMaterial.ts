@@ -218,7 +218,7 @@ const fragmentShader = /* glsl */ `
     else if (precip < 0.9) veg = mix(forest, jungle, (precip - 0.7) / 0.2);
     else veg = jungle;
 
-    float rockT = smoothstep(2.0, 4.0, elev);
+    float rockT = smoothstep(1.5, 3.0, elev);
     vec3 col = mix(veg, base, rockT);
 
     vec3 ice = vec3(0.90, 0.92, 0.95);
