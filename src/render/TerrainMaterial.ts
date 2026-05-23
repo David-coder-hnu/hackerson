@@ -135,7 +135,7 @@ const fragmentShader = /* glsl */ `
     float lat = uv.y * 180.0 - 90.0;
 
     // h normalized to 0-10km for hypsometric bands
-    float elev = h * 10.0; // 0-10 km
+    float elev = (h - 0.15) * 3.0; // km above sea level
 
     vec3 lowGreen  = vec3(0.298, 0.549, 0.227);  // 0-200m  #4C8C3A
     vec3 plainGreen= vec3(0.486, 0.694, 0.369);  // 200-500m #7CB15E
@@ -153,10 +153,9 @@ const fragmentShader = /* glsl */ `
     else if (elev < 1.0) col = mix(hillGreen, highGreen, (elev - 0.5) / 0.5);
     else if (elev < 1.5) col = mix(highGreen, brownLow, (elev - 1.0) / 0.5);
     else if (elev < 2.5) col = mix(brownLow, brownMid, (elev - 1.5) / 1.0);
-    else if (elev < 3.5) col = mix(brownMid, greyBrown, (elev - 2.5) / 1.0);
-    else if (elev < 5.0) col = mix(greyBrown, greyHigh, (elev - 3.5) / 1.5);
-    else if (elev < 8.0) col = mix(greyHigh, white, (elev - 5.0) / 3.0);
-    else col = white;
+    else if (elev < 4.0) col = mix(brownMid, greyBrown, (elev - 2.5) / 1.5);
+    else if (elev < 6.0) col = mix(greyBrown, greyHigh, (elev - 4.0) / 2.0);
+    else col = vec3(1.0, 1.0, 1.0);
 
     // Latitude snow/ice override
     vec3 ice = vec3(0.90, 0.92, 0.95);
@@ -196,8 +195,9 @@ const fragmentShader = /* glsl */ `
     else if (elev < 1.0) base = mix(hillGreen, highGreen, (elev - 0.5) / 0.5);
     else if (elev < 1.5) base = mix(highGreen, brownLow, (elev - 1.0) / 0.5);
     else if (elev < 2.5) base = mix(brownLow, brownMid, (elev - 1.5) / 1.0);
-    else if (elev < 3.5) base = mix(brownMid, greyBrown, (elev - 2.5) / 1.0);
-    else base = mix(greyBrown, greyHigh, (elev - 3.5) / 1.5);
+    else if (elev < 4.0) base = mix(brownMid, greyBrown, (elev - 2.5) / 1.5);
+    else if (elev < 6.0) base = mix(greyBrown, greyHigh, (elev - 4.0) / 2.0);
+    else base = vec3(1.0, 1.0, 1.0);
 
     // Vegetation density from precipitation
     float precip = 1.0;
