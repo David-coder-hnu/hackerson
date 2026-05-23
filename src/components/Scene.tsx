@@ -186,7 +186,7 @@ function TerrainMesh() {
   return (
     <mesh
       ref={meshRef}
-      rotation={[Math.PI / 3, 0, 0]}
+      rotation={[-Math.PI / 3, 0, 0]}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -223,7 +223,7 @@ function TerrainOverlays({ onPinHover }: { onPinHover: (i: number | null) => voi
   }, []);
 
   return (
-    <group rotation={[Math.PI / 3, 0, 0]}>
+    <group rotation={[-Math.PI / 3, 0, 0]}>
       {/* Markers */}
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {

@@ -1,4 +1,4 @@
-export type BrushType = "raise" | "lower" | "flatten" | "smooth" | "water" | "marker";
+export type BrushType = "camera" | "raise" | "lower" | "flatten" | "smooth" | "water" | "marker";
 export type AppMode = "edit" | "simulating" | "observing";
 export type ViewMode = "3d" | "2d";
 export type ToolType = BrushType | "random" | "rivers" | "diagnosis" | "toggle" | "reset";
