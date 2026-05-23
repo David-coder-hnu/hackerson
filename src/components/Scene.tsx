@@ -4,6 +4,7 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useHeightmapStore } from "../store/heightmap";
 import { createTerrainMaterial, setClimateTextures } from "../render/TerrainMaterial";
+import { createRiverMaterial, createLakeMaterial } from "../render/WaterMaterial";
 import { HEIGHTMAP_SIZE } from "../types";
 import { cellLat, cellLon } from "../simulation/geo";
 
@@ -178,7 +179,7 @@ function TerrainMesh() {
   );
 }
 
-// Water overlay using InstancedMesh for performance
+// Water overlay using InstancedMesh with animated shaders
 function WaterOverlay() {
   const heightmap = useHeightmapStore((s) => s.heightmap);
   const rMask = useHeightmapStore((s) => s.riverData.riverMask);
@@ -186,13 +187,27 @@ function WaterOverlay() {
   const mode = useHeightmapStore((s) => s.mode);
   const riverRef = useRef<THREE.InstancedMesh>(null!);
   const lakeRef = useRef<THREE.InstancedMesh>(null!);
+  const riverMat = useRef<THREE.ShaderMaterial>(null!);
+  const lakeMat = useRef<THREE.ShaderMaterial>(null!);
   const scale = 10 / HEIGHTMAP_SIZE;
 
   const showOverlay = mode === "observing" || !!rMask;
 
+  // Init materials once
+  useEffect(() => {
+    riverMat.current = createRiverMaterial();
+    lakeMat.current = createLakeMaterial();
+  }, []);
+
+  // Animate water time uniform
+  useFrame(({ clock }) => {
+    if (riverMat.current) riverMat.current.uniforms.uTime.value = clock.elapsedTime;
+    if (lakeMat.current) lakeMat.current.uniforms.uTime.value = clock.elapsedTime;
+  });
+
   useEffect(() => {
     if (!showOverlay || !rMask || !heightmap) return;
-    const step = 3; // wider step for performance
+    const step = 3;
     const riverCells: { x: number; y: number; z: number; s: number }[] = [];
     const lakeCells: { x: number; y: number; z: number }[] = [];
 
@@ -207,7 +222,6 @@ function WaterOverlay() {
       }
     }
 
-    // Update river instances
     if (riverRef.current) {
       riverRef.current.count = Math.min(riverCells.length, 50000);
       const m = new THREE.Matrix4();
@@ -221,7 +235,6 @@ function WaterOverlay() {
       riverRef.current.instanceMatrix.needsUpdate = true;
     }
 
-    // Update lake instances
     if (lakeRef.current) {
       lakeRef.current.count = Math.min(lakeCells.length, 50000);
       const m = new THREE.Matrix4();
@@ -241,13 +254,11 @@ function WaterOverlay() {
 
   return (
     <group rotation={[-Math.PI / 3, 0, 0]}>
-      <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]}>
+      <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]} material={riverMat.current}>
         <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial color="#3a8fd4" side={THREE.DoubleSide} />
       </instancedMesh>
-      <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]}>
+      <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]} material={lakeMat.current}>
         <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial color="#1a5a8a" side={THREE.DoubleSide} transparent opacity={0.8} />
       </instancedMesh>
     </group>
   );
