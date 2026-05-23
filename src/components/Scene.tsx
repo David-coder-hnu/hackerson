@@ -173,7 +173,7 @@ function MarkerDots() {
   );
 }
 
-const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"];
+const SCULPT_TOOLS = ["raise", "lower", "smooth", "water", "marker"]; // "camera" is NOT sculpt — orbit enabled
 const ZOOM_2D_THRESHOLD = 18; // camera distance at which 2D toggles on
 
 function SceneControls() {
