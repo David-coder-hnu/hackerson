@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -178,22 +178,87 @@ function TerrainMesh() {
   );
 }
 
-// Terrain overlays share the same rotation as the terrain mesh
-function TerrainOverlays() {
-  const markers = useHeightmapStore((s) => s.markers);
+// Water overlay using InstancedMesh for performance
+function WaterOverlay() {
   const heightmap = useHeightmapStore((s) => s.heightmap);
-  const riverData = useHeightmapStore((s) => s.riverData);
-  const rMask = riverData.riverMask;
-  const lMask = riverData.lakeMask;
-  const fAccum = riverData.flowAccum;
-  const scale = 10 / HEIGHTMAP_SIZE;
+  const rMask = useHeightmapStore((s) => s.riverData.riverMask);
+  const lMask = useHeightmapStore((s) => s.riverData.lakeMask);
   const mode = useHeightmapStore((s) => s.mode);
+  const riverRef = useRef<THREE.InstancedMesh>(null!);
+  const lakeRef = useRef<THREE.InstancedMesh>(null!);
+  const scale = 10 / HEIGHTMAP_SIZE;
 
   const showOverlay = mode === "observing" || !!rMask;
 
+  useEffect(() => {
+    if (!showOverlay || !rMask || !heightmap) return;
+    const step = 3; // wider step for performance
+    const riverCells: { x: number; y: number; z: number; s: number }[] = [];
+    const lakeCells: { x: number; y: number; z: number }[] = [];
+
+    for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
+      for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
+        const i = y * HEIGHTMAP_SIZE + x;
+        const h = heightmap[i] * 2;
+        const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
+        const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+        if (rMask[i]) riverCells.push({ x: px, y: py, z: h + 0.02, s: scale * 2.5 });
+        if (lMask?.[i]) lakeCells.push({ x: px, y: py, z: h + 0.015 });
+      }
+    }
+
+    // Update river instances
+    if (riverRef.current) {
+      riverRef.current.count = Math.min(riverCells.length, 50000);
+      const m = new THREE.Matrix4();
+      for (let j = 0; j < riverRef.current.count; j++) {
+        const c = riverCells[j];
+        m.identity();
+        m.scale(new THREE.Vector3(c.s, c.s, 1));
+        m.setPosition(c.x, c.y, c.z);
+        riverRef.current.setMatrixAt(j, m);
+      }
+      riverRef.current.instanceMatrix.needsUpdate = true;
+    }
+
+    // Update lake instances
+    if (lakeRef.current) {
+      lakeRef.current.count = Math.min(lakeCells.length, 50000);
+      const m = new THREE.Matrix4();
+      const ls = scale * 4;
+      for (let j = 0; j < lakeRef.current.count; j++) {
+        const c = lakeCells[j];
+        m.identity();
+        m.scale(new THREE.Vector3(ls, ls, 1));
+        m.setPosition(c.x, c.y, c.z);
+        lakeRef.current.setMatrixAt(j, m);
+      }
+      lakeRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [rMask, lMask, heightmap, showOverlay, scale]);
+
+  if (!showOverlay) return null;
+
   return (
     <group rotation={[-Math.PI / 3, 0, 0]}>
-      {/* Markers */}
+      <instancedMesh ref={riverRef} args={[undefined, undefined, 50000]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial color="#3a8fd4" side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={lakeRef} args={[undefined, undefined, 50000]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial color="#1a5a8a" side={THREE.DoubleSide} transparent opacity={0.8} />
+      </instancedMesh>
+    </group>
+  );
+}
+
+function TerrainOverlays() {
+  const markers = useHeightmapStore((s) => s.markers);
+  const heightmap = useHeightmapStore((s) => s.heightmap);
+
+  return (
+    <group rotation={[-Math.PI / 3, 0, 0]}>
       {markers.length > 0 && heightmap &&
         markers.map((m, i) => {
           const h = heightmap[m.y * HEIGHTMAP_SIZE + m.x] * 2 + 0.05;
@@ -206,39 +271,6 @@ function TerrainOverlays() {
             </mesh>
           );
         })}
-      {/* Rivers & Lakes */}
-      {showOverlay && rMask && heightmap && (() => {
-        const elems: React.ReactNode[] = [];
-        const step = 2;
-        for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
-          for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
-            const i = y * HEIGHTMAP_SIZE + x;
-            const h = heightmap[i] * 2;
-            const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
-            const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
-            // River width varies with flow accumulation
-            const flow = fAccum ? Math.min(1, fAccum[i] / (HEIGHTMAP_SIZE * 4)) : 0.5;
-            if (rMask[i]) {
-              const w = scale * (1.5 + flow * 4);
-              elems.push(
-                <mesh key={`r${i}`} position={[px, py, h + 0.02]}>
-                  <planeGeometry args={[w, w]} />
-                  <meshBasicMaterial color={new THREE.Color().setHSL(0.57, 0.7, 0.35 + flow * 0.3)} side={THREE.DoubleSide} />
-                </mesh>
-              );
-            }
-            if (lMask && lMask[i]) {
-              elems.push(
-                <mesh key={`l${i}`} position={[px, py, h + 0.015]}>
-                  <planeGeometry args={[scale * 4, scale * 4]} />
-                  <meshBasicMaterial color="#1a5a8a" side={THREE.DoubleSide} opacity={0.8} transparent />
-                </mesh>
-              );
-            }
-          }
-        }
-        return <>{elems}</>;
-      })()}
     </group>
   );
 }
@@ -340,6 +372,7 @@ export default function Scene() {
       <directionalLight position={[5, 10, 5]} intensity={0.7} />
       <TerrainMesh />
       <TerrainOverlays />
+      <WaterOverlay />
       <SceneControls />
     </Canvas>
   );
