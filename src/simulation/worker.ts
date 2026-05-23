@@ -126,15 +126,49 @@ function detectLakes(hm: Float32Array, dirs: Int8Array): Uint8Array {
   return lakes;
 }
 
-// ---- Climate model: latitude-driven + terrain-modulated ----
+// ---- Compute distance to nearest coastline (BFS from ocean cells) ----
+function computeCoastDist(hm: Float32Array, seaLevel: number): Float32Array {
+  const dist = new Float32Array(SIZE * SIZE).fill(999);
+  const queue: [number, number][] = [];
+
+  // Seed: ocean cells (below sea level)
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      if (hm[idx(x, y)] < seaLevel) {
+        dist[idx(x, y)] = 0;
+        queue.push([x, y]);
+      }
+    }
+  }
+
+  // BFS
+  let head = 0;
+  const n4 = [[0,1],[0,-1],[1,0],[-1,0]];
+  while (head < queue.length) {
+    const [cx, cy] = queue[head++];
+    const cd = dist[idx(cx, cy)];
+    for (const [dx, dy] of n4) {
+      const nx = cx + dx, ny = cy + dy;
+      if (!inBounds(nx, ny)) continue;
+      if (dist[idx(nx, ny)] > cd + 1) {
+        dist[idx(nx, ny)] = cd + 1;
+        queue.push([nx, ny]);
+      }
+    }
+  }
+  return dist;
+}
+
+// ---- Full climate model using all geo knowledge ----
 function computeClimateFields(
   hm: Float32Array,
-  _windDir: number // kept for API compat, but lat/lon determines wind now
+  seaLevel: number
 ): { precipMap: Float32Array; tempMap: Float32Array } {
   const precip = new Float32Array(SIZE * SIZE);
   const temp = new Float32Array(SIZE * SIZE);
-  const tempLapseRate = 6.5; // °C per 1000m
-  const precipScale = 0.6;
+  const coastDist = computeCoastDist(hm, seaLevel);
+  const maxCoastDist = 150; // normalize continentality at ~150 cells inland
+  const tempLapseRate = 6.5;
 
   for (let y = 0; y < SIZE; y++) {
     const lat = cellLat(y);
@@ -142,40 +176,94 @@ function computeClimateFields(
     const latPrecip = latPrecipFactor(lat);
     const windDir = prevailingWindDir(lat);
     const wx = Math.cos(windDir), wy = Math.sin(windDir);
+    const coriolis = Math.abs(lat) > 10 ? 1 + Math.abs(lat) / 60 : 1; // Coriolis strength
 
     for (let x = 0; x < SIZE; x++) {
       const i = idx(x, y);
-      const elev = hm[i] * 10; // 0-1 → 0-10 km
+      const elev = hm[i] * 10; // km
       const geo = getCellGeo(x, y, hm);
+      const cdist = Math.min(coastDist[i], maxCoastDist);
+      const continentality = cdist / maxCoastDist; // 0=coastal, 1=deep interior
 
-      // Temperature: latitude base + lapse rate + seasonality
-      const tBase = baseT - elev * tempLapseRate;
-      temp[i] = tBase;
+      // === TEMPERATURE ===
+      // Base: latitude + lapse rate
+      let t = baseT - elev * tempLapseRate;
 
-      // Precipitation: latitude factor × orographic enhancement × distance from water
+      // Continentality: interior = hotter summer, colder winter → wider annual range
+      // (annual mean effect is small; primarily affects seasonality)
+      t += continentality * 2; // slight warming in interior (summer-dominated effect)
+
+      // Aspect: south-facing slopes (NH) are warmer
+      const absLat = Math.abs(lat);
+      if (absLat > 15 && geo.slope > 0.01) {
+        const southFacing = Math.cos(geo.aspect - Math.PI); // 0 = south-facing (NH)
+        t += southFacing * geo.slope * 3 * (lat >= 0 ? 1 : -1);
+      }
+
+      // Coastal moderation: coastal areas have milder temps
+      t -= (1 - continentality) * 1.5;
+
+      // Cold air drainage: basin bottoms are colder at night (simplified as annual effect)
+      if (geo.slope < 0.005 && elev > 0.8) {
+        t -= 2; // high plateau cold trap
+      }
+
+      temp[i] = t;
+
+      // === PRECIPITATION ===
       let p = latPrecip * 0.3;
 
-      // Orographic lift: wind blows upslope → rain
-      const ux = Math.round(x - wx * 3);
-      const uy = Math.round(y - wy * 3);
-      if (inBounds(ux, uy)) {
-        const upwindH = hm[idx(ux, uy)];
-        const elevDiff = (elev - upwindH * 10) / 3; // slope along wind
-        if (elevDiff > 0) {
-          p += elevDiff * precipScale * 2.0; // windward = rain
-        } else {
-          p += elevDiff * precipScale * 0.8; // leeward = rain shadow (weaker)
-        }
+      // Orographic lift: multi-step lookback along wind direction
+      let totalLift = 0;
+      for (let step = 1; step <= 8; step++) {
+        const sx = Math.round(x - wx * step);
+        const sy = Math.round(y - wy * step);
+        if (!inBounds(sx, sy)) break;
+        const prevH = hm[idx(sx, sy)];
+        const sx2 = Math.round(x - wx * (step - 1));
+        const sy2 = Math.round(y - wy * (step - 1));
+        const curH = inBounds(sx2, sy2) ? hm[idx(sx2, sy2)] : hm[i];
+        const lift = (curH - prevH) * 10; // km
+        if (lift > 0) totalLift += lift * Math.exp(-step / 4); // decay with distance
+      }
+      p += totalLift * 0.08; // windward rain
+
+      // Rain shadow: extended look-ahead to detect mountain barriers
+      let maxUpwindH = 0;
+      for (let step = 1; step <= 12; step++) {
+        const sx = Math.round(x - wx * step);
+        const sy = Math.round(y - wy * step);
+        if (!inBounds(sx, sy)) break;
+        maxUpwindH = Math.max(maxUpwindH, hm[idx(sx, sy)] * 10);
+      }
+      const barrierHeight = maxUpwindH - elev;
+      if (barrierHeight > 0.5) {
+        p -= barrierHeight * 0.06 * coriolis; // rain shadow behind high terrain
       }
 
-      // Mountain barrier effect: high peaks force air up, creating rain
-      if (elev > 1.5 && geo.slope > 0.01) {
-        p += geo.slope * precipScale * 1.5;
+      // Mountain peak precipitation (high peaks force air up on both sides)
+      if (elev > 1.5 && geo.slope > 0.02) {
+        p += geo.slope * 2.0 * (1 + (elev - 1.5) * 0.5);
       }
 
-      // Coastal proximity bonus (simplified by checking if near sea level)
-      // In a real model, distance to coastline would be computed
-      if (elev < 0.5) p += 0.15; // coastal moisture
+      // Coastal moisture: exponentially decaying with distance from coast
+      p += Math.exp(-cdist / 30) * 0.25;
+
+      // Continentality drying: interior far from any ocean is drier
+      p -= continentality * 0.20;
+
+      // ITCZ proximity bonus (tropical convergence zone)
+      const itczLat = 7.5; // annual mean
+      const itczDist = Math.abs(lat - itczLat) / 30;
+      if (itczDist < 1) {
+        p += (1 - itczDist) * 0.3;
+      }
+
+      // Slope aspect: windward slopes get more, leeward less
+      if (geo.slope > 0.02) {
+        const windAlignment = Math.cos(geo.aspect - windDir);
+        p += windAlignment * geo.slope * 0.8;
+      }
 
       precip[i] = Math.max(0, Math.min(1, p));
     }
@@ -259,7 +347,7 @@ onmessage = (e: MessageEvent) => {
   );
 
   // Climate
-  const { precipMap, tempMap } = computeClimateFields(filled, windDir);
+  const { precipMap, tempMap } = computeClimateFields(filled, seaLevel);
   const stats = climateStats(tempMap, precipMap, filled, seaLevel);
 
   // Köppen classification

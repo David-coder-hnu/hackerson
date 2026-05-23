@@ -32,6 +32,7 @@ const fragmentShader = /* glsl */ `
   uniform sampler2D uPrecipMap;
   uniform sampler2D uTempMap;
   uniform float uHasClimate;
+  uniform float uClimateBlend; // 0-1 animates climate overlay in
   uniform float uResolution;
 
   // ---- Hash / noise for texture variation ----
@@ -114,6 +115,37 @@ const fragmentShader = /* glsl */ `
     // Texture variation on beach
     float n = fbm(uv * uResolution * 2.0) * 0.04;
     return shore + n;
+  }
+
+  // ---- Land color WITHOUT climate (for transition blend) ----
+  vec3 landColorNoClimate(float h, float slope, vec2 uv) {
+    float n = fbm(uv * uResolution * 1.5) * 0.04;
+    vec3 lowGreen   = vec3(0.250, 0.440, 0.160);
+    vec3 forest     = vec3(0.140, 0.340, 0.110);
+    vec3 highForest = vec3(0.180, 0.360, 0.130);
+    vec3 highland   = vec3(0.380, 0.340, 0.200);
+    vec3 rock       = vec3(0.480, 0.420, 0.340);
+    vec3 scree      = vec3(0.550, 0.500, 0.440);
+    vec3 snow       = vec3(0.850, 0.840, 0.810);
+
+    float t1 = smoothstep(0.22, 0.38, h);
+    float t2 = smoothstep(0.38, 0.52, h);
+    float t3 = smoothstep(0.52, 0.65, h);
+    float t4 = smoothstep(0.65, 0.78, h);
+    float t5 = smoothstep(0.78, 0.88, h);
+    float t6 = smoothstep(0.88, 0.95, h);
+
+    vec3 col = mix(lowGreen, forest, t1);
+    col = mix(col, highForest, t2);
+    col = mix(col, highland, t3);
+    col = mix(col, rock, t4);
+    col = mix(col, scree, t5);
+    col = mix(col, snow, t6);
+
+    float steep = smoothstep(0.08, 0.40, slope);
+    col = mix(col, rock * 0.9, steep * 0.5);
+    col += n;
+    return col;
   }
 
   // ---- Land color: satellite-style green/brown gradation ----
@@ -201,14 +233,14 @@ const fragmentShader = /* glsl */ `
       vec3 col;
 
       if (h < 0.14) {
-        // Ocean
         col = oceanColor(h, slope);
       } else if (h < 0.22) {
-        // Shoreline transition
         col = shoreColor(h, slope, vUv);
       } else {
-        // Land
-        col = landColor(h, slope, vUv);
+        // Land with optional climate blend
+        vec3 colNoClimate = landColorNoClimate(h, slope, vUv);
+        vec3 colClimate = landColor(h, slope, vUv);
+        col = mix(colNoClimate, colClimate, uClimateBlend);
       }
 
       // ---- Lighting ----
@@ -275,6 +307,7 @@ export function createTerrainMaterial(heightmapData: Float32Array): {
       uPrecipMap: { value: dummyTex },
       uTempMap: { value: dummyTex },
       uHasClimate: { value: 0 },
+      uClimateBlend: { value: 0 },
     },
     side: THREE.DoubleSide,
   });

@@ -53,13 +53,28 @@ function TerrainMesh() {
     materialRef.current.uniforms.uViewMode.value = viewMode === "2d" ? 1 : 0;
   }, [heightmap, viewMode]);
 
+  // Animate climate blend transition
+  useFrame((_, delta) => {
+    if (!materialRef.current) return;
+    const target = (simProgress?.precipMap && simProgress?.tempMap) ? 1 : 0;
+    const current = materialRef.current.uniforms.uClimateBlend.value as number;
+    const next = current + (target - current) * Math.min(delta * 3, 1);
+    materialRef.current.uniforms.uClimateBlend.value = next;
+  });
+
   // Update climate textures on terrain when simulation provides them
   useEffect(() => {
     if (!materialRef.current) return;
     if (simProgress?.precipMap && simProgress?.tempMap) {
       setClimateTextures(materialRef.current, simProgress.precipMap, simProgress.tempMap);
     }
-  }, [simProgress?.precipMap, simProgress?.tempMap]);
+    if (mode === "observing" || mode === "simulating") {
+      const sp = useHeightmapStore.getState().simProgress;
+      if (sp?.precipMap && sp?.tempMap) {
+        setClimateTextures(materialRef.current, sp.precipMap, sp.tempMap);
+      }
+    }
+  }, [simProgress?.precipMap, simProgress?.tempMap, mode]);
 
   const getUVFromEvent = useCallback((e: ThreeEvent<PointerEvent>): { x: number; y: number } | null => {
     if (!meshRef.current) return null;
@@ -170,7 +185,11 @@ function TerrainOverlays() {
   const riverData = useHeightmapStore((s) => s.riverData);
   const rMask = riverData.riverMask;
   const lMask = riverData.lakeMask;
+  const fAccum = riverData.flowAccum;
   const scale = 10 / HEIGHTMAP_SIZE;
+  const mode = useHeightmapStore((s) => s.mode);
+
+  const showOverlay = mode === "observing" || !!rMask;
 
   return (
     <group rotation={[-Math.PI / 3, 0, 0]}>
@@ -188,29 +207,31 @@ function TerrainOverlays() {
           );
         })}
       {/* Rivers & Lakes */}
-      {rMask && heightmap && (() => {
+      {showOverlay && rMask && heightmap && (() => {
         const elems: React.ReactNode[] = [];
         const step = 2;
-        const riverColor = new THREE.Color("#3a8fd4");
         for (let y = 0; y < HEIGHTMAP_SIZE; y += step) {
           for (let x = 0; x < HEIGHTMAP_SIZE; x += step) {
             const i = y * HEIGHTMAP_SIZE + x;
-            const h = heightmap[i] * 2 + 0.03;
+            const h = heightmap[i] * 2;
             const px = (x / HEIGHTMAP_SIZE - 0.5) * 10;
             const py = (0.5 - y / HEIGHTMAP_SIZE) * 10;
+            // River width varies with flow accumulation
+            const flow = fAccum ? Math.min(1, fAccum[i] / (HEIGHTMAP_SIZE * 4)) : 0.5;
             if (rMask[i]) {
+              const w = scale * (1.5 + flow * 4);
               elems.push(
-                <mesh key={`r${i}`} position={[px, py, h]}>
-                  <planeGeometry args={[scale * 2, scale * 2]} />
-                  <meshBasicMaterial color={riverColor} side={THREE.DoubleSide} />
+                <mesh key={`r${i}`} position={[px, py, h + 0.02]}>
+                  <planeGeometry args={[w, w]} />
+                  <meshBasicMaterial color={new THREE.Color().setHSL(0.57, 0.7, 0.35 + flow * 0.3)} side={THREE.DoubleSide} />
                 </mesh>
               );
             }
             if (lMask && lMask[i]) {
               elems.push(
-                <mesh key={`l${i}`} position={[px, py, h - 0.01]}>
-                  <planeGeometry args={[scale * 3, scale * 3]} />
-                  <meshBasicMaterial color="#2a6aaa" side={THREE.DoubleSide} />
+                <mesh key={`l${i}`} position={[px, py, h + 0.015]}>
+                  <planeGeometry args={[scale * 4, scale * 4]} />
+                  <meshBasicMaterial color="#1a5a8a" side={THREE.DoubleSide} opacity={0.8} transparent />
                 </mesh>
               );
             }
