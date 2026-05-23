@@ -130,12 +130,16 @@ function applyBrushOp(
 
 export const useHeightmapStore = create<AppState>((set, get) => ({
   mode: "edit",
+  viewMode: "3d",
   heightmap: null,
   brush: { radius: 15, strength: 0.3, type: "raise" },
   simProgress: null,
   archive: null,
   undoStack: [],
   redoStack: [],
+  markers: [],
+  mouseHeight: 0,
+  mouseBiome: "Ocean",
 
   initHeightmap: (data: Float32Array) => {
     set({ heightmap: data, mode: "edit", undoStack: [], redoStack: [] });
@@ -177,19 +181,27 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   },
 
   setMode: (mode: AppState["mode"]) => set({ mode }),
-
+  setViewMode: (vm) => set({ viewMode: vm }),
   setSimProgress: (progress) => set({ simProgress: progress }),
-
   setArchive: (archive) => set({ archive }),
+  setMouseInfo: (height, biome) => set({ mouseHeight: height, mouseBiome: biome }),
+
+  addMarker: (x, y) => {
+    set((s) => ({ markers: [...s.markers, { x, y }] }));
+  },
 
   reset: () => {
     set({
       mode: "edit",
+      viewMode: "3d",
       heightmap: createEmptyHeightmap(),
       undoStack: [],
       redoStack: [],
       simProgress: null,
       archive: null,
+      markers: [],
+      mouseHeight: 0,
+      mouseBiome: "Ocean",
     });
   },
 }));

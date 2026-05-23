@@ -1,5 +1,7 @@
-export type BrushType = "raise" | "lower" | "flatten" | "smooth";
+export type BrushType = "raise" | "lower" | "flatten" | "smooth" | "water" | "marker";
 export type AppMode = "edit" | "simulating" | "observing";
+export type ViewMode = "3d" | "2d";
+export type ToolType = BrushType | "random" | "rivers" | "diagnosis" | "toggle" | "reset";
 
 export interface BrushState {
   radius: number;
@@ -43,14 +45,19 @@ export interface SimRequest {
 
 export interface AppState {
   mode: AppMode;
+  viewMode: ViewMode;
   heightmap: Float32Array | null;
   brush: BrushState;
   simProgress: SimProgress | null;
   archive: PlanetArchive | null;
   undoStack: Float32Array[];
   redoStack: Float32Array[];
+  markers: Array<{ x: number; y: number }>;
+  mouseHeight: number;
+  mouseBiome: string;
 
   setMode: (mode: AppMode) => void;
+  setViewMode: (vm: ViewMode) => void;
   initHeightmap: (data: Float32Array) => void;
   applyBrush: (x: number, y: number) => void;
   undo: () => void;
@@ -58,6 +65,8 @@ export interface AppState {
   setBrush: (brush: Partial<BrushState>) => void;
   setSimProgress: (progress: SimProgress | null) => void;
   setArchive: (archive: PlanetArchive | null) => void;
+  setMouseInfo: (height: number, biome: string) => void;
+  addMarker: (x: number, y: number) => void;
   reset: () => void;
 }
 
