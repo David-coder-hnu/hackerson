@@ -195,6 +195,11 @@ body {
   cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.15s;
 }
 .lock-button:hover { background: var(--accent-dim); transform: scale(1.02); }
+.lock-error {
+  position: absolute; bottom: 90px; right: 24px; z-index: 50;
+  padding: 8px 16px; background: rgba(200, 60, 40, 0.9); border-radius: var(--radius-sm);
+  font-size: 0.82rem; color: #fff; animation: fadeIn 0.3s ease;
+}
 
 /* Progress overlay */
 .progress-overlay {
@@ -320,3 +325,32 @@ body {
   z-index: 5; font-size: 0.85rem; color: var(--text-dim); opacity: 0.4; pointer-events: none;
   text-align: center; line-height: 1.6;
 }
+
+/* Onboarding card */
+.onboarding-card {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 10; background: rgba(26, 24, 22, 0.92);
+  border: 1px solid var(--accent); border-radius: var(--radius);
+  padding: 24px 32px; max-width: 360px; text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+.onboarding-title {
+  font-size: 1.1rem; font-weight: 600; color: var(--accent); margin-bottom: 16px;
+}
+.onboarding-steps {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.onboarding-step {
+  font-size: 0.82rem; color: var(--text); line-height: 1.5;
+}
+
+/* Notification toast */
+.notification-toast {
+  position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 100; padding: 10px 20px; border-radius: var(--radius-sm);
+  font-size: 0.82rem; color: #fff; animation: fadeIn 0.3s ease;
+}
+.notification-toast.error { background: rgba(200, 60, 40, 0.9); }
+.notification-toast.info { background: rgba(60, 120, 200, 0.9); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

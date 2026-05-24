@@ -17,6 +17,16 @@ import { CustomPinInput, RegionNameInput } from "./components/WorldbuildTools";
 import WorldSummary from "./components/WorldSummary";
 import "./App.css";
 
+function isTerrainFresh(hm: Float32Array | null): boolean {
+  if (!hm) return true;
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i < hm.length; i++) {
+    if (hm[i] < min) min = hm[i];
+    if (hm[i] > max) max = hm[i];
+  }
+  return max - min < 0.01;
+}
+
 export default function App() {
   const initHeightmap = useHeightmapStore((s) => s.initHeightmap);
   const heightmap = useHeightmapStore((s) => s.heightmap);
@@ -29,6 +39,12 @@ export default function App() {
   const [pendingPin, setPendingPin] = useState<{x:number;y:number} | null>(null);
   const [pendingRegionPoints, setPendingRegionPoints] = useState<Array<{x:number;y:number}>>([]);
   const [pendingRegionName, setPendingRegionName] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: "info" | "error" } | null>(null);
+
+  const showNotification = useCallback((message: string, type: "info" | "error" = "error") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  }, []);
 
   const handlePinHover = useCallback((i: number | null) => {
     setHoveredPin(i);
@@ -60,9 +76,10 @@ export default function App() {
     if (hash) {
       const decoded = decodeHeightmap(hash);
       if (decoded) { initHeightmap(decoded); return; }
+      showNotification("分享链接已失效，加载默认地形", "info");
     }
     initHeightmap(createDefaultHeightmap());
-  }, [initHeightmap]);
+  }, [initHeightmap, showNotification]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -163,6 +180,25 @@ export default function App() {
           <span>{pendingRegionPoints.length} 个顶点</span>
           <button className="worldbuild-btn" onClick={() => setPendingRegionName(true)}>完成选区</button>
           <button className="worldbuild-btn cancel" onClick={() => setPendingRegionPoints([])}>取消</button>
+        </div>
+      )}
+
+      {/* Onboarding card for fresh terrain */}
+      {mode === "edit" && isTerrainFresh(heightmap) && (
+        <div className="onboarding-card">
+          <div className="onboarding-title">创建你的星球</div>
+          <div className="onboarding-steps">
+            <span className="onboarding-step">1. 选择一个预设（上方按钮）或直接推拉地形</span>
+            <span className="onboarding-step">2. 左键拖动雕刻地形 · 右键旋转 · 滚轮缩放</span>
+            <span className="onboarding-step">3. 点击右下角「Lock 锁定地形」启动地理模拟</span>
+          </div>
+        </div>
+      )}
+
+      {/* Notification toast */}
+      {notification && (
+        <div className={`notification-toast ${notification.type}`}>
+          {notification.message}
         </div>
       )}
     </div>

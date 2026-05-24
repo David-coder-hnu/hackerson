@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useHeightmapStore } from "../store/heightmap";
 import { runSimulation } from "../simulation/runner";
 
@@ -10,6 +11,7 @@ export default function LockButton() {
   const setArchive = useHeightmapStore((s) => s.setArchive);
   const setRiverData = useHeightmapStore((s) => s.setRiverData);
   const setPinAnalyses = useHeightmapStore((s) => s.setPinAnalyses);
+  const [error, setError] = useState<string | null>(null);
 
   if (mode !== "edit") return null;
 
@@ -44,18 +46,22 @@ export default function LockButton() {
       },
       onError: (err) => {
         setMode("edit");
-        alert(err);
+        setError(err);
+        setTimeout(() => setError(null), 5000);
       },
     });
   };
 
   return (
-    <button className="lock-button" onClick={handleLock}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0110 0v4" />
-      </svg>
-      Lock 锁定地形
-    </button>
+    <>
+      <button className="lock-button" onClick={handleLock}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg>
+        Lock 锁定地形
+      </button>
+      {error && <div className="lock-error">{error}</div>}
+    </>
   );
 }

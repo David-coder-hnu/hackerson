@@ -495,6 +495,20 @@ function SceneControls() {
     };
   }, [gl]);
 
+	  // ---- WebGL context loss/restore ----
+  useEffect(() => {
+    const canvas = gl.domElement;
+    if (!canvas) return;
+    const onContextLost = (e: Event) => { e.preventDefault(); };
+    const onContextRestored = () => { /* R3F handles re-init */ };
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
+    };
+  }, [gl]);
+
   // ---- Per-frame: auto 2D/3D toggle + keyboard movement ----
   useFrame((_, delta) => {
     if (!controlsRef.current) return;
