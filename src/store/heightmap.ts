@@ -143,6 +143,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mouseLat: 0,
   mouseLon: 0,
   multiTouchActive: false,
+  webglLost: false,
   riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
 
   initHeightmap: (data: Float32Array) => {
@@ -191,6 +192,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   setMouseInfo: (height, biome, lat, lon) => set({ mouseHeight: height, mouseBiome: biome, mouseLat: lat, mouseLon: lon }),
 
   setMultiTouchActive: (active) => set({ multiTouchActive: active }),
+  setWebglLost: (lost) => set({ webglLost: lost }),
 
   addMarker: (x, y) => {
     set((s) => ({ markers: [...s.markers, { x, y }] }));

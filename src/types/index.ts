@@ -119,6 +119,7 @@ export interface AppState {
   mouseLat: number;
   mouseLon: number;
   multiTouchActive: boolean;
+  webglLost: boolean;
   riverData: RiverData;
 
   setMode: (mode: AppMode) => void;
@@ -137,6 +138,7 @@ export interface AppState {
   addCustomPin: (x: number, y: number, content: string) => void;
   addCustomRegion: (points: Array<{x:number;y:number}>, name: string) => void;
   setMultiTouchActive: (active: boolean) => void;
+  setWebglLost: (lost: boolean) => void;
   setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
 }

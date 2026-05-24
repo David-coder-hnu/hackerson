@@ -207,6 +207,29 @@ body {
   background: rgba(26,24,22,0.85); display: flex; align-items: center; justify-content: center;
 }
 .progress-card { text-align: center; padding: 40px; }
+.progress-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
+.progress-steps .step {
+  font-size: 0.78rem; color: var(--text-dim); transition: color 0.3s;
+}
+.progress-steps .step.active {
+  color: var(--accent); animation: pulse 1s ease infinite;
+}
+.progress-steps .step.done { color: #4ae0a0; }
+.progress-steps .step-divider { color: var(--text-dim); font-size: 0.7rem; transition: color 0.3s; }
+.progress-steps .step-divider.done { color: #4ae0a0; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* WebGL context lost overlay */
+.webgl-lost-overlay {
+  position: absolute; inset: 0; z-index: 200;
+  background: rgba(26,24,22,0.9); display: flex; align-items: center; justify-content: center;
+}
+.webgl-lost-card { text-align: center; }
+.webgl-lost-card p { color: var(--accent); font-size: 0.9rem; margin-top: 16px; }
 .progress-text { font-size: 1.2rem; margin: 20px 0; }
 .progress-steps { display: flex; align-items: center; gap: 10px; justify-content: center; font-size: 0.8rem; color: var(--text-dim); }
 .step.active { color: var(--accent); }

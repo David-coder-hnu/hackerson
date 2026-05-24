@@ -155,6 +155,16 @@ export default function App() {
       <LockButton />
       <ProgressOverlay />
 
+      {/* WebGL context lost overlay */}
+      {useHeightmapStore((s) => s.webglLost) && (
+        <div className="webgl-lost-overlay">
+          <div className="webgl-lost-card">
+            <div className="spinner" />
+            <p>渲染引擎重启中...</p>
+          </div>
+        </div>
+      )}
+
       {mode === "observing" && (
         <>
           <PlanetArchive />

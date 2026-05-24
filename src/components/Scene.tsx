@@ -499,8 +499,14 @@ function SceneControls() {
   useEffect(() => {
     const canvas = gl.domElement;
     if (!canvas) return;
-    const onContextLost = (e: Event) => { e.preventDefault(); };
-    const onContextRestored = () => { /* R3F handles re-init */ };
+    const setWebglLost = useHeightmapStore.getState().setWebglLost;
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      setWebglLost(true);
+    };
+    const onContextRestored = () => {
+      setWebglLost(false);
+    };
     canvas.addEventListener("webglcontextlost", onContextLost);
     canvas.addEventListener("webglcontextrestored", onContextRestored);
     return () => {
