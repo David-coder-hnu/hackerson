@@ -7,24 +7,30 @@ import {
   prevailingWindDir, latPrecipFactor, getCellGeo,
 } from "./geo";
 import { getWildlife, getMinerals, getCityPotential } from "./knowledge";
+import { HEIGHTMAP_SIZE } from "../types";
 
 declare function postMessage(message: any, transfer?: Transferable[]): void;
 declare var onmessage: ((this: Window, ev: MessageEvent) => any) | null;
 
-const SIZE = 512;
+const SIZE = HEIGHTMAP_SIZE;
 
 function idx(x: number, y: number): number { return y * SIZE + x; }
 function inBounds(x: number, y: number): boolean { return x >= 0 && x < SIZE && y >= 0 && y < SIZE; }
 
-// Depression filling (unchanged)
-function fillDepressions(hm: Float32Array, seaLevel: number): Float32Array {
+export function fillDepressions(hm: Float32Array, seaLevel: number): Float32Array {
   const filled = new Float32Array(hm);
   const closed = new Uint8Array(SIZE * SIZE);
   const pq: [number, number, number][] = [];
 
   function push(x: number, y: number) {
-    pq.push([filled[idx(x, y)], x, y]);
-    pq.sort((a, b) => a[0] - b[0]);
+    const val = filled[idx(x, y)];
+    let i = pq.length;
+    pq.push([val, x, y]);
+    while (i > 0 && pq[i - 1][0] > val) {
+      pq[i] = pq[i - 1];
+      i--;
+    }
+    pq[i] = [val, x, y];
   }
 
   for (let x = 0; x < SIZE; x++) {
@@ -54,8 +60,7 @@ function fillDepressions(hm: Float32Array, seaLevel: number): Float32Array {
   return filled;
 }
 
-// D8 flow direction (unchanged)
-function d8FlowDir(hm: Float32Array): Int8Array {
+export function d8FlowDir(hm: Float32Array): Int8Array {
   const dirs = new Int8Array(SIZE * SIZE).fill(-1);
   const neighbors = [[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1]];
   for (let y = 0; y < SIZE; y++) {
@@ -74,8 +79,7 @@ function d8FlowDir(hm: Float32Array): Int8Array {
   return dirs;
 }
 
-// Flow accumulation (unchanged)
-function flowAccumulation(dirs: Int8Array): Float32Array {
+export function flowAccumulation(dirs: Int8Array): Float32Array {
   const accum = new Float32Array(SIZE * SIZE).fill(1);
   const indeg = new Int32Array(SIZE * SIZE);
   const neighbors = [[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1]];
@@ -203,17 +207,16 @@ function extractLakeRegions(lakeMask: Uint8Array, maxLakes: number): number[][][
   return regions;
 }
 
-function detectLakes(hm: Float32Array, dirs: Int8Array): Uint8Array {
+export function detectLakes(hm: Float32Array, dirs: Int8Array): Uint8Array {
   const lakes = new Uint8Array(SIZE * SIZE);
   const n8 = [[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1]];
-  for (let y = 0; y < SIZE; y++)
-    for (let x = 0; x < SIZE; x++) {
+  for (let y = 1; y < SIZE - 1; y++)
+    for (let x = 1; x < SIZE - 1; x++) {
       if (dirs[idx(x, y)] >= 0) continue;
       const h = hm[idx(x, y)];
       let isPit = true;
       for (const [dx, dy] of n8) {
         const nx = x + dx, ny = y + dy;
-        if (!inBounds(nx, ny)) continue;
         if (hm[idx(nx, ny)] < h) { isPit = false; break; }
       }
       if (isPit && h > 0.01) lakes[idx(x, y)] = 1;
@@ -421,7 +424,7 @@ function climateStats(
 }
 
 // ---- Main handler ----
-onmessage = (e: MessageEvent) => {
+try { onmessage = (e: MessageEvent) => {
   const msg = e.data;
   if (msg.type !== "SIMULATE") return;
 
@@ -453,7 +456,7 @@ onmessage = (e: MessageEvent) => {
   const stats = climateStats(tempMap, precipMap, filled, seaLevel);
 
   // Köppen classification
-  const koppen: KoppenResult = classifyKoppen(stats.monthlyTemp, stats.monthlyPrecip);
+  const koppen: KoppenResult = classifyKoppen(stats.monthlyTemp, stats.monthlyPrecip, stats.avgLat >= 0 ? "N" : "S");
 
   // Holdridge life zone
   const holdridge: HoldridgeZone = classifyHoldridge(stats.monthlyTemp, stats.avgPrecip, stats.maxElev * 3000);
@@ -499,7 +502,7 @@ onmessage = (e: MessageEvent) => {
     // Local monthly estimates
     const monthlyT = generateMonthlyTemp(localT, stats.annualRange, lat >= 0 ? "N" : "S");
     const monthlyP = generateMonthlyPrecip(localP, "summer");
-    const localKoppen = classifyKoppen(monthlyT, monthlyP);
+    const localKoppen = classifyKoppen(monthlyT, monthlyP, lat >= 0 ? "N" : "S");
     const localHoldridge = classifyHoldridge(monthlyT, localP, elev);
     const localSoils = inferSoil(localKoppen.code, localT, localP, elev, slopeDeg);
     const localPlants = recommendPlants(localKoppen.code);
@@ -617,4 +620,4 @@ onmessage = (e: MessageEvent) => {
       pinAnalyses,
     },
   });
-};
+}; } catch { /* not in Worker context */ }

@@ -117,12 +117,8 @@ const fragmentShader = /* glsl */ `
     return smoothstep(60.0, 75.0, abs(lat));
   }
 
-  // ---- National Geographic-style hypsometric ----
-  vec3 landColorNoClimate(float h, float slope, vec2 uv) {
-    float elev = (h - 0.15) * 3.0;
-    float lat = uv.y * 180.0 - 90.0;
-
-    // High-contrast NG-style: 深绿→亮黄绿→金黄→赤褐→红棕→纯白
+  // ---- Shared 6-band hypsometric elevation color ----
+  vec3 landElevationColor(float elev) {
     vec3 meadow  = vec3(0.235, 0.471, 0.220); // 0m   深草绿
     vec3 brightG = vec3(0.482, 0.682, 0.278); // 200m 亮黄绿
     vec3 goldY   = vec3(0.890, 0.741, 0.341); // 500m 金黄色
@@ -130,13 +126,20 @@ const fragmentShader = /* glsl */ `
     vec3 redB    = vec3(0.580, 0.259, 0.169); // 3000m 红棕色
     vec3 white   = vec3(0.980, 0.980, 0.980); // 5000m 纯白
 
-    vec3 col;
-    if (elev < 0.2) col = meadow;
-    else if (elev < 0.5) col = mix(meadow, brightG, (elev - 0.2) / 0.3);
-    else if (elev < 1.5) col = mix(brightG, goldY, (elev - 0.5) / 1.0);
-    else if (elev < 3.0) col = mix(goldY, rustO, (elev - 1.5) / 1.5);
-    else if (elev < 5.0) col = mix(rustO, redB, (elev - 3.0) / 2.0);
-    else col = mix(redB, white, (elev - 5.0) / 3.0);
+    if (elev < 0.2) return meadow;
+    if (elev < 0.5) return mix(meadow, brightG, (elev - 0.2) / 0.3);
+    if (elev < 1.5) return mix(brightG, goldY, (elev - 0.5) / 1.0);
+    if (elev < 3.0) return mix(goldY, rustO, (elev - 1.5) / 1.5);
+    if (elev < 5.0) return mix(rustO, redB, (elev - 3.0) / 2.0);
+    return mix(redB, white, (elev - 5.0) / 3.0);
+  }
+
+  // ---- National Geographic-style hypsometric ----
+  vec3 landColorNoClimate(float h, float slope, vec2 uv) {
+    float elev = (h - 0.15) * 3.0;
+    float lat = uv.y * 180.0 - 90.0;
+
+    vec3 col = landElevationColor(elev);
 
     vec3 ice = vec3(0.980, 0.980, 0.980);
     float s = snowLine(lat, h);
@@ -158,20 +161,7 @@ const fragmentShader = /* glsl */ `
     float lat = uv.y * 180.0 - 90.0;
     float elev = (h - 0.15) * 3.0;
 
-    vec3 meadow  = vec3(0.235, 0.471, 0.220);
-    vec3 brightG = vec3(0.482, 0.682, 0.278);
-    vec3 goldY   = vec3(0.890, 0.741, 0.341);
-    vec3 rustO   = vec3(0.820, 0.420, 0.220);
-    vec3 redB    = vec3(0.580, 0.259, 0.169);
-    vec3 white   = vec3(0.980, 0.980, 0.980);
-
-    vec3 base;
-    if (elev < 0.2) base = meadow;
-    else if (elev < 0.5) base = mix(meadow, brightG, (elev - 0.2) / 0.3);
-    else if (elev < 1.5) base = mix(brightG, goldY, (elev - 0.5) / 1.0);
-    else if (elev < 3.0) base = mix(goldY, rustO, (elev - 1.5) / 1.5);
-    else if (elev < 5.0) base = mix(rustO, redB, (elev - 3.0) / 2.0);
-    else base = mix(redB, white, (elev - 5.0) / 3.0);
+    vec3 base = landElevationColor(elev);
 
     float precip = 1.0;
     if (uHasClimate > 0.5) precip = texture2D(uPrecipMap, uv).r;
@@ -345,8 +335,8 @@ export function setClimateTextures(
 
     const oldP = material.uniforms.uPrecipMap.value as THREE.DataTexture;
     const oldT = material.uniforms.uTempMap.value as THREE.DataTexture;
-    if (oldP && oldP.image.width > 1) oldP.dispose();
-    if (oldT && oldT.image.width > 1) oldT.dispose();
+    oldP?.dispose();
+    oldT?.dispose();
 
     material.uniforms.uPrecipMap.value = pTex;
     material.uniforms.uTempMap.value = tTex;

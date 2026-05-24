@@ -35,9 +35,17 @@ function monthsAbove10(monthlyTemp: number[]): number {
 }
 
 // Determine precipitation seasonality
-function summerPrecipRatio(monthlyPrecip: number[]): number {
-  const summer = monthlyPrecip.slice(3, 8).reduce((a, b) => a + b, 0); // Apr-Sep (NH summer)
-  const winter = monthlyPrecip.slice(9, 12).concat(monthlyPrecip.slice(0, 2)).reduce((a, b) => a + b, 0);
+// hemisphere: "N" = Apr-Sep summer, "S" = Oct-Mar summer
+function summerPrecipRatio(monthlyPrecip: number[], hemisphere: "N" | "S" = "N"): number {
+  let summer: number;
+  let winter: number;
+  if (hemisphere === "S") {
+    summer = monthlyPrecip.slice(9, 12).concat(monthlyPrecip.slice(0, 3)).reduce((a, b) => a + b, 0);
+    winter = monthlyPrecip.slice(3, 9).reduce((a, b) => a + b, 0);
+  } else {
+    summer = monthlyPrecip.slice(3, 9).reduce((a, b) => a + b, 0);
+    winter = monthlyPrecip.slice(9, 12).concat(monthlyPrecip.slice(0, 3)).reduce((a, b) => a + b, 0);
+  }
   return summer / (summer + winter);
 }
 
@@ -60,7 +68,8 @@ function aridityThreshold(annualT: number, summerPct: number): number {
 
 export function classifyKoppen(
   monthlyTemp: number[],
-  monthlyPrecip: number[]
+  monthlyPrecip: number[],
+  hemisphere: "N" | "S" = "N"
 ): KoppenResult {
   const Tann = annualMeanTemp(monthlyTemp);
   const Pann = annualPrecip(monthlyPrecip);
@@ -69,7 +78,7 @@ export function classifyKoppen(
   const Pdry = driestMonth(monthlyPrecip);
   const Pwet = wettestMonth(monthlyPrecip);
   const months10 = monthsAbove10(monthlyTemp);
-  const summerRatio = summerPrecipRatio(monthlyPrecip);
+  const summerRatio = summerPrecipRatio(monthlyPrecip, hemisphere);
 
   // ---- A: Tropical (Tcold >= 18°C) ----
   if (Tcold >= 18) {

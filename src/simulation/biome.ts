@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Holdridge Life Zone system + biome inference
 // Based on: 生态-农业-土壤综合诊断系统
 
@@ -80,16 +79,12 @@ function humidityProvince(per: number): string {
 export function classifyHoldridge(
   monthlyTemp: number[],
   annualP: number,
-  elevation: number // meters
+  _elevation: number // meters — reserved for altitude correction
 ): HoldridgeZone {
   const bt = computeBiotemperature(monthlyTemp);
   const per = computePER(bt, annualP);
   const belt = latitudinalBelt(bt);
   const humidity = humidityProvince(per);
-
-  // Altitude correction: -0.6°C per 100m
-  const altBT = bt - (elevation / 100) * 0.6;
-  const altBelt = latitudinalBelt(Math.max(0, altBT));
 
   let biomeZh = "";
   let biome = "";
@@ -132,47 +127,47 @@ const SOIL_RULES: SoilRule[] = [
   // Tropical rainforest soils
   { condition: (c, t, p, e, s) => c === "Af" && t > 24 && p > 2000 && e < 500 && s < 5,
     soil: { name: "砖红壤", wrb: "Ferralsols", frequency: "dominant", note: "强脱硅富铝化，铁铝富集，深厚酸性", confidence: "高" } },
-  { condition: (c, t, p, e, s) => c === "Af" && t > 24 && p > 2000 && e >= 500 && e < 1500,
+  { condition: (c, t, p, e, _s) => c === "Af" && t > 24 && p > 2000 && e >= 500 && e < 1500,
     soil: { name: "黄壤", wrb: "Alisols", frequency: "common", note: "铁氧化物水化呈黄色", confidence: "高" } },
   // Tropical monsoon soils
-  { condition: (c, t, p, e, s) => c === "Am" && e < 500 && s < 5,
+  { condition: (c, _t, _p, e, s) => c === "Am" && e < 500 && s < 5,
     soil: { name: "赤红壤", wrb: "Acrisols", frequency: "dominant", note: "干季使结构稍好", confidence: "高" } },
-  { condition: (c, t, p, e, s) => c === "Am" && s >= 5,
+  { condition: (c, _t, _p, _e, s) => c === "Am" && s >= 5,
     soil: { name: "山地赤红壤", wrb: "Skeletic Acrisols", frequency: "common", note: "迎风坡强烈淋溶", confidence: "高" } },
   // Savanna soils
-  { condition: (c, t, p, e, s) => (c === "Aw" || c === "As") && p > 600 && s < 5,
+  { condition: (c, _t, p, _e, s) => (c === "Aw" || c === "As") && p > 600 && s < 5,
     soil: { name: "燥红土", wrb: "Chromic Luvisols", frequency: "dominant", note: "干季显著,铁氧化物脱水呈红褐", confidence: "高" } },
-  { condition: (c, t, p, e, s) => (c === "Aw" || c === "As") && p < 800,
+  { condition: (c, _t, p, _e, _s) => (c === "Aw" || c === "As") && p < 800,
     soil: { name: "变性土", wrb: "Vertisols", frequency: "common", note: "干湿交替膨缩裂隙", confidence: "中" } },
   // Hot desert
-  { condition: (c, t, p, e, s) => c === "BWh",
+  { condition: (c, _t, _p, _e, _s) => c === "BWh",
     soil: { name: "石质土/漠土", wrb: "Leptosols / Calcisols", frequency: "dominant", note: "极度干旱,物理风化为主,钙积层发育", confidence: "高" } },
   // Cold desert
-  { condition: (c, t, p, e, s) => c === "BWk" || c === "BSk",
+  { condition: (c, _t, _p, _e, _s) => c === "BWk" || c === "BSk",
     soil: { name: "钙积土/栗钙土", wrb: "Calcisols / Kastanozems", frequency: "dominant", note: "干旱区钙积,有机质积累弱", confidence: "高" } },
   // Mediterranean
-  { condition: (c, t, p, e, s) => (c === "Csa" || c === "Csb") && s < 10,
+  { condition: (c, _t, _p, _e, s) => (c === "Csa" || c === "Csb") && s < 10,
     soil: { name: "淋溶土/钙积淋溶土", wrb: "Luvisols / Calcic Luvisols", frequency: "dominant", note: "干季钙积,湿季淋溶", confidence: "高" } },
   // Humid subtropical
-  { condition: (c, t, p, e, s) => (c === "Cfa" || c === "Cwa") && e < 500,
+  { condition: (c, _t, _p, e, _s) => (c === "Cfa" || c === "Cwa") && e < 500,
     soil: { name: "淋溶土/老成土", wrb: "Luvisols / Alisols", frequency: "dominant", note: "黏化层发育,盐基中度淋失", confidence: "高" } },
   // Oceanic
-  { condition: (c, t, p, e, s) => c === "Cfb",
+  { condition: (c, _t, _p, _e, _s) => c === "Cfb",
     soil: { name: "淋溶土/雏形土", wrb: "Luvisols / Cambisols", frequency: "dominant", note: "温和湿润,矿物风化适中", confidence: "高" } },
   // Humid continental
-  { condition: (c, t, p, e, s) => (c === "Dfa" || c === "Dfb" || c === "Dwa" || c === "Dwb"),
+  { condition: (c, _t, _p, _e, _s) => (c === "Dfa" || c === "Dfb" || c === "Dwa" || c === "Dwb"),
     soil: { name: "淋溶土/黑钙土", wrb: "Luvisols / Chernozems", frequency: "dominant", note: "有机质丰富(草原区),淋溶适中(林区)", confidence: "高" } },
   // Subarctic
-  { condition: (c, t, p, e, s) => (c === "Dfc" || c === "Dwc" || c === "Dfd"),
+  { condition: (c, _t, _p, _e, _s) => (c === "Dfc" || c === "Dwc" || c === "Dfd"),
     soil: { name: "灰化土", wrb: "Podzols", frequency: "dominant", note: "强烈酸性淋溶,灰化层发育", confidence: "高" } },
   // Tundra
-  { condition: (c, t, p, e, s) => c === "ET",
+  { condition: (c, _t, _p, _e, _s) => c === "ET",
     soil: { name: "永冻潜育土", wrb: "Cryosols / Gleysols", frequency: "dominant", note: "多年冻土,潜育化,有机质分解极慢", confidence: "高" } },
   // Mountain/steep terrain modifier
-  { condition: (c, tc, p, e, s) => s > 25,
+  { condition: (_c, _tc, _p, _e, s) => s > 25,
     soil: { name: "石质薄层土", wrb: "Leptosols", frequency: "dominant", note: "坡度>25°,侵蚀强烈,基岩出露", confidence: "高" } },
   // Valley modifier
-  { condition: (c, tc, p, e, s) => s < 3 && e < 300,
+  { condition: (_c, _tc, _p, e, s) => s < 3 && e < 300,
     soil: { name: "冲积土", wrb: "Fluvisols", frequency: "dominant", note: "河谷深厚冲积物沉积", confidence: "高" } },
 ];
 

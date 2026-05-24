@@ -60,7 +60,7 @@ function avgInRadius(
   return count > 0 ? sum / count : hm[getIndex(cx, cy)];
 }
 
-function applyBrushOp(
+export function applyBrushOp(
   hm: Float32Array,
   cx: number,
   cy: number,
