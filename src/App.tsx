@@ -39,6 +39,7 @@ export default function App() {
   const [pendingPin, setPendingPin] = useState<{x:number;y:number} | null>(null);
   const [pendingRegionPoints, setPendingRegionPoints] = useState<Array<{x:number;y:number}>>([]);
   const [pendingRegionName, setPendingRegionName] = useState(false);
+  const webglLost = useHeightmapStore((s) => s.webglLost);
   const [notification, setNotification] = useState<{ message: string; type: "info" | "error" } | null>(null);
 
   const showNotification = useCallback((message: string, type: "info" | "error" = "error") => {
@@ -156,7 +157,7 @@ export default function App() {
       <ProgressOverlay />
 
       {/* WebGL context lost overlay */}
-      {useHeightmapStore((s) => s.webglLost) && (
+      {webglLost && (
         <div className="webgl-lost-overlay">
           <div className="webgl-lost-card">
             <div className="spinner" />
