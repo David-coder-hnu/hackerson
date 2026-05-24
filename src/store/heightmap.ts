@@ -60,6 +60,34 @@ function avgInRadius(
   return count > 0 ? sum / count : hm[getIndex(cx, cy)];
 }
 
+function blurredRegion(
+  hm: Float32Array,
+  cx: number,
+  cy: number,
+  radius: number
+): Float32Array {
+  const r = Math.ceil(radius);
+  const size = r * 2 + 1;
+  const result = new Float32Array(size * size);
+  // Box blur: average over a window of radius/2 for each cell
+  const winR = Math.max(1, Math.ceil(radius / 2));
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      const px = cx + dx, py = cy + dy;
+      if (!inBounds(px, py)) continue;
+      let sum = 0, count = 0;
+      for (let wy = -winR; wy <= winR; wy++) {
+        for (let wx = -winR; wx <= winR; wx++) {
+          const nx = px + wx, ny = py + wy;
+          if (inBounds(nx, ny)) { sum += hm[getIndex(nx, ny)]; count++; }
+        }
+      }
+      result[(dy + r) * size + (dx + r)] = count > 0 ? sum / count : hm[getIndex(px, py)];
+    }
+  }
+  return result;
+}
+
 export function applyBrushOp(
   hm: Float32Array,
   cx: number,
@@ -70,6 +98,15 @@ export function applyBrushOp(
 ): void {
   const sigma = radius / 3;
   const points = gaussianKernel(cx, cy, radius);
+
+  // Pre-compute blurred region for smooth/flatten to avoid O(n²)
+  let blurred: Float32Array | null = null;
+  let blurSize = 0;
+  const needsBlur = type === "smooth" || type === "flatten";
+  if (needsBlur) {
+    blurred = blurredRegion(hm, cx, cy, radius);
+    blurSize = Math.ceil(radius) * 2 + 1;
+  }
 
   for (const [px, py] of points) {
     if (!inBounds(px, py)) continue;
@@ -85,13 +122,15 @@ export function applyBrushOp(
         hm[idx] = Math.max(0, hm[idx] - strength * w);
         break;
       case "flatten": {
-        const avg = avgInRadius(hm, px, py, radius);
+        const bi = (py - cy + Math.ceil(radius)) * blurSize + (px - cx + Math.ceil(radius));
+        const avg = blurred![bi] ?? avgInRadius(hm, px, py, radius);
         hm[idx] = hm[idx] + (avg - hm[idx]) * strength * w;
         break;
       }
       case "smooth": {
-        const avg = avgInRadius(hm, px, py, radius);
-        const blend = Math.min(1, strength * 8 * w); // 8x boost for visible smoothing
+        const bi = (py - cy + Math.ceil(radius)) * blurSize + (px - cx + Math.ceil(radius));
+        const avg = blurred![bi] ?? avgInRadius(hm, px, py, radius);
+        const blend = Math.min(1, strength * 8 * w);
         hm[idx] = hm[idx] + (avg - hm[idx]) * blend;
         break;
       }
