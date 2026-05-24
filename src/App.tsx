@@ -17,15 +17,6 @@ import { CustomPinInput, RegionNameInput } from "./components/WorldbuildTools";
 import WorldSummary from "./components/WorldSummary";
 import "./App.css";
 
-function isTerrainFresh(hm: Float32Array | null): boolean {
-  if (!hm) return true;
-  let min = Infinity, max = -Infinity;
-  for (let i = 0; i < hm.length; i++) {
-    if (hm[i] < min) min = hm[i];
-    if (hm[i] > max) max = hm[i];
-  }
-  return max - min < 0.01;
-}
 
 export default function App() {
   const initHeightmap = useHeightmapStore((s) => s.initHeightmap);
@@ -40,6 +31,7 @@ export default function App() {
   const [pendingRegionPoints, setPendingRegionPoints] = useState<Array<{x:number;y:number}>>([]);
   const [pendingRegionName, setPendingRegionName] = useState(false);
   const webglLost = useHeightmapStore((s) => s.webglLost);
+  const terrainFresh = useHeightmapStore((s) => s.terrainFresh);
   const [notification, setNotification] = useState<{ message: string; type: "info" | "error" } | null>(null);
 
   const showNotification = useCallback((message: string, type: "info" | "error" = "error") => {
@@ -76,7 +68,7 @@ export default function App() {
     const hash = getHashFromUrl();
     if (hash) {
       const decoded = decodeHeightmap(hash);
-      if (decoded) { initHeightmap(decoded); return; }
+      if (decoded) { initHeightmap(decoded); useHeightmapStore.getState().setTerrainFresh(false); return; }
       showNotification("分享链接已失效，加载默认地形", "info");
     }
     initHeightmap(createDefaultHeightmap());
@@ -195,7 +187,7 @@ export default function App() {
       )}
 
       {/* Onboarding card for fresh terrain */}
-      {mode === "edit" && isTerrainFresh(heightmap) && (
+      {mode === "edit" && terrainFresh && (
         <div className="onboarding-card">
           <div className="onboarding-title">创建你的星球</div>
           <div className="onboarding-steps">
@@ -231,6 +223,7 @@ function PresetButtons() {
   const handlePreset = async (key: typeof presets[0]["key"]) => {
     const { generatePreset } = await import("./presets/generate");
     initHeightmap(generatePreset(key));
+    useHeightmapStore.getState().setTerrainFresh(false);
   };
 
   return (

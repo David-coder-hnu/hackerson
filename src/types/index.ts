@@ -120,6 +120,7 @@ export interface AppState {
   mouseLon: number;
   multiTouchActive: boolean;
   webglLost: boolean;
+  terrainFresh: boolean;
   riverData: RiverData;
 
   setMode: (mode: AppMode) => void;
@@ -139,6 +140,7 @@ export interface AppState {
   addCustomRegion: (points: Array<{x:number;y:number}>, name: string) => void;
   setMultiTouchActive: (active: boolean) => void;
   setWebglLost: (lost: boolean) => void;
+  setTerrainFresh: (fresh: boolean) => void;
   setRiverData: (data: Partial<RiverData>) => void;
   reset: () => void;
 }

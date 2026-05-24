@@ -68,23 +68,69 @@ function blurredRegion(
 ): Float32Array {
   const r = Math.ceil(radius);
   const size = r * 2 + 1;
-  const result = new Float32Array(size * size);
-  // Box blur: average over a window of radius/2 for each cell
   const winR = Math.max(1, Math.ceil(radius / 2));
+  const winW = winR * 2 + 1;
+
+  // Extract region values into a dense buffer (out-of-bounds = NaN sentinel)
+  const src = new Float32Array(size * size);
+  src.fill(NaN);
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
       const px = cx + dx, py = cy + dy;
-      if (!inBounds(px, py)) continue;
-      let sum = 0, count = 0;
-      for (let wy = -winR; wy <= winR; wy++) {
-        for (let wx = -winR; wx <= winR; wx++) {
-          const nx = px + wx, ny = py + wy;
-          if (inBounds(nx, ny)) { sum += hm[getIndex(nx, ny)]; count++; }
-        }
-      }
-      result[(dy + r) * size + (dx + r)] = count > 0 ? sum / count : hm[getIndex(px, py)];
+      if (inBounds(px, py)) src[(dy + r) * size + (dx + r)] = hm[getIndex(px, py)];
     }
   }
+
+  // Separable box blur: horizontal → vertical, each O(r²) with sliding window
+  const hBlur = new Float32Array(size * size);
+  for (let row = 0; row < size; row++) {
+    let sum = 0, count = 0;
+    // Initialize window at leftmost position
+    for (let wx = 0; wx < winW && wx < size; wx++) {
+      const v = src[row * size + wx];
+      if (!isNaN(v)) { sum += v; count++; }
+    }
+    hBlur[row * size + 0] = count > 0 ? sum / count : NaN;
+    // Slide window right
+    for (let col = 1; col < size; col++) {
+      const leave = col - 1;
+      const enter = col + winW - 1;
+      if (enter < size) {
+        const ve = src[row * size + enter];
+        if (!isNaN(ve)) { sum += ve; count++; }
+      }
+      if (leave < size) {
+        const vl = src[row * size + leave];
+        if (!isNaN(vl)) { sum -= vl; count--; }
+      }
+      hBlur[row * size + col] = count > 0 ? sum / count : NaN;
+    }
+  }
+
+  // Vertical pass: sliding window over columns of hBlur
+  const result = new Float32Array(size * size);
+  for (let col = 0; col < size; col++) {
+    let sum = 0, count = 0;
+    for (let wy = 0; wy < winW && wy < size; wy++) {
+      const v = hBlur[wy * size + col];
+      if (!isNaN(v)) { sum += v; count++; }
+    }
+    result[0 * size + col] = count > 0 ? sum / count : NaN;
+    for (let row = 1; row < size; row++) {
+      const leave = row - 1;
+      const enter = row + winW - 1;
+      if (enter < size) {
+        const ve = hBlur[enter * size + col];
+        if (!isNaN(ve)) { sum += ve; count++; }
+      }
+      if (leave < size) {
+        const vl = hBlur[leave * size + col];
+        if (!isNaN(vl)) { sum -= vl; count--; }
+      }
+      result[row * size + col] = count > 0 ? sum / count : NaN;
+    }
+  }
+
   return result;
 }
 
@@ -183,10 +229,11 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
   mouseLon: 0,
   multiTouchActive: false,
   webglLost: false,
+  terrainFresh: true,
   riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
 
   initHeightmap: (data: Float32Array) => {
-    set({ heightmap: data, mode: "edit", undoStack: [], redoStack: [] });
+    set({ heightmap: data, mode: "edit", undoStack: [], redoStack: [], terrainFresh: true });
   },
 
   applyBrush: (x: number, y: number) => {
@@ -195,7 +242,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
     const copy = new Float32Array(heightmap);
     applyBrushOp(copy, x, y, brush.radius, brush.strength, brush.type);
     const newUndo = [...undoStack, new Float32Array(heightmap)].slice(-MAX_UNDO);
-    set({ heightmap: copy, undoStack: newUndo, redoStack: [] });
+    set({ heightmap: copy, undoStack: newUndo, redoStack: [], terrainFresh: false });
   },
 
   undo: () => {
@@ -232,6 +279,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
 
   setMultiTouchActive: (active) => set({ multiTouchActive: active }),
   setWebglLost: (lost) => set({ webglLost: lost }),
+  setTerrainFresh: (fresh) => set({ terrainFresh: fresh }),
 
   addMarker: (x, y) => {
     set((s) => ({ markers: [...s.markers, { x, y }] }));
@@ -279,6 +327,7 @@ export const useHeightmapStore = create<AppState>((set, get) => ({
       mouseHeight: 0,
       mouseBiome: "海洋",
       multiTouchActive: false,
+      terrainFresh: true,
       riverData: { riverMask: null, lakeMask: null, flowAccum: null, precipMap: null, tempMap: null, riverPaths: null, lakeRegions: null },
     });
   },
